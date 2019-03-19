@@ -1,19 +1,20 @@
-from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
+import datetime
+import glob
+import os
+import shutil  # Delete folder
+import sys
+import threading
+import time
 import tkinter as tk
 import webbrowser
-import threading
-import datetime
-import shutil  # Delete folder
-import glob
-import time
-import sys
-import os
+from tkinter import *
+from tkinter import filedialog
+from tkinter import ttk
+
 import receiver
 
+
 # Temporary
-from tkinter import messagebox
 
 
 class UserInterface(Frame):
@@ -173,7 +174,7 @@ class UserInterface(Frame):
 
         self.main_text_interface(button_frame, x=10)
 
-        # Empty row for design purposes.
+        # Empty row for design purposes
         empty_row = ttk.Label(button_frame,
                               text=" ")
         empty_row.grid(columnspan=3,
