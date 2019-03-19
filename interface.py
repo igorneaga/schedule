@@ -2,7 +2,6 @@ import datetime
 import glob
 import os
 import shutil  # Delete folder
-import sys
 import threading
 import time
 import tkinter as tk
@@ -174,7 +173,7 @@ class UserInterface(Frame):
 
         self.main_text_interface(button_frame, x=10)
 
-        # Empty row for design purposes
+        # Empty row for design purposes.
         empty_row = ttk.Label(button_frame,
                               text=" ")
         empty_row.grid(columnspan=3,
