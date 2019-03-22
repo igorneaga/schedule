@@ -80,7 +80,7 @@ class UserInterface(Frame):
     def open_pdf(self):
         """Instructions on how to use this program. Extremely useful"""
 
-        return os.startfile("Uni-Schedule Instructions.pdf")
+        return os.startfile("Uni-Scheduler-Instructions.pdf")
 
     def main_text_interface(self, button_frame, x=52, include_instructions=True):
         """Repeated title text"""
