@@ -632,8 +632,16 @@ class UserInterface(Frame):
             def scroll_error_messages():
                 """Shows all the errors"""
                 for i in range(len(clear_error_list)):
-                    conflict_row_message = str(clear_error_list[i].get("Message"))
-                    Label(frame, text=conflict_row_message, background="#ee8282").grid(row=i, column=0)
+                    if str(clear_error_list[i].get("Message")) == "None":
+                        pass
+                    elif str(clear_error_list[i].get("Message")) == "A program couldn't read this row correctly. " \
+                                                                    "Report it if needed.":
+                        pass
+                    else:
+                        conflict_row_message = str(clear_error_list[i].get("Message"))
+                        print(conflict_row_message)
+                        print(len(conflict_row_message))
+                        Label(frame, text=conflict_row_message, background="#ee8282").grid(sticky="w", row=i, column=0)
 
             def show_all_messages(event):
                 canvas.configure(scrollregion=canvas.bbox("all"), width=600, height=60)
