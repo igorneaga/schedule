@@ -13,9 +13,6 @@ from tkinter import ttk
 import receiver
 
 
-# Temporary
-
-
 class UserInterface(Frame):
 
     def __init__(self, master):
@@ -23,17 +20,14 @@ class UserInterface(Frame):
         self.grid()
 
         # Assets
-        self.fix_image = tk.PhotoImage(file='assets\\back_icon_45x45.png')
-        self.info_image = tk.PhotoImage(file='assets\\back_icon_45x45.png')
+        self.fix_image = tk.PhotoImage(file='assets\\report_x45.png')
+        self.info_image = tk.PhotoImage(file='assets\\info_x45.png')
         self.back_image = tk.PhotoImage(file='assets\\back_icon_45x45.png')
-        self.out_order_image = tk.PhotoImage(file='assets\\table_default_order.png')
-        self.in_order_image = tk.PhotoImage(file='assets\\table_in_order.png')
+        self.out_order_image = tk.PhotoImage(file='assets\\table_v05_default.png')
+        self.in_order_image = tk.PhotoImage(file='assets\\table_v05_in_order.png')
         self.excel_copy_fie = tk.PhotoImage(file='assets\\excel_files_icon.png')
         self.excel_main_file = tk.PhotoImage(file='assets\\master_file_icon.png')
         self.exit_file = tk.PhotoImage(file='assets\\quit_button.png')
-
-        self.out_order_image = self.out_order_image.subsample(2)
-        self.in_order_image = self.in_order_image.subsample(2)
 
         # Default table characteristics
         self.table_settings_type = 1
@@ -49,10 +43,9 @@ class UserInterface(Frame):
         self.files_string = None
 
         # GUI windows
-        self.first_step_window = None
-        self.second_step_window = None
-        self.creating_step_window = None
+        self.selection_window = None
         self.settings_window = None
+        self.creating_step_window = None
         self.notification_window = None
 
         # GUI buttons, radio buttons, insertion box and others
@@ -66,16 +59,17 @@ class UserInterface(Frame):
         # A label which will keep updating once user choose a data file
         self.button_text = tk.StringVar()
         self.button_text.set("File(s) Selected: ")
-        self.create_files_names = Button(self.second_step_window, border=0, textvariable=self.button_text, command=self.changes_window_open,
+        self.create_files_names = Button(self.selection_window, border=0, textvariable=self.button_text, command=self.changes_window_open,
                                          foreground="gray", font=("Arial", 11, "bold"))
 
-        # Stores all errors found from receiverr.py
+        # Stores all errors found from receiver.py
         self.error_data_list = []
 
         # Deletes previous files
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
 
+        # Starts at this window
         self.selection_step_window()
 
     def submit_tickcet_form(self):
@@ -89,10 +83,8 @@ class UserInterface(Frame):
         return os.startfile("Uni-Schedule Instructions.pdf")
 
     def main_text_interface(self, button_frame, x=52, include_instructions=True):
-        """Having repeated text such as main text, description,
-        issue report icon, and information icon"""
-
-        # What is the program main build for
+        """Repeated title text"""
+        # Title
         main_text = ttk.Label(button_frame,
                               text="Schedule Builder",
                               foreground="green",
@@ -104,8 +96,8 @@ class UserInterface(Frame):
                        padx=x,
                        pady=10)
 
-        # What it does/creates
-        main_text_functionality = ttk.Label(button_frame, text="Room table, master table and others... ",
+        # Short descriptions
+        main_text_functionality = ttk.Label(button_frame, text="Creates a room table for courses...    ",
                                             foreground="gray",
                                             font=("Courier", 10, 'bold'))
         main_text_functionality.grid(sticky="SW",
@@ -113,7 +105,7 @@ class UserInterface(Frame):
                                      row=1,
                                      padx=x)
 
-        # Creating buttons and setting location for them
+        # Button for report/request
         problem_button = Button(button_frame,
                                 border='0',
                                 text="Report a problem or request",
@@ -128,6 +120,7 @@ class UserInterface(Frame):
 
         if include_instructions is True:
 
+            # Button for instructions
             info_button = Button(button_frame,
                                  border='0',
                                  text="Instructions/Information",
@@ -146,13 +139,10 @@ class UserInterface(Frame):
                               compound=RIGHT)
 
     def interface_window_remover(self):
-        """Removes a window once a user goes to a next step or previous step"""
+        """Removes window once a user goes to a next step or previous step."""
 
-        if self.second_step_window:
-            self.second_step_window.grid_remove()
-
-        if self.first_step_window:
-            self.first_step_window.grid_remove()
+        if self.selection_window:
+            self.selection_window.grid_remove()
 
         if self.settings_window:
             self.settings_window.grid_remove()
@@ -163,66 +153,7 @@ class UserInterface(Frame):
         if self.notification_window:
             self.notification_window.grid_remove()
 
-    def excel_template_instructions(self):
-
-        self.interface_window_remover()
-
-        button_frame = self.first_step_window = Frame(self)
-        button_frame.grid()
         self.create_files_names.place_forget()
-
-        self.main_text_interface(button_frame, x=10)
-
-        # Empty row for design purposes.
-        empty_row = ttk.Label(button_frame,
-                              text=" ")
-        empty_row.grid(columnspan=3,
-                       row=3)
-
-        open_excel_template = Button(button_frame,
-                                     relief="groove",
-                                     bg='#c5eb93',
-                                     border='4',
-                                     text="Open a template",
-                                     command=self.open_excel_template,
-                                     foreground="green",
-                                     font=('Arial', 20, 'bold'))
-
-        open_excel_template.grid(sticky="S",
-                                 columnspan=3,
-                                 row=4,
-                                 pady=10)
-
-        excel_template_description = tk.Label(button_frame,
-                                              text='Use the following template to assign the courses. This template will help to keep all the \n'
-                                                   'information in the same format. Each department can have one template or more. If you     \n'
-                                                   'want to change anything in the  template - please click "Report a problem or request"       ',
-                                              foreground="gray",
-                                              padx=17,
-                                              font=("Arial", 11, 'bold'))
-        excel_template_description.grid(row=6,
-                                        column=0,
-                                        columnspan=3,
-                                        sticky='W')
-
-        next_step_button = Button(button_frame,
-                                  relief="groove",
-                                  bg='#c5eb93',
-                                  border='4',
-                                  text="Move to next step",
-                                  command=self.selection_step_window,
-                                  foreground="green",
-                                  font=('Arial', 16, 'bold'))
-        next_step_button.grid(row=6,
-                              sticky="NE",
-                              rowspan=9,
-                              column=2,
-                              padx=3,
-                              pady=88)
-
-    def open_excel_template(self):
-        """Includes an excel course schedule template which been agreed as a good template to use"""
-        os.startfile('__Excel_Template.xltx')
 
     def select_excel_files(self):
         """Once a user selects the file - it will hold in the list."""
@@ -240,6 +171,8 @@ class UserInterface(Frame):
 
     def show_excel_files(self):
         """Shows to the user which files has been chosen"""
+
+        # Prepare the file names into the proper format.
         symbol = '\ '
         self.files_show_names = []
         for i in self.files_show_directory:
@@ -260,54 +193,45 @@ class UserInterface(Frame):
 
             self.update_button_text(self.files_string)
 
+        # Adds a comma if the number of files more than one
         elif len(self.files_show_names) >= 2:
             self.files_string = ("File(s) Selected: " + ", ".join(self.files_show_names))
 
+            # Removes the strings if the number of words exceeds the limit.
             while len(self.files_string) > 83:
                 self.files_string = self.files_string[:-1]
 
+            # Adds  the triple dots if the number of words exceeds the limit
             if len(self.files_string) >= 83:
                 self.files_string = self.files_string + "...\n"
-
+            # Updates the file selected text.
             self.update_button_text(self.files_string)
 
     def update_button_text(self, text):
+        """Updates the string in the GUI"""
         self.button_text.set(text)
 
     def changes_window_open(self):
+        # For the future update
         pass
 
     def selection_step_window(self):
-        if self.first_step_window:
-            self.first_step_window.grid_remove()
+        # Removes any other necessary window
+        self.interface_window_remover()
 
-        if self.settings_window:
-            self.settings_window.grid_remove()
-
-        button_frame = self.second_step_window = Frame(self)
+        # Creates a frame
+        button_frame = self.selection_window = Frame(self)
         button_frame.grid()
 
+        # Sets repeated text
         self.main_text_interface(button_frame, x=10)
-
-        """
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.back_image,
-                             command=self.excel_template_instructions)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=7,
-                         padx=3)
-        """
 
         # Empty row for design purpose
         empty_row = ttk.Label(button_frame,
                               text=" ")
         empty_row.grid(columnspan=3,
                        row=3)
-
+        # A button to select files
         select_all_files = Button(button_frame,
                                   relief="groove",
                                   bg='#c5eb93',
@@ -317,8 +241,11 @@ class UserInterface(Frame):
                                   foreground="green",
                                   font=('Arial', 18, 'bold'))
         select_all_files.place(x=126, y=120)
-        self.create_files_names.place(x=8, y=207)  # Files selected category
 
+        # Sets location for files selected
+        self.create_files_names.place(x=8, y=207)
+
+        # Short description for select button
         button_select_description = tk.Label(button_frame,
                                              text='Select an excel file/files which you would '
                                                   'like to make a table from',
@@ -326,12 +253,13 @@ class UserInterface(Frame):
                                              font=("Arial", 10, 'bold'))
         button_select_description.place(x=105, y=178)
 
+        # For future update which will allow to Change/View/Delete file(s)
         difference_explanation_text = tk.Button(button_frame,
                                                 border=0,
                                                 text='Change/View/Delete file(s)',
                                                 foreground="gray",
                                                 font=("Arial", 10, "bold", 'underline'))
-        difference_explanation_text.place(x=8, y=246)  # Files selected category
+        difference_explanation_text.place(x=8, y=246)
 
         self.create_table_button = Button(button_frame,
                                           relief="groove",
@@ -350,25 +278,25 @@ class UserInterface(Frame):
 
         if not self.files_show_directory:
 
+            # Will allow going to the next window once you selected at least one file
             self.create_table_button.configure(bg="#d9dad9",
                                                relief=SUNKEN,
                                                border='1',
                                                state="disabled")
-        else:
-            pass
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
 
-        if self.second_step_window:
-            self.second_step_window.grid_remove()
-            self.create_files_names.place_forget()
+        # Removes previous window
+        self.interface_window_remover()
 
+        # Creates a new frame
         button_frame = self.settings_window = Frame(self)
         button_frame.grid()
 
         self.main_text_interface(button_frame)
 
+        # The back button which will allow moving to the previous window
         back_button = Button(button_frame,
                              border='0',
                              image=self.back_image,
@@ -380,27 +308,28 @@ class UserInterface(Frame):
                          pady=7,
                          padx=3)
 
+        # Empty row in GUI for design purpose
         empty_row = ttk.Label(button_frame,
                               text=" ")
         empty_row.grid(columnspan=3,
                        row=3)
 
-        table_text = ttk.Label(button_frame,
-                               text="Which type of order would you prefer?   ",
-                               foreground="green",
-                               font=('Arial', 13, 'bold'))
-        table_text.grid(sticky='WN',
-                        column=0,
-                        row=2,
-                        rowspan=3,
-                        padx=13,
-                        pady=20)
+        heading = ttk.Label(button_frame,
+                            text="Table settings:",
+                            foreground="green",
+                            font=('Arial', 14))
+        heading.grid(sticky='WN',
+                     column=0,
+                     row=2,
+                     rowspan=3,
+                     padx=13,
+                     pady=20)
 
         # Select table type
         self.get_value = tk.IntVar()
-
         self.include_friday = tk.IntVar()
 
+        # Allow the user to select the day order(incomplete)
         self.table_order_default = Radiobutton(button_frame,
                                                text="Default order",
                                                font=('Arial', 11),
@@ -441,19 +370,19 @@ class UserInterface(Frame):
                                 sticky='w',
                                 padx=150)
 
-        # Table name
+        # Allow user to set the table name
         get_table_name = ttk.Label(button_frame,
-                                   text="Name the table",
+                                   text="Name the table: ",
                                    foreground="green",
-                                   font=('Courier', 18, 'bold'))
-
+                                   font=('Arial', 18))
         get_table_name.grid(column=0,
                             columnspan=3,
                             row=3,
                             sticky='ES',
-                            padx=85,
+                            padx=95,
                             pady=10)
 
+        # A box to allow user type a name of the table they desire
         self.table_name_insertion_box = Text(button_frame,
                                              height=1.2,
                                              width=27)
@@ -465,43 +394,27 @@ class UserInterface(Frame):
                                            padx=49,
                                            pady=50)
 
-        next_step_button = Button(button_frame,
-                                  relief="groove",
-                                  bg='#c5eb93',
-                                  border='4',
-                                  text="Create table",
-                                  command=self.user_friday_choice,
-                                  foreground="green",
-                                  font=('Arial', 16, 'bold'))
-
-        next_step_button.grid(column=0,
-                              columnspan=3,
-                              row=5,
-                              rowspan=5,
-                              sticky='EN',
-                              pady=0,
-                              padx=37)
-
         self.table_name_insertion_box.insert(END, "    Type name here...")
         self.table_name_insertion_box.bind("<1>", self.name_of_table)
-
         self.table_name_insertion_box.configure(font=('Courier', 12, 'italic'),
                                                 foreground="gray")
-
+        # Semesters options. Summer will be added in the future.
         semesters_options = ["Fall",
-                             "Spring",
-                             "Summer"]
+                             "Spring"]
 
         self.table_name_insertion_box.bind("<Leave>", self.return_name)
 
+        # Will provide the user with a four-year option depending on your current year.
         year_options = []
-
         for i in range(4):
             year_options.append(datetime.date.today().year + (i-1))
 
+        # Holds variables
         variable_semesters = StringVar(button_frame)
         variable_years = StringVar(button_frame)
         today_year = datetime.datetime.now()
+
+        # Sets a Fall semester as a default
         variable_semesters.set(semesters_options[0])
 
         # Set the current year automatically
@@ -512,15 +425,10 @@ class UserInterface(Frame):
                 pass
 
         semester_text = ttk.Label(button_frame,
-                                  text="Select the semester \nand year: ",
+                                  text="Select the semester and year: ",
                                   foreground="green",
-                                  font=('Courier', 15, 'bold'))
-
-        semester_text.grid(column=0,
-                           columnspan=3,
-                           row=4,
-                           sticky="e",
-                           padx=83)
+                                  font=('Arial', 16))
+        semester_text.place(x=332, y=190)
 
         # Option menu / Check buttons
         semester_options_menu = OptionMenu(button_frame,
@@ -567,6 +475,22 @@ class UserInterface(Frame):
                            row=8,
                            padx=7)
 
+        next_step_button = Button(button_frame,
+                                  relief="groove",
+                                  bg='#c5eb93',
+                                  border='4',
+                                  text="Create table",
+                                  command=self.create_master_table,
+                                  foreground="green",
+                                  font=('Arial', 16, 'bold'))
+        next_step_button.grid(column=0,
+                              columnspan=3,
+                              row=5,
+                              rowspan=5,
+                              sticky='EN',
+                              pady=0,
+                              padx=37)
+
     def name_of_table(self, event):
         inp = self.table_name_insertion_box.get("1.0", END)
         if inp[:21] == "    Type name here...":
@@ -575,31 +499,39 @@ class UserInterface(Frame):
             self.table_name_insertion_box.configure(font=('Courier', 12, 'bold'),
                                                     foreground="black")
 
-    def user_friday_choice(self):
+    def create_master_table(self):
+        """Moves into the creation process"""
         self.table_friday_include = self.include_friday.get()
         self.program_loading_window()
 
     def user_table_choice(self):
+        """Table days order"""
         self.table_settings_type = self.get_value.get()
 
     def in_order_select(self):
+        """Sets variable 2 if days in order"""
         self.table_order_sorted.select()
         self.table_settings_type = 2
 
     def out_order_select(self):
+        """Sets variable 1 if follows standard order"""
         self.table_order_default.select()
         self.table_settings_type = 1
 
     def return_year(self, year_value):
+        """Captures user selection - year"""
         self.table_settings_year = year_value
 
     def return_semester(self, semester_value):
+        """Captures user selection - semester"""
         self.table_settings_semester = semester_value
 
     def return_name(self, event):
+        """Presents a user what he wrote as a table name"""
         self.table_settings_name = self.table_name_insertion_box.get("1.0", END)
 
     def open_master_table(self):
+        """Opens a master table"""
         try:
             self.table_settings_name.replace(" ", "")
             os.startfile('__excel_files\\ \n.xlsx')
@@ -616,14 +548,7 @@ class UserInterface(Frame):
         sys.exit()
 
     def program_loading_window(self):
-        if self.first_step_window:
-            self.first_step_window.grid_remove()
-        else:
-            pass
-        if self.settings_window:
-            self.settings_window.grid_remove()
-        else:
-            pass
+        self.interface_window_remover()
 
         button_frame = self.creating_step_window = Frame(self)
         button_frame.grid()
@@ -631,7 +556,7 @@ class UserInterface(Frame):
         global switch
         switch = False
 
-        # Needs additional work.
+        # Loading text... But will need additional work
         def processor():
             global switch
 
@@ -652,6 +577,7 @@ class UserInterface(Frame):
         processor_threading.start()
         button_frame.update()
 
+        # Moves to the next class which is processing all the files
         self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
                                                       self.table_settings_semester, self.table_settings_year,
                                                       self.table_settings_type,
@@ -660,10 +586,10 @@ class UserInterface(Frame):
         self.user_result_window()
 
     def user_result_window(self):
-        if self.creating_step_window:
-            self.creating_step_window.grid_remove()
+        self.interface_window_remover()
 
         def clear_error_data(error_data):
+            """Clears all unnecessary errors."""
             clear_data_list = []
             clear_data_dict = {}
             for i in range(len(error_data)):
@@ -677,6 +603,9 @@ class UserInterface(Frame):
                     except IndexError:
                         pass
             return clear_data_list
+        if self.error_data_list == 'User_Doesnt_Listen':
+            self.interface_window_remover()
+            self.selection_step_window()
         clear_error_list = clear_error_data(self.error_data_list)
         if len(clear_error_list) != 0:
 
@@ -701,6 +630,7 @@ class UserInterface(Frame):
 
             # Creating a scroll window of errors
             def scroll_error_messages():
+                """Shows all the errors"""
                 for i in range(len(clear_error_list)):
                     conflict_row_message = str(clear_error_list[i].get("Message"))
                     Label(frame, text=conflict_row_message, background="#ee8282").grid(row=i, column=0)
@@ -714,6 +644,7 @@ class UserInterface(Frame):
             canvas = Canvas(error_message_frame)
             frame = Frame(canvas)
 
+            # Scroll bar on a right side
             user_scrollbar_y = tk.Scrollbar(error_message_frame, orient="vertical")
             user_scrollbar_y.pack(side=RIGHT, fill=Y)
             canvas.configure(yscrollcommand=user_scrollbar_y.set)
