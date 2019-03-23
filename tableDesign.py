@@ -508,7 +508,7 @@ class MasterDesign:
             return course_list
 
         unique_types = sort_list(remove_duplicates(self.course_types_list))
-        print(unique_types)
+        #print(unique_types)
 
         for i in range(len(unique_types)):
             alphabet = ''.join(string.ascii_uppercase[get_max_column+1])

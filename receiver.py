@@ -108,12 +108,13 @@ class DataProcessor:
         """If there is any conflict, error, missing data it will store that information in user_excel_errors
         dictionary"""
 
-        report_dict = dict()
-        report_dict["Row"] = excel_row
-        report_dict["Column"] = excel_column
-        report_dict["File_Path"] = excel_file_path
-        report_dict["Sheet_Name"] = excel_sheet_name
-        report_dict["Color"] = error_color
+        report_dict = {
+            'Row': excel_row,
+            'Column': excel_column,
+            'File_Path': excel_file_path,
+            'Sheet_Name': excel_sheet_name,
+            'Color': error_color
+        }
 
         if error_comment is None:
             pass
@@ -281,45 +282,34 @@ class DataProcessor:
         def convert_user_days(day, k):
             """Transfers day into proper format"""
             # Transforms to Monday
-            if any(c in day[k].upper() for c in "M"):
-                return "Monday"
-            elif any(c in day[k:3].upper() for c in "MON"):
-                return "Monday"
-            elif any(c in day[k:6].upper() for c in "MONDAY"):
+            if any(c in day[k].upper() for c in "M") \
+                    or any(c in day[k:3].upper() for c in "MON") \
+                    or any(c in day[k:6].upper() for c in "MONDAY"):
                 return "Monday"
 
             # Transforms to Thursday
-            elif any(c in day[k].upper() for c in ("R", "H")):
-                return "Thursday"
-            elif day[k:2].upper() == "TH":
-                return "Thursday"
-            elif day[k:3].upper() == "THU":
-                return "Thursday"
-            elif day[k:7].upper() == "THURSDAY":
+            elif any(c in day[k].upper() for c in ("R", "H")) \
+                    or day[k:2].upper() == "TH" \
+                    or day[k:3].upper() == "THU" \
+                    or day[k:7].upper() == "THURSDAY":
                 return "Thursday"
 
             # Transforms to Tuesday
-            elif any(c in day[k].upper() for c in "T"):
-                return "Tuesday"
-            elif any(c in day[k:3].upper() for c in "TUE"):
-                return "Tuesday"
-            elif any(c in day[k:7].upper() for c in "TUESDAY"):
+            elif any(c in day[k].upper() for c in "T") \
+                    or any(c in day[k:3].upper() for c in "TUE") \
+                    or any(c in day[k:7].upper() for c in "TUESDAY"):
                 return "Tuesday"
 
             # Transforms to Wednesday
-            elif any(c in day[k].upper() for c in "W"):
-                return "Wednesday"
-            elif any(c in day[k:3].upper() for c in "WED"):
-                return "Wednesday"
-            elif any(c in day[k:7].upper() for c in "WEDNESDAY"):
+            elif any(c in day[k].upper() for c in "W") \
+                    or any(c in day[k:3].upper() for c in "WED") \
+                    or any(c in day[k:7].upper() for c in "WEDNESDAY"):
                 return "Wednesday"
 
             # Transforms to Friday
-            elif any(c in day[k].upper() for c in "F"):
-                return "Friday"
-            elif any(c in day[k:3].upper() for c in "FRI"):
-                return "Friday"
-            elif any(c in day[k:7].upper() for c in "FRIDAY"):
+            elif any(c in day[k].upper() for c in "F") \
+                    or any(c in day[k:3].upper() for c in "FRI") \
+                    or any(c in day[k:7].upper() for c in "FRIDAY"):
                 return "Friday"
 
             else:
@@ -513,10 +503,11 @@ class DataProcessor:
 
     def time_conflict_comment(self, first_dict, second_dict, fifteenth_conflict=False):
         """Creates a dictionary if program finds a conflict"""
+        comment = second_dict.get("Course") + ": "
         if fifteenth_conflict is True:
-            comment = second_dict.get("Course") + ": " + "time difference is less than 15 min." + (" " * 164)
+            comment += "time difference is less than 15 min." + (" " * 164)
         else:
-            comment = second_dict.get("Course") + ": " + "conflicts with another course." + (" " * 173)
+            comment += "conflicts with another course." + (" " * 173)
 
         self.create_report_dictionary(
             excel_row=first_dict.get("Row"),
