@@ -639,8 +639,6 @@ class UserInterface(Frame):
                         pass
                     else:
                         conflict_row_message = str(clear_error_list[i].get("Message"))
-                        print(conflict_row_message)
-                        print(len(conflict_row_message))
                         Label(frame, text=conflict_row_message, background="#ee8282").grid(sticky="w", row=i, column=0)
 
             def show_all_messages(event):

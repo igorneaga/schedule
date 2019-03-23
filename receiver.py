@@ -3,7 +3,6 @@ import os
 import re
 import sys
 import threading
-import time
 from itertools import chain
 from tkinter import messagebox
 
@@ -363,8 +362,8 @@ class DataProcessor:
 
                         # Due to space table concern, we need to limit evening classes cells
                         if time_split[0][1] == '6':
-                                dict_courses["Time_Comment"] = " ends at " + time_split[0]
-                                dict_courses["End_Time"] = time_split[0]
+                                dict_courses["Time_Comment"] = " ends at " + time_split[1]
+                                dict_courses["End_Time"] = "06:00"
                         if time_split[1][1] == '6' or time_split[1][1] == '7':
                             dict_courses["Time_Comment"] = " ends at " + time_split[1]
                             dict_courses["End_Time"] = "06:00"
@@ -532,8 +531,4 @@ class DataProcessor:
     def get_excel_errors(self):
         """Returns founded errors"""
         return self.user_excel_errors
-
-
-#start_time = time.time()
-#print("--- %s seconds ---" % (time.time() - start_time))
 
