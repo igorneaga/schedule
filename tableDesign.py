@@ -160,6 +160,12 @@ class MasterDesign:
 
     def adjust_cells_width(self):
         """Adjusts all the cell width. It is really cool"""
+        # Gets last column
+        excel_max_column = self.sheet.max_column
+
+        # Transfers column to an alphabetical format
+        col_letter = ''.join(string.ascii_uppercase[excel_max_column - 4])
+
         for column in self.sheet.columns:
             max_length = 0
             # Gets column coordinates
@@ -179,7 +185,11 @@ class MasterDesign:
                 # A formula for auto adjusted width
                 adjusted_width = (max_length + 2) * 1.05
                 # Limits adjusted width
-                if adjusted_width > 14:
+                if get_column is col_letter:
+                    # Last column needs to be bigger to fit everything correctly
+                    if adjusted_width > 24:
+                        adjusted_width = 24
+                elif adjusted_width > 14:
                     adjusted_width = 14
 
                 self.sheet.column_dimensions[get_column].width = adjusted_width
@@ -311,7 +321,7 @@ class MasterDesign:
                                     else:
                                         self.sheet[first_cell[0] + first_cell[1]] = \
                                             self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                            value[l].get("Course") + "\n" + value[l].get("Time_Comment")
+                                            value[l].get("Course") + value[l].get("Time_Comment")
                                 self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
                             else:
                                 self.sheet.merge_cells(first_cell[0] + first_cell[1] + first_cell[2] + first_cell[3])
@@ -319,7 +329,7 @@ class MasterDesign:
                                     if value[l].get("Time_Comment") is None:
                                         self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
                                     else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") + "\n" \
+                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") \
                                                                                     + value[l].get("Time_Comment")
                                 else:
                                     if value[l].get("Time_Comment") is None:
