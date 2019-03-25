@@ -399,6 +399,20 @@ class DataProcessor:
         """Loops through each dictionary in the list. Looks for similar rooms and days.
         Finds a time conflict between courses. Deletes the conflict dict."""
 
+        def check_course_dates(i_start_date, d_start_date):
+            """Checks if courses has dates and dates differences"""
+            if i_start_date is "None" or d_start_date is "None":
+                return False
+            else:
+                # Checks if there is 15 days difference between two dates
+                if i_start_date - datetime.timedelta(days=15) <= d_start_date <= i_start_date + datetime.timedelta(
+                        days=15):
+                    return False
+                elif d_start_date - datetime.timedelta(days=15) <= i_start_date <= d_start_date + datetime.timedelta(
+                        days=15):
+                    return False
+                else:
+                    return True
         # Creates a copy of our main dict
         list_dict = self.list_dict_courses.copy()
         for ig in range(len(list_dict)):
@@ -421,6 +435,9 @@ class DataProcessor:
                                 start_time_d = list_dict[d + 1].get('Start_Time')
                                 end_time_i = list_dict[ig].get('End_Time')
                                 end_time_d = list_dict[d + 1].get('End_Time')
+
+                                start_date_i = list_dict[ig].get('Start_Date')
+                                start_date_d = list_dict[d + 1].get("Start_Date")
 
                                 if start_time_i is None or start_time_d is None:
                                     pass
@@ -446,57 +463,60 @@ class DataProcessor:
                                             pass
 
                                         elif room_ig == room_d:
-
-                                            # Transforms variables to float
-                                            start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
-                                            start_time_d = (float(start_time_d[0:2] + '.' + start_time_d[3:5]))
-                                            end_time_i = (float(end_time_i[0:2] + '.' + end_time_i[3:5]))
-                                            end_time_d = (float(end_time_d[0:2] + '.' + end_time_d[3:5]))
-
-                                            # Checks for conflicts
-                                            if start_time_d <= start_time_i <= end_time_d:
-                                                self.time_conflict_comment(list_dict[ig], list_dict[d + 1])
-                                                del self.list_dict_courses[ig]
-
-                                            elif start_time_d <= end_time_i <= end_time_d:
-                                                self.time_conflict_comment(list_dict[ig],
-                                                                           list_dict[d + 1])
-                                                del self.list_dict_courses[ig]
-                                            else:
+                                            # Checks for 15 days difference
+                                            if check_course_dates(start_date_i, start_date_d) is True:
                                                 pass
-                                                # Currently not working properly. So it will get fixed later.
-                                                """
-                                                fifteenth_minutes_start_i = start_time_i + 0.14
-                                                fifteenth_minutes_end_i = end_time_i + 0.14
-                                                fifteenth_minutes_start_d = start_time_d + 0.14
-                                                fifteenth_minutes_end_d = end_time_d + 0.14
+                                            else:
+                                                # Transforms variables to float
+                                                start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
+                                                start_time_d = (float(start_time_d[0:2] + '.' + start_time_d[3:5]))
+                                                end_time_i = (float(end_time_i[0:2] + '.' + end_time_i[3:5]))
+                                                end_time_d = (float(end_time_d[0:2] + '.' + end_time_d[3:5]))
 
-                                                def check_minutes(time):
-                                                    if math.modf(time)[0] >= 0.60:
-                                                        x = math.modf(time)[1] + 1 + math.modf(time)[0] - 0.60
-                                                        return x
-                                                    else:
-                                                        return time
+                                                # Checks for conflicts
+                                                if start_time_d <= start_time_i <= end_time_d:
+                                                    self.time_conflict_comment(list_dict[ig], list_dict[d + 1])
+                                                    del self.list_dict_courses[ig]
 
-                                                fifteenth_minutes_start_i = check_minutes(fifteenth_minutes_start_i)
-                                                fifteenth_minutes_end_i = check_minutes(fifteenth_minutes_end_i)
-                                                fifteenth_minutes_start_d = check_minutes(fifteenth_minutes_start_d)
-                                                fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
-                                                print("Nnn")
-                                                print(fifteenth_minutes_start_i)
-                                                print(fifteenth_minutes_end_i)
-                                                print(fifteenth_minutes_start_d)
-                                                print(fifteenth_minutes_end_d)
-                                                if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= 
-                                                fifteenth_minutes_end_d:
-                                                    self.time_conflict_comment(list_dict[ig], list_dict[d + 1], True)
-                                
+                                                elif start_time_d <= end_time_i <= end_time_d:
+                                                    self.time_conflict_comment(list_dict[ig],
+                                                                               list_dict[d + 1])
+                                                    del self.list_dict_courses[ig]
                                                 else:
-                                                    if fifteenth_minutes_start_d <= fifteenth_minutes_end_d <= 
-                                                    fifteenth_minutes_end_i:
-                                                        self.time_conflict_comment(list_dict[ig],
-                                                                                   list_dict[d + 1], True)
-                                                """
+                                                    pass
+                                                    # Currently not working properly. So it will get fixed later.
+                                                    """
+                                                    fifteenth_minutes_start_i = start_time_i + 0.14
+                                                    fifteenth_minutes_end_i = end_time_i + 0.14
+                                                    fifteenth_minutes_start_d = start_time_d + 0.14
+                                                    fifteenth_minutes_end_d = end_time_d + 0.14
+        
+                                                    def check_minutes(time):
+                                                        if math.modf(time)[0] >= 0.60:
+                                                            x = math.modf(time)[1] + 1 + math.modf(time)[0] - 0.60
+                                                            return x
+                                                        else:
+                                                            return time
+        
+                                                    fifteenth_minutes_start_i = check_minutes(fifteenth_minutes_start_i)
+                                                    fifteenth_minutes_end_i = check_minutes(fifteenth_minutes_end_i)
+                                                    fifteenth_minutes_start_d = check_minutes(fifteenth_minutes_start_d)
+                                                    fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
+                                                    print("Nnn")
+                                                    print(fifteenth_minutes_start_i)
+                                                    print(fifteenth_minutes_end_i)
+                                                    print(fifteenth_minutes_start_d)
+                                                    print(fifteenth_minutes_end_d)
+                                                    if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= 
+                                                    fifteenth_minutes_end_d:
+                                                        self.time_conflict_comment(list_dict[ig], list_dict[d + 1], True)
+                                    
+                                                    else:
+                                                        if fifteenth_minutes_start_d <= fifteenth_minutes_end_d <= 
+                                                        fifteenth_minutes_end_i:
+                                                            self.time_conflict_comment(list_dict[ig],
+                                                                                       list_dict[d + 1], True)
+                                                    """
 
                     except IndexError:
                         pass
