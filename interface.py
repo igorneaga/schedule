@@ -65,6 +65,9 @@ class UserInterface(Frame):
         # Stores all errors found from receiver.py
         self.error_data_list = []
 
+        # User directory shortcut
+        self.user_directory = "/"
+
         # Deletes previous files
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
@@ -157,15 +160,20 @@ class UserInterface(Frame):
 
     def select_excel_files(self):
         """Once a user selects the file - it will hold in the list."""
-
-        self.file_name = Frame(self).filename = filedialog.askopenfilenames(initialdir="/",
+        self.file_name = Frame(self).filename = filedialog.askopenfilenames(initialdir=self.user_directory,
                                                                             title="Select Excel file",
                                                                             filetypes=(("excel files", "*.xlsx"),
                                                                                        ("all files", "*.*")))
         if not self.file_name:
             pass
         else:
+            self.user_directory = str()
             for filesAmount in range(len(self.file_name)):
+                split_user_directory = self.user_directory.split("/")
+                split_user_directory = (split_user_directory[0:len(split_user_directory)-1])
+                for dir_length in range(len(split_user_directory)):
+                    # Stores user directory of the previously selected file to access easily next time
+                    self.user_directory += split_user_directory[dir_length] + "/"
                 self.files_show_directory.append(self.file_name[filesAmount])
                 self.show_excel_files()
 
