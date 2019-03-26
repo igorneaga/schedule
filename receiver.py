@@ -28,6 +28,7 @@ class DataProcessor:
         self.user_excel_errors = []
         self.list_file_paths = []
         self.list_dict_courses = []
+        self.list_different_date = []
 
         # Temporary Values. Will change dates based on a user request in the future
         self.days = ["Monday", "Wednesday", "Tuesday", "Thursday"]
@@ -399,17 +400,21 @@ class DataProcessor:
         """Loops through each dictionary in the list. Looks for similar rooms and days.
         Finds a time conflict between courses. Deletes the conflict dict."""
 
-        def check_course_dates(i_start_date, d_start_date):
+        def check_course_dates(start_date):
             """Checks if courses has dates and dates differences"""
-            if i_start_date is "None" or d_start_date is "None":
+
+            # Dates from MNSU academic calendar 2019-2020
+            course_fall_term = datetime.datetime(2019, 8, 26, 0, 0)
+            course_spring_term = datetime.datetime(2019, 1, 13, 0, 0)
+
+            if start_date is "None" or start_date is None:
                 return False
             else:
-                # Checks if there is 15 days difference between two dates
-                if i_start_date - datetime.timedelta(days=15) <= d_start_date <= i_start_date + datetime.timedelta(
-                        days=15):
-                    return False
-                elif d_start_date - datetime.timedelta(days=15) <= i_start_date <= d_start_date + datetime.timedelta(
-                        days=15):
+                # Checks if there is a difference bigger than 33 days in the dates.
+                if (course_fall_term - datetime.timedelta(days=33)).month \
+                        <= start_date.month <= (course_fall_term + datetime.timedelta(days=33)).month or \
+                        (course_spring_term - datetime.timedelta(days=33)).month <= start_date.month <= \
+                        (course_spring_term + datetime.timedelta(days=33)).month:
                     return False
                 else:
                     return True
@@ -463,9 +468,14 @@ class DataProcessor:
                                             pass
 
                                         elif room_ig == room_d:
-                                            # Checks for 15 days difference
-                                            if check_course_dates(start_date_i, start_date_d) is True:
-                                                pass
+                                            # Checks for dates
+                                            if check_course_dates(start_date_i) is True and check_course_dates(
+                                                    start_date_d) is True:
+                                                self.list_different_date.append(self.list_dict_courses[d + 1])
+                                                del self.list_dict_courses[d + 1]
+                                            elif check_course_dates(start_date_d) is True:
+                                                self.list_different_date.append(self.list_dict_courses[d + 1])
+                                                del self.list_dict_courses[d + 1]
                                             else:
                                                 # Transforms variables to float
                                                 start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
@@ -484,6 +494,7 @@ class DataProcessor:
                                                     del self.list_dict_courses[ig]
                                                 else:
                                                     pass
+                                                    # Checks for 15 days difference
                                                     # Currently not working properly. So it will get fixed later.
                                                     """
                                                     fifteenth_minutes_start_i = start_time_i + 0.14
@@ -545,8 +556,8 @@ class DataProcessor:
 
     def create_excel_table(self):
         """Moves into another class"""
-        tableDesign.MasterDesign(self.list_dict_courses, self.days, self.table_year, self.table_name,
-                                 self.table_semester)
+        tableDesign.MasterDesign(self.list_dict_courses, self.list_different_date,
+                                 self.days, self.table_year, self.table_name, self.table_semester)
 
     def get_excel_errors(self):
         """Returns founded errors"""

@@ -11,8 +11,9 @@ from openpyxl.worksheet.pagebreak import Break
 
 class MasterDesign:
 
-    def __init__(self, list_dict_courses, days, year, table_name, table_semester):
+    def __init__(self, list_dict_courses, list_different_date, days, year, table_name, table_semester):
         self.list_dict_courses = list_dict_courses
+        self.different_date_courses = list_different_date
         self.days = days
         self.table_year = year
         self.table_name = table_name
@@ -24,23 +25,22 @@ class MasterDesign:
         # College of Business rooms
         self.cob_rooms = ["MH 0102", "MH 0208", "MH 0209", "MH 0210", "MH 0211", "AH 0205", "AH 0209", "AH 0216", "AH 0220", "AH 0320"]
 
-        self.list_unique_times = []
-        self.course_types_list = []
+        self.list_unique_times = list
+        self.course_types_list = list
 
         self.main_program_controller()
 
     def main_program_controller(self):
         self.create_master_file()
         # Classroom table section
-        self.create_excel_sheet(sheet_name="Classroom Table", first_sheet=True)
-        self.set_time_row()
-        self.set_courses()
-
-        self.color_cell_meaning()
-
-        self.set_excel_heading(heading_name="Classroom Table")
-        self.adjust_cells_width()
-        self.set_page_break()
+        self.class_room_table(self.list_dict_courses, "Classroom Table", "Classroom Table", True)
+        if not self.different_date_courses:
+            pass
+        else:
+            sheet_name = "Classroom - 2nd Session"
+            heading = "Classroom Table - Second Session" + self.different_date_courses[0].get("Start_Date").strftime(
+                "%m-%d-%Y")
+            self.class_room_table(self.different_date_courses, sheet_name, heading, False)
 
         # Online table section
         # self.create_excel_sheet(sheet_name="Online Table")
@@ -61,6 +61,21 @@ class MasterDesign:
 
         # Note: Save only once
         self.save_excel_file()
+
+    def class_room_table(self, list_dict, name, heading, first):
+        # Sets variable to empty
+        self.list_unique_times = []
+        self.course_types_list = []
+
+        self.create_excel_sheet(sheet_name=name, first_sheet=first)
+        self.set_time_row(list_dict)
+        self.set_courses(list_dict)
+
+        self.color_cell_meaning()
+
+        self.set_excel_heading(heading_name=heading)
+        self.adjust_cells_width()
+        self.set_page_break()
 
     def save_excel_file(self):
         """Saves excel file by using user input"""
@@ -106,45 +121,46 @@ class MasterDesign:
             sheet["A1"].alignment = Alignment(horizontal='center', vertical='center')
         set_course_term(self.table_semester, self.table_year, self.sheet)
 
-    def prepare_row_time(self):
-        """Prepares time to have a valid order and valid value. Needs only for classroom table"""
-
-        list_times = []
-
-        # Takes out of Online courses
-        for i in range(len(self.list_dict_courses)):
-            if self.list_dict_courses[i].get("Start_Time") != "Online":
-                list_times.append(self.list_dict_courses[i].get("Start_Time"))
-            if self.list_dict_courses[i].get("End_Time") != "Online":
-                list_times.append(self.list_dict_courses[i].get("End_Time"))
-
-        # Takes out duplicates
-        list_times = list(set(list_times))
-
-        def set_time_order(time_list):
-            """Making time be on the correct order."""
-            morning_time = []
-            evening_time = []
-            for t in range(len(time_list)):
-                # Earliest class starts at 8
-                if any(c in time_list[t][0:2] for c in ("08", "09", "10", "11", "12")):
-                    morning_time.append(time_list[t][0:5])
-                # The latest class can start at 6 or 7
-                if any(c in time_list[t][0:2] for c in ("01", "02", "03", "04", "05", "06", "07")):
-                    evening_time.append(time_list[t][0:5])
-
-            morning_time.sort()
-            evening_time.sort()
-            # Combines them
-            row_time = morning_time + evening_time
-            return row_time
-
-        list_times = set_time_order(list_times)
-        return list_times
-
-    def set_time_row(self):
+    def set_time_row(self, list_dict):
         """Creates a row of unique times. Needs only for classroom table"""
-        list_unique_times = self.prepare_row_time()
+
+        def prepare_row_time(d_list):
+            """Prepares time to have a valid order and valid value. Needs only for classroom table"""
+
+            list_times = []
+
+            # Takes out of Online courses
+            for i in range(len(d_list)):
+                if d_list[i].get("Start_Time") != "Online":
+                    list_times.append(d_list[i].get("Start_Time"))
+                if d_list[i].get("End_Time") != "Online":
+                    list_times.append(d_list[i].get("End_Time"))
+
+            # Takes out duplicates
+            list_times = list(set(list_times))
+
+            def set_time_order(time_list):
+                """Making time be on the correct order."""
+                morning_time = []
+                evening_time = []
+                for t in range(len(time_list)):
+                    # Earliest class starts at 8
+                    if any(c in time_list[t][0:2] for c in ("08", "09", "10", "11", "12")):
+                        morning_time.append(time_list[t][0:5])
+                    # The latest class can start at 6 or 7
+                    if any(c in time_list[t][0:2] for c in ("01", "02", "03", "04", "05", "06", "07")):
+                        evening_time.append(time_list[t][0:5])
+
+                morning_time.sort()
+                evening_time.sort()
+                # Combines them
+                row_time = morning_time + evening_time
+                return row_time
+
+            list_times = set_time_order(list_times)
+            return list_times
+
+        list_unique_times = prepare_row_time(list_dict)
         temp_time_dict = dict()
         time_row_column = 2
         for t in range(len(list_unique_times)):
@@ -207,7 +223,7 @@ class MasterDesign:
         if style is True:
             style_excel_cell(excel_sheet, start_row, start_column)
 
-    def set_courses(self):
+    def set_courses(self, list_dict):
         """Sets courses in a excel file"""
 
         # An excel row number where courses can be placed
@@ -260,7 +276,7 @@ class MasterDesign:
                     cell.border = thin_border
 
         # Creates a dictionary based on a room key
-        room_course_dict = set_room_dict(self.list_dict_courses)
+        room_course_dict = set_room_dict(list_dict)
 
         # Goes over room dict
         for key, value in room_course_dict.items():
@@ -508,7 +524,6 @@ class MasterDesign:
             return course_list
 
         unique_types = sort_list(remove_duplicates(self.course_types_list))
-        #print(unique_types)
 
         for i in range(len(unique_types)):
             alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
