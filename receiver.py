@@ -1,4 +1,5 @@
 import datetime
+import math
 import os
 import re
 import sys
@@ -268,7 +269,7 @@ class DataProcessor:
 
         def course_room_format(room_number):
             """Formats room to follow the same format"""
-            str_list = re.split('(\d+)', room_number)
+            str_list = re.split('(\\d+)', room_number)
             # Removes empty str
             filter_str_list = list(filter(None, str_list))
             for f in range(len(filter_str_list)):
@@ -493,42 +494,34 @@ class DataProcessor:
                                                                                list_dict[d + 1])
                                                     del self.list_dict_courses[ig]
                                                 else:
-                                                    pass
-                                                    # Checks for 15 days difference
-                                                    # Currently not working properly. So it will get fixed later.
-                                                    """
-                                                    fifteenth_minutes_start_i = start_time_i + 0.14
-                                                    fifteenth_minutes_end_i = end_time_i + 0.14
-                                                    fifteenth_minutes_start_d = start_time_d + 0.14
+                                                    # Checks if the courses have less than 15 min difference if so
+                                                    # mark as conflict
+                                                    fifteenth_minutes_start_i = start_time_i
+                                                    fifteenth_minutes_end_i = end_time_i
+                                                    fifteenth_minutes_start_d = start_time_d - 0.14
                                                     fifteenth_minutes_end_d = end_time_d + 0.14
-        
+
                                                     def check_minutes(time):
+                                                        # transforms minutes to hours if over 60
                                                         if math.modf(time)[0] >= 0.60:
                                                             x = math.modf(time)[1] + 1 + math.modf(time)[0] - 0.60
                                                             return x
                                                         else:
                                                             return time
-        
                                                     fifteenth_minutes_start_i = check_minutes(fifteenth_minutes_start_i)
                                                     fifteenth_minutes_end_i = check_minutes(fifteenth_minutes_end_i)
                                                     fifteenth_minutes_start_d = check_minutes(fifteenth_minutes_start_d)
                                                     fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
-                                                    print("Nnn")
-                                                    print(fifteenth_minutes_start_i)
-                                                    print(fifteenth_minutes_end_i)
-                                                    print(fifteenth_minutes_start_d)
-                                                    print(fifteenth_minutes_end_d)
-                                                    if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= 
-                                                    fifteenth_minutes_end_d:
-                                                        self.time_conflict_comment(list_dict[ig], list_dict[d + 1], True)
-                                    
+                                                    if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= \
+                                                            fifteenth_minutes_end_d:
+                                                        self.time_conflict_comment(list_dict[ig], list_dict[d + 1],
+                                                                                   True)
+                                                    elif fifteenth_minutes_start_d <= fifteenth_minutes_end_i <= \
+                                                            fifteenth_minutes_end_d:
+                                                        self.time_conflict_comment(list_dict[ig], list_dict[d + 1],
+                                                                                   True)
                                                     else:
-                                                        if fifteenth_minutes_start_d <= fifteenth_minutes_end_d <= 
-                                                        fifteenth_minutes_end_i:
-                                                            self.time_conflict_comment(list_dict[ig],
-                                                                                       list_dict[d + 1], True)
-                                                    """
-
+                                                        pass
                     except IndexError:
                         pass
 

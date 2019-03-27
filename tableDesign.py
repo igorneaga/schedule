@@ -23,10 +23,10 @@ class MasterDesign:
         self.sheet = None
 
         # College of Business rooms
-        self.cob_rooms = ["MH 0102", "MH 0208", "MH 0209", "MH 0210", "MH 0211", "AH 0205", "AH 0209", "AH 0216", "AH 0220", "AH 0320"]
+        self.cob_rooms = ["MH 0102", "MH 0208", "MH 0209", "MH 0210", "MH 0211", "AH 0205", "AH 0209", "AH 0216",
+                          "AH 0220", "AH 0320"]
 
-        self.list_unique_times = list
-        self.course_types_list = list
+        self.course_types_list = []
 
         self.main_program_controller()
 
@@ -59,17 +59,15 @@ class MasterDesign:
         # self.create_excel_sheet(sheet_name="Not Included Courses")
         # self.set_excel_heading(heading_name="Not Included Courses")
 
-        # Note: Save only once
         self.save_excel_file()
 
     def class_room_table(self, list_dict, name, heading, first):
         # Sets variable to empty
-        self.list_unique_times = []
         self.course_types_list = []
 
         self.create_excel_sheet(sheet_name=name, first_sheet=first)
-        self.set_time_row(list_dict)
-        self.set_courses(list_dict)
+        list_unique_times = self.set_time_row(list_dict)
+        self.set_courses(list_dict, list_unique_times)
 
         self.color_cell_meaning()
 
@@ -126,9 +124,7 @@ class MasterDesign:
 
         def prepare_row_time(d_list):
             """Prepares time to have a valid order and valid value. Needs only for classroom table"""
-
             list_times = []
-
             # Takes out of Online courses
             for i in range(len(d_list)):
                 if d_list[i].get("Start_Time") != "Online":
@@ -160,6 +156,7 @@ class MasterDesign:
             list_times = set_time_order(list_times)
             return list_times
 
+        unique_times = []
         list_unique_times = prepare_row_time(list_dict)
         temp_time_dict = dict()
         time_row_column = 2
@@ -171,8 +168,9 @@ class MasterDesign:
             self.sheet[time_row].alignment = Alignment(horizontal='center', vertical='center')
             temp_time_dict["Time"] = list_unique_times[t]
             temp_time_dict["Column_Num"] = time_row_column
-            self.list_unique_times.append(temp_time_dict.copy())
+            unique_times.append(temp_time_dict.copy())
             time_row_column += 1
+        return unique_times
 
     def adjust_cells_width(self):
         """Adjusts all the cell width. It is really cool"""
@@ -223,7 +221,7 @@ class MasterDesign:
         if style is True:
             style_excel_cell(excel_sheet, start_row, start_column)
 
-    def set_courses(self, list_dict):
+    def set_courses(self, list_dict, unique_times):
         """Sets courses in a excel file"""
 
         # An excel row number where courses can be placed
@@ -303,11 +301,11 @@ class MasterDesign:
                     self.merge_excel_cells(get_day, 1, start_excel_row - 1, 1, True, bold=True)
                     while get_day != start_excel_row:
                         if any(c in get_cell_value('B', self.sheet, get_day) for c in (value[l].get('Course_Days'))):
-                            for t in range(len(self.list_unique_times)):
-                                column = ''.join(string.ascii_uppercase[self.list_unique_times[t].get("Column_Num")])
+                            for t in range(len(unique_times)):
+                                column = ''.join(string.ascii_uppercase[unique_times[t].get("Column_Num")])
                                 row = str(get_day)
-                                if self.list_unique_times[t].get("Time") == value[l].get("Start_Time"):
-                                    for en in self.list_unique_times:
+                                if unique_times[t].get("Time") == value[l].get("Start_Time"):
+                                    for en in unique_times:
                                         if en.get("Time") == value[l].get("End_Time"):
                                             value[l].setdefault("Cell", []).append(column + row + ":" + ''.join(
                                                 string.ascii_uppercase[en.get("Column_Num")] + row))
@@ -317,7 +315,7 @@ class MasterDesign:
                     # Checking before merging
                     if value[l].get("Cell") is not None:
                         if len(value[l].get("Cell")) < 2:
-                            first_cell = re.split('(\d+)', value[l].get("Cell")[0])
+                            first_cell = re.split('(\\d+)', value[l].get("Cell")[0])
 
                             if (ord(first_cell[0]) - 65) > (ord(first_cell[2][1:]) - 65):
                                 first_cell[2] = ":" + first_cell[0]
@@ -362,8 +360,8 @@ class MasterDesign:
                         else:
                             # If days happens twice a week
                             if len(value[l].get("Cell")) == 2:
-                                first_cell = re.split('(\d+)', value[l].get("Cell")[0])
-                                second_cell = re.split('(\d+)', value[l].get("Cell")[1])
+                                first_cell = re.split('(\\d+)', value[l].get("Cell")[0])
+                                second_cell = re.split('(\\d+)', value[l].get("Cell")[1])
 
                                 # Swapping if first cell not alphabetic order
                                 if (ord(first_cell[0]) - 65) > (ord(second_cell[2][1:]) - 65):
