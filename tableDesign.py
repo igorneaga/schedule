@@ -139,13 +139,13 @@ class MasterDesign:
                 """Making time be on the correct order."""
                 morning_time = []
                 evening_time = []
-                for t in range(len(time_list)):
+                for time in range(len(time_list)):
                     # Earliest class starts at 8
-                    if any(c in time_list[t][0:2] for c in ("08", "09", "10", "11", "12")):
-                        morning_time.append(time_list[t][0:5])
+                    if any(c in time_list[time][0:2] for c in ("08", "09", "10", "11", "12")):
+                        morning_time.append(time_list[time][0:5])
                     # The latest class can start at 6 or 7
-                    if any(c in time_list[t][0:2] for c in ("01", "02", "03", "04", "05", "06", "07")):
-                        evening_time.append(time_list[t][0:5])
+                    if any(c in time_list[time][0:2] for c in ("01", "02", "03", "04", "05", "06", "07")):
+                        evening_time.append(time_list[time][0:5])
 
                 morning_time.sort()
                 evening_time.sort()
@@ -270,8 +270,8 @@ class MasterDesign:
             # Goes over each cell and applies border
             rows = sheet.iter_rows(full_cord)
             for r in rows:
-                for cell in r:
-                    cell.border = thin_border
+                for r_cell in r:
+                    r_cell.border = thin_border
 
         # Creates a dictionary based on a room key
         room_course_dict = set_room_dict(list_dict)
@@ -314,94 +314,131 @@ class MasterDesign:
 
                     # Checking before merging
                     if value[l].get("Cell") is not None:
-                        if len(value[l].get("Cell")) < 2:
-                            first_cell = re.split('(\\d+)', value[l].get("Cell")[0])
+                        def split_cell_value(val, i):
+                            return re.split('(\\d+)', val.get("Cell")[i])
 
-                            if (ord(first_cell[0]) - 65) > (ord(first_cell[2][1:]) - 65):
-                                first_cell[2] = ":" + first_cell[0]
-
-                                self.sheet.merge_cells(first_cell[0] + first_cell[1] + first_cell[2] + first_cell[3])
-                                if self.sheet[first_cell[0] + first_cell[1]].value is None:
-                                    if value[l].get("Time_Comment") is None:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
-                                    else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = \
-                                            value[l].get("Course") + value[l].get("Time_Comment")
+                        def inset_cell_value(sheet, val, val_index, cell_one, index_one, index_two):
+                            """Inserts a value into a cell with a comment if exist"""
+                            if sheet[cell_one[index_one] + cell_one[index_two]].value is None:
+                                if val[val_index].get("Time_Comment") is None:
+                                    sheet[cell_one[index_one] + cell_one[index_two]] = val[val_index].get("Course")
                                 else:
-                                    if value[l].get("Time_Comment") is None:
-                                        self.sheet[first_cell[0] + first_cell[1]] = \
-                                            self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                            value[l].get("Course")
-                                    else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = \
-                                            self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                            value[l].get("Course") + value[l].get("Time_Comment")
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                    sheet[cell_one[index_one] + cell_one[index_two]] =\
+                                        val[val_index].get("Course") + val[val_index].get("Time_Comment")
                             else:
-                                self.sheet.merge_cells(first_cell[0] + first_cell[1] + first_cell[2] + first_cell[3])
-                                if self.sheet[first_cell[0] + first_cell[1]].value is None:
-                                    if value[l].get("Time_Comment") is None:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
-                                    else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") \
-                                                                                    + value[l].get("Time_Comment")
+                                if val[val_index].get("Time_Comment") is None:
+                                    sheet[cell_one[index_one] + cell_one[index_two]] = \
+                                        sheet[cell_one[index_one] + cell_one[index_two]].value + " /" +\
+                                        val[val_index].get("Course")
                                 else:
-                                    if value[l].get("Time_Comment") is None:
-                                        self.sheet[first_cell[0] + first_cell[1]] = \
-                                            self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                            value[l].get("Course")
-                                    else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = \
-                                            self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                            value[l].get("Course") + "\n" + value[l].get("Time_Comment")
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                    sheet[cell_one[index_one] + cell_one[index_two]] = \
+                                        sheet[cell_one[index_one] + cell_one[index_two]].value + " /" + \
+                                        val[val_index].get("Course") + "\n" + val[val_index].get("Time_Comment")
 
-                            pass
-                        else:
-                            # If days happens twice a week
-                            if len(value[l].get("Cell")) == 2:
-                                first_cell = re.split('(\\d+)', value[l].get("Cell")[0])
-                                second_cell = re.split('(\\d+)', value[l].get("Cell")[1])
+                        def merge_one_row(one_sheet, one_cell):
+                            one_sheet.merge_cells(one_cell[0] + one_cell[1] + one_cell[2] + one_cell[3])
+                            return True
 
-                                # Swapping if first cell not alphabetic order
-                                if (ord(first_cell[0]) - 65) > (ord(second_cell[2][1:]) - 65):
-                                    if (ord(first_cell[0]) - 65) - (ord(second_cell[2][1:]) - 65) > 6:
-                                        first_cell[2] = ":" + first_cell[0]
-                                        second_cell[0] = first_cell[0]
-                                        second_cell[2] = first_cell[2]
-                                    else:
-                                        first_cell[0] = second_cell[2][1:]
-                                        first_cell[2] = second_cell[0]
-                                # Merging courses if they have same time and same room
-                                if (int(first_cell[1]) == int(second_cell[1])-1) & \
-                                        (int(first_cell[3]) == int(second_cell[3])-1):
-                                    self.sheet.merge_cells(first_cell[0]+first_cell[1]+second_cell[2]+second_cell[3])
-                                    # Checks if cells are empty
-                                    if self.sheet[first_cell[0] + first_cell[1]].value is None:
-                                        # Checks if Time_Comment existed for this course
-                                        if value[l].get("Time_Comment") is None:
-                                            self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
-                                        else:
-                                            self.sheet[first_cell[0] + first_cell[1]] = \
-                                                value[l].get("Course") + "\n" + value[l].get("Time_Comment")
-                                    else:
-                                        # Checks if Time_Comment existed for this course
-                                        if value[l].get("Time_Comment") is None:
-                                            self.sheet[first_cell[0] + first_cell[1]] = \
-                                                self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                                value[l].get("Course")
-                                        else:
-                                            self.sheet[first_cell[0] + first_cell[1]] = \
-                                                self.sheet[first_cell[0] + first_cell[1]].value + " / " + \
-                                                value[l].get("Course") + "\n" + value[l].get("Time_Comment")
+                        def merge_two_rows(merge_two_sheet, merge_two_cell_one, merge_two_cell_two, do=True):
+                            if (int(merge_two_cell_one[1]) == int(merge_two_cell_two[1]) - 1) & \
+                                    (int(merge_two_cell_one[3]) == int(merge_two_cell_two[3]) - 1):
+                                merge_two_sheet.merge_cells(merge_two_cell_one[0] + merge_two_cell_one[1] +
+                                                            merge_two_cell_two[2] + merge_two_cell_two[3])
+                                return True
+                            else:
+                                if do is True:
+                                    if merge_one_row(merge_two_sheet, merge_two_cell_one) is True:
+                                        merge_one_row(merge_two_sheet, merge_two_cell_two)
+                                        return [merge_two_cell_one, merge_two_cell_two]
+
+                        def merge_three_rows(merge_three_sheet, merge_three_cell_one, merge_three_cell_two,
+                                             merge_three_cell_three):
+                            # Merges all three rows
+                            if (int(merge_three_cell_one[1]) == int(merge_three_cell_two[1]) - 1) & \
+                                    (int(merge_three_cell_one[3]) == int(merge_three_cell_two[3]) - 1) & (
+                                    int(merge_three_cell_two[1]) == int(merge_three_cell_three[1]) - 1) & (
+                                    int(merge_three_cell_two[3]) == int(merge_three_cell_three[3]) - 1):
+                                merge_three_sheet.merge_cells(
+                                    merge_three_cell_one[0] + merge_three_cell_one[1] + merge_three_cell_three[2] +
+                                    merge_three_cell_three[3])
+                                return True
+                            elif merge_two_rows(merge_three_sheet, merge_three_cell_one, merge_three_cell_two, False) \
+                                    is True:
+                                merge_one_row(merge_three_sheet, merge_three_cell_three)
+                                return [merge_three_cell_one, merge_three_cell_three]
+                            elif merge_two_rows(merge_three_sheet, merge_three_cell_two, merge_three_cell_three, False)\
+                                    is True:
+                                merge_one_row(merge_three_sheet, merge_three_cell_one)
+                                return [merge_three_cell_two, merge_three_cell_one]
+
+                        def merge_four_rows(merge_four_sheet, merge_four_cell_one, merge_four_cell_two,
+                                            merge_four_cell_three, merge_four_cell_four):
+                            # Merges four rows
+                            if (int(merge_four_cell_one[1]) == int(merge_four_cell_two[1]) - 1) & \
+                                    (int(merge_four_cell_one[3]) == int(merge_four_cell_two[3]) - 1) & (
+                                    int(merge_four_cell_two[1]) == int(merge_four_cell_three[1]) - 1) & (
+                                    int(merge_four_cell_two[3]) == int(merge_four_cell_three[3]) - 1) & (
+                                    int(merge_four_cell_three[1]) == int(merge_four_cell_four[1]) - 1) & (
+                                    int(merge_four_cell_three[3]) == int(merge_four_cell_four[3]) - 1):
+                                merge_four_sheet.merge_cells(
+                                    merge_four_cell_one[0] + merge_four_cell_one[1] + merge_four_cell_four[2] +
+                                    merge_four_cell_four[3])
+                                return True
+                            elif merge_three_rows(merge_four_sheet, merge_four_cell_one, merge_four_cell_two,
+                                                  merge_four_cell_three) is True:
+                                return [merge_four_cell_one, merge_four_cell_four]
+                            elif merge_three_rows(merge_four_sheet, merge_four_cell_two, merge_four_cell_three,
+                                                  merge_four_cell_four) is True:
+                                return [merge_four_cell_two, merge_four_cell_one]
+
+                        def merge_five_rows(merge_five_sheet, merge_five_cell_one, merge_five_cell_two,
+                                            merge_five_cell_three, merge_five_cell_four, merge_five_cell_five):
+                            # Merges five rows. Needs to test once 5 days will be an option
+                            if (int(merge_five_cell_one[1]) == int(merge_five_cell_two[1]) - 1) & \
+                                    (int(merge_five_cell_one[3]) == int(merge_five_cell_two[3]) - 1) & (
+                                    int(merge_five_cell_two[1]) == int(merge_five_cell_three[1]) - 1) & (
+                                    int(merge_five_cell_two[3]) == int(merge_five_cell_three[3]) - 1) & (
+                                    int(merge_five_cell_three[1]) == int(merge_five_cell_four[1]) - 1) & (
+                                    int(merge_five_cell_three[3]) == int(merge_five_cell_four[3]) - 1) & (
+                                    int(merge_five_cell_four[1]) == int(merge_five_cell_five[1]) - 1) & (
+                                    int(merge_five_cell_four[3]) == int(merge_five_cell_five[3]) - 1):
+                                merge_five_sheet.merge_cells(
+                                    merge_five_cell_one[0] + merge_five_cell_one[1] + merge_five_cell_five[2] +
+                                    merge_five_cell_five[3])
+                                return True
+                            elif merge_four_rows(merge_five_sheet, merge_five_cell_one, merge_five_cell_two,
+                                                 merge_five_cell_three, merge_five_cell_four) is True:
+                                merge_one_row(merge_five_sheet, merge_five_cell_five)
+                                return [merge_five_cell_one, merge_five_cell_five]
+                            elif merge_four_rows(merge_five_sheet, merge_five_cell_two, merge_five_cell_three,
+                                                 merge_five_cell_four, merge_five_cell_five) is True:
+                                merge_one_row(merge_five_sheet, merge_five_cell_one)
+                                return [merge_five_cell_two, merge_five_cell_one]
+
+                        if len(value[l].get("Cell")) < 2:
+                            first_cell = split_cell_value(value[l], 0)
+
+                            merge_one_row(self.sheet, first_cell)
+                            inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
+                            self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                        # If course happens twice a week
+                        elif len(value[l].get("Cell")) == 2:
+                            first_cell = split_cell_value(value[l], 0)
+                            second_cell = split_cell_value(value[l], 1)
+                            # Merging courses if they have same time and same room
+                            cell = merge_two_rows(self.sheet, first_cell, second_cell)
+                            if cell is None:
+                                pass
+                            else:
+                                if cell is True:
+                                    inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
                                     # Colors the cell by specific color
-                                    self.color_cell(value[l].get("Course"), first_cell[0]+first_cell[1])
-                                else:
-                                    # Merging cells if they don't have same times and same room
-                                    self.sheet.merge_cells(first_cell[0] + first_cell[1]
-                                                           + first_cell[2] + first_cell[3])
-                                    self.sheet.merge_cells(second_cell[0] + second_cell[1] +
-                                                           second_cell[2] + second_cell[3])
+                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                if cell is not True:
+                                    for c in cell:
+                                        inset_cell_value(self.sheet, value, l, c, 0, 1)
+                                        self.color_cell(value[l].get("Course"), c[0] + c[1])
+
                                     if value[l].get("Time_Comment") is None:
                                         self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
                                         self.sheet[second_cell[0] + second_cell[1]] = value[l].get("Course")
@@ -415,12 +452,54 @@ class MasterDesign:
                                         self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
                                         self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
 
-                            elif len(value[l].get("Cell")) == 3:
-                                # In progress
-                                # first_cell = re.split('(\d+)', value[l].get("Cell")[0])
-                                # second_cell = re.split('(\d+)', value[l].get("Cell")[1])
-                                # third_cell = re.split('(\d+)', value[l].get("Cell")[2])
-                                pass
+                        elif len(value[l].get("Cell")) == 3:
+                            first_cell = split_cell_value(value[l], 0)
+                            second_cell = split_cell_value(value[l], 1)
+                            third_cell = split_cell_value(value[l], 2)
+
+                            # Merging courses if they have same time and same room
+                            cell = merge_three_rows(self.sheet, first_cell, second_cell, third_cell)
+                            if cell is True:
+                                inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
+                                # Colors the cell by specific color
+                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                            if cell is not True:
+                                for c in cell:
+                                    inset_cell_value(self.sheet, value, l, c, 0, 1)
+                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+
+                        elif len(value[l].get("Cell")) == 4:
+                            first_cell = split_cell_value(value[l], 0)
+                            second_cell = split_cell_value(value[l], 1)
+                            third_cell = split_cell_value(value[l], 2)
+                            fourth_cell = split_cell_value(value[l], 3)
+
+                            cell = merge_four_rows(self.sheet, first_cell, second_cell, third_cell, fourth_cell)
+                            if cell is True:
+                                inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
+                                # Colors the cell by specific color
+                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                            if cell is not True:
+                                for c in cell:
+                                    inset_cell_value(self.sheet, value, l, c, 0, 1)
+                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+
+                        elif len(value[l].get("Cell")) == 5:
+                            first_cell = split_cell_value(value[l], 0)
+                            second_cell = split_cell_value(value[l], 1)
+                            third_cell = split_cell_value(value[l], 2)
+                            fourth_cell = split_cell_value(value[l], 3)
+                            fifth_cell = split_cell_value(value[l], 4)
+                            cell = merge_five_rows(self.sheet, first_cell, second_cell, third_cell, fourth_cell,
+                                                   fifth_cell)
+                            if cell is True:
+                                inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
+                                # Colors the cell by specific color
+                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                            if cell is not True:
+                                for c in cell:
+                                    inset_cell_value(self.sheet, value, l, c, 0, 1)
+                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
 
         border_all_cells(self.sheet)
 
@@ -558,12 +637,3 @@ class MasterDesign:
                 openpyxl.worksheet.pagebreak.PageBreak.tagname = 'colBreaks'
                 page_break_column = Break(get_max_column + 1)
                 self.sheet.page_breaks.append(page_break_column)
-
-
-
-
-
-
-
-
-
