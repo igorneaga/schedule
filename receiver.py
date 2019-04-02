@@ -1,5 +1,4 @@
 import datetime
-import math
 import os
 import re
 import sys
@@ -7,6 +6,7 @@ import threading
 from itertools import chain
 from tkinter import messagebox
 
+import math
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
@@ -91,6 +91,12 @@ class DataProcessor:
                 msg_response = close_file_error()
                 if msg_response == "ok":
                     self.number_close_trials += 1
+                    # Resets all the variables
+                    self.excel_data_list = None
+                    self.user_excel_errors = []
+                    self.list_file_paths = []
+                    self.list_dict_courses = []
+                    self.list_different_date = []
                     self.main_program_order()
 
     def get_excel_data(self, wb_copy, file_path):

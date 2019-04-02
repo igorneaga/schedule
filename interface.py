@@ -8,6 +8,7 @@ import tkinter as tk
 import webbrowser
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 from tkinter import ttk
 
 import receiver
@@ -224,6 +225,16 @@ class UserInterface(Frame):
         pass
 
     def selection_step_window(self):
+        # Notifies a user that files need to be closed
+        try:
+            excel_file = glob.glob('__excel_files/*.xlsx')
+            if not excel_file:
+                pass
+            else:
+                open(excel_file[0], "r+")
+        except IOError:
+            messagebox.showerror("Close File", "Please close excel files to eliminate errors")
+
         # Removes any other necessary window
         self.interface_window_remover()
 
