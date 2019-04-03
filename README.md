@@ -3,5 +3,9 @@ Schedule builder application will design your excel file into a room schedule ta
 ### Goals
 Use Python programming language  to develop an academic course scheduling program that will  reduce internal course scheduling process time by up to 50%. Developed for College of Business at Minnesota State University, Mankato.
 ### Instructions
-While you are using this program, you can select one or multiple files from original files to see a result.
+While you are using this program, you can select one or multiple files from "test_excel_files" folder to see a result.
+### Authors
 
+* **Igor Neaga** - *Initial work* - [igorneaga](https://github.com/igorneaga)
+
+See also the list of [contributors](https://github.com/igorneaga/schedule/graphs/contributors) who participated in this project.
