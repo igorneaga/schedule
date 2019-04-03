@@ -31,9 +31,6 @@ class DataProcessor:
         self.list_dict_courses = []
         self.list_different_date = []
 
-        # Temporary Values. Will change dates based on a user request in the future
-        self.days = ["Monday", "Wednesday", "Tuesday", "Thursday"]
-
         # User-Excel-Columns identification
         self.excel_course_name = 1
         self.excel_course_number = 2
@@ -55,6 +52,13 @@ class DataProcessor:
     def main_program_order(self):
         """Main program logic"""
 
+        def assign_days_order(user_choice):
+            """Returns a day's order selected by the user"""
+            if user_choice is 2:
+                return ["Monday", "Tuesday", "Wednesday", "Thursday"]
+            else:
+                return ["Monday", "Wednesday", "Tuesday", "Thursday"]
+
         def create_excel_copies():
             """Creates a folder to store all the copy files"""
             if not os.path.exists('copy_folder'):
@@ -67,6 +71,7 @@ class DataProcessor:
             return user_response
 
         try:
+            self.days = assign_days_order(self.days_order)
             create_excel_copies()
             for i in range(len(self.file_directory)):
                 get_file_name = os.path.basename(self.file_directory[i])
