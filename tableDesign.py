@@ -370,6 +370,11 @@ class MasterDesign:
                                     is True:
                                 merge_one_row(merge_three_sheet, merge_three_cell_one)
                                 return [merge_three_cell_two, merge_three_cell_one]
+                            else:
+                                if merge_one_row(merge_three_sheet, merge_three_cell_one) is True:
+                                    merge_one_row(merge_three_sheet, merge_three_cell_two)
+                                    merge_one_row(merge_three_sheet, merge_three_cell_three)
+                                    return [merge_three_cell_two, merge_three_cell_one, merge_three_cell_three]
 
                         def merge_four_rows(merge_four_sheet, merge_four_cell_one, merge_four_cell_two,
                                             merge_four_cell_three, merge_four_cell_four):
@@ -384,11 +389,22 @@ class MasterDesign:
                                     merge_four_cell_one[0] + merge_four_cell_one[1] + merge_four_cell_four[2] +
                                     merge_four_cell_four[3])
                                 return True
+                            elif (int(merge_four_cell_one[1]) == int(merge_four_cell_two[1]) - 1) & \
+                                    (int(merge_four_cell_one[3]) == int(merge_four_cell_two[3]) - 1) & (
+                                    int(merge_four_cell_two[1]) == int(merge_four_cell_three[1]) - 2) & (
+                                    int(merge_four_cell_two[3]) == int(merge_four_cell_three[3]) - 2) & (
+                                    int(merge_four_cell_three[1]) == int(merge_four_cell_four[1]) - 1) & (
+                                    int(merge_four_cell_three[3]) == int(merge_four_cell_four[3]) - 1):
+                                merge_two_rows(merge_four_sheet, merge_four_cell_one, merge_four_cell_two)
+                                merge_two_rows(merge_four_sheet, merge_four_cell_three, merge_four_cell_four)
+                                return [merge_four_cell_one, merge_four_cell_three]
                             elif merge_three_rows(merge_four_sheet, merge_four_cell_one, merge_four_cell_two,
                                                   merge_four_cell_three) is True:
+                                merge_one_row(merge_four_sheet, merge_four_cell_four)
                                 return [merge_four_cell_one, merge_four_cell_four]
                             elif merge_three_rows(merge_four_sheet, merge_four_cell_two, merge_four_cell_three,
                                                   merge_four_cell_four) is True:
+                                merge_one_row(merge_four_sheet, merge_four_cell_one)
                                 return [merge_four_cell_two, merge_four_cell_one]
 
                         def merge_five_rows(merge_five_sheet, merge_five_cell_one, merge_five_cell_two,
@@ -427,30 +443,27 @@ class MasterDesign:
                             second_cell = split_cell_value(value[l], 1)
                             # Merging courses if they have same time and same room
                             cell = merge_two_rows(self.sheet, first_cell, second_cell)
-                            if cell is None:
-                                pass
-                            else:
-                                if cell is True:
-                                    inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
-                                    # Colors the cell by specific color
-                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
-                                if cell is not True:
-                                    for c in cell:
-                                        inset_cell_value(self.sheet, value, l, c, 0, 1)
-                                        self.color_cell(value[l].get("Course"), c[0] + c[1])
+                            if cell is True:
+                                inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
+                                # Colors the cell by specific color
+                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                            if cell is not True:
+                                for c in cell:
+                                    inset_cell_value(self.sheet, value, l, c, 0, 1)
+                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
 
-                                    if value[l].get("Time_Comment") is None:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
-                                        self.sheet[second_cell[0] + second_cell[1]] = value[l].get("Course")
-                                        self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
-                                        self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
-                                    else:
-                                        self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") + "\n" + \
-                                                                                    value[l].get("Time_Comment")
-                                        self.sheet[second_cell[0] + second_cell[1]] = \
-                                            value[l].get("Course") + "\n" + value[l].get("Time_Comment")
-                                        self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
-                                        self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
+                                if value[l].get("Time_Comment") is None:
+                                    self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
+                                    self.sheet[second_cell[0] + second_cell[1]] = value[l].get("Course")
+                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                    self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
+                                else:
+                                    self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") + "\n" + \
+                                                                                value[l].get("Time_Comment")
+                                    self.sheet[second_cell[0] + second_cell[1]] = \
+                                        value[l].get("Course") + "\n" + value[l].get("Time_Comment")
+                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                    self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
 
                         elif len(value[l].get("Cell")) == 3:
                             first_cell = split_cell_value(value[l], 0)

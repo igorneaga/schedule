@@ -25,6 +25,7 @@ class DataProcessor:
         self.days_order = table_type
         self.friday_choice = friday
 
+        self.days = []
         self.excel_data_list = None
         self.user_excel_errors = []
         self.list_file_paths = []
@@ -59,6 +60,14 @@ class DataProcessor:
             else:
                 return ["Monday", "Wednesday", "Tuesday", "Thursday"]
 
+        def friday_option(user_friday_option, current_days):
+            """Checks if the user selected the Friday option. Returns it in the day's list"""
+            if user_friday_option == 1:
+                current_days.append("Friday")
+                return current_days
+            else:
+                return current_days
+
         def create_excel_copies():
             """Creates a folder to store all the copy files"""
             if not os.path.exists('copy_folder'):
@@ -71,7 +80,8 @@ class DataProcessor:
             return user_response
 
         try:
-            self.days = assign_days_order(self.days_order)
+            table_order = assign_days_order(self.days_order)
+            self.days = friday_option(self.friday_choice, table_order)
             create_excel_copies()
             for i in range(len(self.file_directory)):
                 get_file_name = os.path.basename(self.file_directory[i])
@@ -98,6 +108,7 @@ class DataProcessor:
                     self.number_close_trials += 1
                     # Resets all the variables
                     self.excel_data_list = None
+                    self.days = []
                     self.user_excel_errors = []
                     self.list_file_paths = []
                     self.list_dict_courses = []
