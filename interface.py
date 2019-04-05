@@ -612,7 +612,7 @@ class UserInterface(Frame):
             clear_data_list = []
             clear_data_dict = {}
             for i in range(len(error_data)):
-                if error_data[i-1].get("Color") == 'FF687B':
+                if error_data[i-1].get("Color") == 'FF687B' or error_data[i-1].get("Color") == 'FEBBBB':
                     try:
                         if error_data[i-1].get("Comment") == error_data[i].get("Comment"):
                             pass
@@ -657,8 +657,11 @@ class UserInterface(Frame):
                                                                     "Report it if needed.":
                         pass
                     else:
-                        conflict_row_message = str(clear_error_list[i].get("Message"))
-                        Label(frame, text=conflict_row_message, background="#ee8282").grid(sticky="w", row=i, column=0)
+                        # Shows only even to eliminate repetitive conflicts
+                        if i % 2 == 0:
+                            conflict_row_message = str(clear_error_list[i].get("Message"))
+                            Label(frame, text=conflict_row_message, background="#ee8282").grid(sticky="w",
+                                                                                               row=i, column=0)
 
             def show_all_messages(event):
                 canvas.configure(scrollregion=canvas.bbox("all"), width=600, height=60)
