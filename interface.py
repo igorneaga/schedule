@@ -45,6 +45,7 @@ class UserInterface(Frame):
 
         # GUI windows
         self.selection_window = None
+        self.files_manipulation_window = None
         self.settings_window = None
         self.creating_step_window = None
         self.notification_window = None
@@ -60,7 +61,8 @@ class UserInterface(Frame):
         # A label which will keep updating once user choose a data file
         self.button_text = tk.StringVar()
         self.button_text.set("File(s) Selected: ")
-        self.create_files_names = Button(self.selection_window, border=0, textvariable=self.button_text, command=self.changes_window_open,
+        self.create_files_names = Button(self.selection_window, border=0,
+                                         textvariable=self.button_text, command=self.change_files_window,
                                          foreground="gray", font=("Arial", 11, "bold"))
 
         # Stores all errors found from receiver.py
@@ -147,6 +149,9 @@ class UserInterface(Frame):
 
         if self.selection_window:
             self.selection_window.grid_remove()
+
+        if self.files_manipulation_window:
+            self.files_manipulation_window.grid_remove()
 
         if self.settings_window:
             self.settings_window.grid_remove()
@@ -276,6 +281,7 @@ class UserInterface(Frame):
         difference_explanation_text = tk.Button(button_frame,
                                                 border=0,
                                                 text='Change/View/Delete file(s)',
+                                                command=self.change_files_window,
                                                 foreground="gray",
                                                 font=("Arial", 10, "bold", 'underline'))
         difference_explanation_text.place(x=8, y=246)
@@ -302,6 +308,138 @@ class UserInterface(Frame):
                                                relief=SUNKEN,
                                                border='1',
                                                state="disabled")
+
+    def delete_list_element(self):
+        """Deletes selected file from a list"""
+
+        def get_element_value(listbox):
+            value = listbox.get(ACTIVE)
+            return value
+
+        def delete_list_element(listbox, list_1, list_2, v_index):
+            # Removes element from two lists
+            listbox.delete(ACTIVE)
+            del list_1[v_index]
+            list_2_value = list_2[::-1][v_index]
+            list_2.remove(list_2_value)
+            return list_1, list_2
+        try:
+            selected_file = get_element_value(self.listbox)
+            if len(selected_file) == 0:
+                self.selection_step_window()
+            else:
+                ask_message = "Would you like to delete " + selected_file + " file?"
+                user_response = messagebox.askokcancel("Uni-Scheduler", ask_message)
+                if user_response is True:
+                    val_index = self.files_show_names.index(selected_file)
+                    self.files_show_names, self.files_show_directory = delete_list_element(self.listbox,
+                                                                                           self.files_show_names,
+                                                                                           self.files_show_directory,
+                                                                                           val_index)
+                else:
+                    pass
+        except ValueError:
+            # Returns to selection window if no files in a list
+            self.selection_step_window()
+        self.update_button_text(("File(s) Selected: " + " ".join(self.files_show_names)))
+
+    def change_list_element(self):
+        """Removes and adds a file"""
+        get_files_amount = len(self.files_show_names)
+        if get_files_amount == 0:
+            # Returns to selection window if no files in a list
+            self.selection_step_window()
+        else:
+            self.select_excel_files()
+
+            def update_listbox(listbox, file):
+                # Updates the list box to include selected file
+                listbox.insert(END, file)
+            if get_files_amount < len(self.files_show_names):
+                self.delete_list_element()
+                update_listbox(self.listbox, self.files_show_names[0])
+
+    def change_files_window(self):
+        """The window for changing/deleting selected files"""
+        # Removes previous window
+        self.interface_window_remover()
+
+        button_frame = self.files_manipulation_window = Frame(self)
+        button_frame.grid()
+
+        self.main_text_interface(button_frame)
+
+        # The back button which will allow moving to the previous window
+        back_button = Button(button_frame,
+                             border='0',
+                             image=self.back_image,
+                             command=self.selection_step_window)
+        back_button.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=7,
+                         padx=3)
+
+        heading = ttk.Label(button_frame,
+                            text="List of files selected:",
+                            foreground="green",
+                            font=('Arial', 14))
+        heading.grid(sticky='WN',
+                     column=0,
+                     row=2,
+                     rowspan=3,
+                     padx=13,
+                     pady=20)
+
+        table_list_window = Frame(button_frame, width=300, height=100, bd=0)
+        table_list_window.place(x=15, y=110)
+        scrollbar = Scrollbar(table_list_window, orient=VERTICAL)
+        self.listbox = Listbox(table_list_window, yscrollcommand=scrollbar.set, selectmode=SINGLE, font=0, bd=1)
+        self.listbox.config(width=32, height=10)
+        scrollbar.config(command=self.listbox.yview)
+
+        scrollbar.pack(side=RIGHT, fill=Y)
+        self.listbox.pack(side=LEFT)
+        for item in self.files_show_names:
+            self.listbox.insert(END, item)
+        change_button = tk.Button(button_frame,
+                                  text="Change file",
+                                  command=self.change_list_element,
+                                  foreground="green",
+                                  bg='#f0f8ff',
+                                  border='4',
+                                  relief="groove",
+                                  font=('Arial', 14))
+
+        change_button.place(x=430, y=125)
+
+        delete_button = tk.Button(button_frame,
+                                  text="Delete file",
+                                  command=self.delete_list_element,
+                                  foreground="green",
+                                  bg='#f0f8ff',
+                                  border='4',
+                                  relief="groove",
+                                  font=('Arial', 14))
+
+        delete_button.place(x=435, y=175)
+
+        continue_button = tk.Button(button_frame,
+                                    text="Continue",
+                                    command=self.selection_step_window,
+                                    foreground="green",
+                                    bg='#c5eb93',
+                                    border='4',
+                                    relief="groove",
+                                    font=('Arial', 14))
+        continue_button.grid(column=1,
+                             columnspan=2,
+                             row=3,
+                             rowspan=6,
+                             sticky="WS",
+                             padx=20,
+                             pady=135)
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
