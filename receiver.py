@@ -303,6 +303,13 @@ class DataProcessor:
                         filter_str_list[f] = '0' + filter_str_list[f]
             return ' '.join(filter_str_list)
 
+        def course_title_format(course_title, course_number, course_section):
+            """Setting course title to the same format"""
+            c_title = course_title.replace(' ', '')
+            c_number = course_number.replace(' ', '')
+            c_section = course_section.replace(' ', '')
+            return c_title.upper() + " " + c_number + "-" + c_section
+
         def convert_user_days(day, k):
             """Transfers day into proper format"""
             # Transforms to Monday
@@ -347,67 +354,87 @@ class DataProcessor:
             d_courses["Course_Days"] = []
             d_courses["Start_Time"] = "Online"
             d_courses["End_Time"] = "Online"
-            d_courses["Type"] = "Online"
+            d_courses["Type"] = ["Online"]
             d_courses["Row"] = l_data[0]
             d_courses["File"] = l_data[2]
             d_courses["Sheet_Name"] = l_data[1]
-
             return d_courses
+
+        def set_course_type(d_courses):
+            """Sets a course type if follows specific conditions"""
+            d_courses["Type"] = ["Classroom"]
+            if d_courses.get("Course")[0:3] == "MBA":
+                d_courses.get("Type").append("MBA")
+            elif d_courses.get("Course")[0:4] == "MACC":
+                d_courses.get("Type").append("MACC")
+            if d_courses.get("Room")[0:2] == "HU":
+                d_courses.get("Type").append("Hubbard")
+
+            return d_courses.get("Type")
 
         for j in excel_data:
             try:
                 dict_courses = dict()
-                time_split = j[self.excel_course_time + 2].split('-')
-
-                # Sets course to specific format.
-                dict_courses["Course"] = str(j[self.excel_course_name + 2]).upper() + " " + str(
-                    j[self.excel_course_number + 2]) + "-" + str(j[self.excel_course_section + 2])
-                # Sets room to specific format.
-                dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
-
-                # Creates a dictionary
-                if dict_courses.get("Room") == "ONLINE":
-                    dict_courses = set_online_course(dict_courses, j)
-                elif time_split[0].upper() == "ONLINE":
-                    dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
+                # Checks the room column contains an online word
+                if course_room_format(str(j[self.excel_course_room + 2])).upper() == "ONLINE":
+                    dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
+                                                                 str(j[self.excel_course_number + 2]),
+                                                                 str(j[self.excel_course_section + 2]))
                     dict_courses = set_online_course(dict_courses, j)
                 else:
+                    time_split = j[self.excel_course_time + 2].split('-')
+                    # Sets course to specific format
+                    dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
+                                                                 str(j[self.excel_course_number + 2]),
+                                                                 str(j[self.excel_course_section + 2]))
+                    # Sets room to specific format.
                     dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
-                    dict_courses["Course_Days"] = []
-                    dict_courses["Row"] = j[0]
-                    dict_courses["File"] = j[2]
-                    dict_courses["Sheet_Name"] = j[1]
-                    dict_courses["Type"] = "Classroom"
-                    dict_courses["Start_Date"] = j[13]
-                    dict_courses["End_Date"] = j[14]
-                    try:
-                        dict_courses["Start_Time"] = time_split[0]
-                        dict_courses["End_Time"] = time_split[1]
 
-                        # Due to space table concern, we need to limit evening classes cells
-                        if time_split[0][1] == '6':
-                            dict_courses["Time_Comment"] = " ends at " + time_split[1]
-                            dict_courses["End_Time"] = "06:00"
-                        if time_split[1][1] == '6' or time_split[1][1] == '7':
-                            dict_courses["Time_Comment"] = " ends at " + time_split[1]
-                            dict_courses["End_Time"] = "06:00"
-                    except IndexError:
-                        # Marks a course if program couldn't read it
-                        dict_courses["Start_Time"] = "None"
-                        dict_courses["End_Time"] = "None"
-                        dict_courses["Type"] = "Error"
-                    # Splits days and converts to the proper format
-                    if "," in j[self.excel_course_days + 2]:
-                        split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
-                        for l in range(len(split_by_comma)):
-                            dict_courses["Course_Days"].append(convert_user_days(split_by_comma[l], 0))
-
-                    elif "None" in j[self.excel_course_days + 2]:
-                        pass
-
+                    # Checks if the time contains Online word
+                    if time_split[0].upper() == "ONLINE":
+                        dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
+                        dict_courses = set_online_course(dict_courses, j)
                     else:
-                        for i in range(len(j[self.excel_course_days + 2])):
-                            dict_courses["Course_Days"].append(convert_user_days(j[self.excel_course_days + 2], i))
+                        dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
+                        dict_courses["Course_Days"] = []
+                        dict_courses["Row"] = j[0]
+                        dict_courses["File"] = j[2]
+                        dict_courses["Sheet_Name"] = j[1]
+                        dict_courses["Type"] = set_course_type(dict_courses)
+                        dict_courses["Start_Date"] = j[13]
+                        dict_courses["End_Date"] = j[14]
+                        try:
+                            dict_courses["Start_Time"] = time_split[0]
+                            dict_courses["End_Time"] = time_split[1]
+
+                            # Due to space table concern, we need to limit evening classes cells
+                            if time_split[0][1] == '6':
+                                dict_courses["Time_Comment"] = " ends at " + time_split[1]
+                                dict_courses["End_Time"] = "06:00"
+                            if time_split[1][1] == '6' or time_split[1][1] == '7':
+                                dict_courses["Time_Comment"] = " ends at " + time_split[1]
+                                dict_courses["End_Time"] = "06:00"
+                        except IndexError:
+                            # Marks a course if program couldn't read it
+                            dict_courses["Start_Time"] = "None"
+                            dict_courses["End_Time"] = "None"
+                            dict_courses["Type"] = "Error"
+                        # Splits days and converts to the proper format
+                        if "," in j[self.excel_course_days + 2]:
+                            split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
+                            for l in range(len(split_by_comma)):
+                                dict_courses["Course_Days"].append(convert_user_days(split_by_comma[l], 0))
+
+                        elif "None" in j[self.excel_course_days + 2]:
+                            pass
+                        elif "ONLINE" in j[self.excel_course_days + 2].upper():
+                            dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
+                                                                         str(j[self.excel_course_number + 2]),
+                                                                         str(j[self.excel_course_section + 2]))
+                            dict_courses = set_online_course(dict_courses, j)
+                        else:
+                            for i in range(len(j[self.excel_course_days + 2])):
+                                dict_courses["Course_Days"].append(convert_user_days(j[self.excel_course_days + 2], i))
 
                 self.list_dict_courses.append(dict_courses.copy())
             except AttributeError:
@@ -446,111 +473,110 @@ class DataProcessor:
             for course_d in range(len(list_dict) - 1):
                 if course_i != (course_d + 1):
                     try:
+                        # Checking if the courses are hybrid
+                        if list_dict[course_i].get("Course") == list_dict[course_d + 1].get("Course"):
+                            if list_dict[course_i].get("Course_Days"):
+                                if not list_dict[course_d + 1].get("Course_Days"):
+                                    list_dict[course_i].get("Type").append("Hybrid")
+                                    # Changing previous Online type to Hybrid
+                                    list_dict[course_d + 1]["Type"] = "Hybrid"
+
                         # Checks Course days similarities
                         if not list(set(list_dict[course_i].get("Course_Days")) &
                                     set(list_dict[course_d + 1].get("Course_Days"))):
                             pass
                         else:
-                            # Checks if online
-                            if list_dict[course_i].get('Room') == 'Online' or list_dict[course_i].get("Start_Time") == \
-                                    'Online':
-                                pass
-                            elif list_dict[course_d + 1].get('Room') == 'Online' or list_dict[course_d + 1].get(
-                                    "Start_Time") == 'Online':
-                                pass
+                            start_time_i = list_dict[course_i].get('Start_Time')
+                            start_time_d = list_dict[course_d + 1].get('Start_Time')
+                            end_time_i = list_dict[course_i].get('End_Time')
+                            end_time_d = list_dict[course_d + 1].get('End_Time')
 
+                            start_date_i = list_dict[course_i].get('Start_Date')
+                            start_date_d = list_dict[course_d + 1].get("Start_Date")
+
+                            if start_time_i is None or start_time_d is None:
+                                pass
+                            elif start_time_i == 'None' or start_time_d == 'None':
+                                pass
+                            elif end_time_i is None or end_time_d is None:
+                                pass
+                            elif end_time_i == 'None' or end_time_d == 'None':
+                                pass
                             else:
-                                start_time_i = list_dict[course_i].get('Start_Time')
-                                start_time_d = list_dict[course_d + 1].get('Start_Time')
-                                end_time_i = list_dict[course_i].get('End_Time')
-                                end_time_d = list_dict[course_d + 1].get('End_Time')
+                                if (list_dict[course_i].get('Room') is not None) & \
+                                        (list_dict[course_d + 1].get('Room') is not None):
+                                    room_ig = "".join(list_dict[course_i].get('Room').split())
+                                    room_d = "".join(list_dict[course_d + 1].get('Room').split())
 
-                                start_date_i = list_dict[course_i].get('Start_Date')
-                                start_date_d = list_dict[course_d + 1].get("Start_Date")
+                                    section_numb_ig = list_dict[course_i].get('Course').split("-")
+                                    section_numb_d = list_dict[course_d + 1].get("Course").split("-")
 
-                                if start_time_i is None or start_time_d is None:
-                                    pass
-                                elif start_time_i == 'None' or start_time_d == 'None':
-                                    pass
-                                elif end_time_i is None or end_time_d is None:
-                                    pass
-                                elif end_time_i == 'None' or end_time_d == 'None':
-                                    pass
-                                else:
-                                    if (list_dict[course_i].get('Room') is not None) & \
-                                            (list_dict[course_d + 1].get('Room') is not None):
-                                        room_ig = "".join(list_dict[course_i].get('Room').split())
-                                        room_d = "".join(list_dict[course_d + 1].get('Room').split())
+                                    # It is normal for section 40 or 41 to conflict with another course
+                                    if (section_numb_d[1] == '40') or (section_numb_ig[1] == '40'):
+                                        pass
+                                    elif (section_numb_d[1] == '41') or (section_numb_ig[1] == '41'):
+                                        pass
 
-                                        section_numb_ig = list_dict[course_i].get('Course').split("-")
-                                        section_numb_d = list_dict[course_d + 1].get("Course").split("-")
+                                    elif room_ig == room_d:
+                                        # Checks for dates
+                                        if check_course_dates(start_date_i) is True and check_course_dates(
+                                                start_date_d) is True:
+                                            self.list_different_date.append(self.list_dict_courses[course_d + 1])
+                                            del self.list_dict_courses[course_d + 1]
+                                        elif check_course_dates(start_date_d) is True:
+                                            self.list_different_date.append(self.list_dict_courses[course_d + 1])
+                                            del self.list_dict_courses[course_d + 1]
+                                        else:
+                                            if check_course_dates(start_date_i) is False and check_course_dates(
+                                                    start_date_d) is False:
+                                                # Transforms variables to float
+                                                start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
+                                                start_time_d = (float(start_time_d[0:2] + '.' + start_time_d[3:5]))
+                                                end_time_i = (float(end_time_i[0:2] + '.' + end_time_i[3:5]))
+                                                end_time_d = (float(end_time_d[0:2] + '.' + end_time_d[3:5]))
 
-                                        # It is normal for section 40 or 41 to conflict with another course
-                                        if (section_numb_d[1] == '40') or (section_numb_ig[1] == '40'):
-                                            pass
-                                        elif (section_numb_d[1] == '41') or (section_numb_ig[1] == '41'):
-                                            pass
+                                                # Checks for conflicts
+                                                if start_time_d <= start_time_i <= end_time_d:
+                                                    self.time_conflict_comment(list_dict[course_i],
+                                                                               list_dict[course_d + 1])
+                                                    # del self.list_dict_courses[course_i]
 
-                                        elif room_ig == room_d:
-                                            # Checks for dates
-                                            if check_course_dates(start_date_i) is True and check_course_dates(
-                                                    start_date_d) is True:
-                                                self.list_different_date.append(self.list_dict_courses[course_d + 1])
-                                                del self.list_dict_courses[course_d + 1]
-                                            elif check_course_dates(start_date_d) is True:
-                                                self.list_different_date.append(self.list_dict_courses[course_d + 1])
-                                                del self.list_dict_courses[course_d + 1]
-                                            else:
-                                                if check_course_dates(start_date_i) is False and check_course_dates(
-                                                        start_date_d) is False:
-                                                    # Transforms variables to float
-                                                    start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
-                                                    start_time_d = (float(start_time_d[0:2] + '.' + start_time_d[3:5]))
-                                                    end_time_i = (float(end_time_i[0:2] + '.' + end_time_i[3:5]))
-                                                    end_time_d = (float(end_time_d[0:2] + '.' + end_time_d[3:5]))
+                                                elif start_time_d <= end_time_i <= end_time_d:
+                                                    self.time_conflict_comment(list_dict[course_i],
+                                                                               list_dict[course_d + 1])
+                                                    # del self.list_dict_courses[course_i]
+                                                else:
+                                                    # Checks if the courses have less than 15 min difference if so
+                                                    # mark as conflict
+                                                    fifteenth_minutes_start_i = start_time_i
+                                                    fifteenth_minutes_end_i = end_time_i
+                                                    fifteenth_minutes_start_d = start_time_d - 0.14
+                                                    fifteenth_minutes_end_d = end_time_d + 0.14
 
-                                                    # Checks for conflicts
-                                                    if start_time_d <= start_time_i <= end_time_d:
-                                                        self.time_conflict_comment(list_dict[course_i],
-                                                                                   list_dict[course_d + 1])
-                                                        # del self.list_dict_courses[course_i]
-
-                                                    elif start_time_d <= end_time_i <= end_time_d:
-                                                        self.time_conflict_comment(list_dict[course_i],
-                                                                                   list_dict[course_d + 1])
-                                                        # del self.list_dict_courses[course_i]
-                                                    else:
-                                                        # Checks if the courses have less than 15 min difference if so
-                                                        # mark as conflict
-                                                        fifteenth_minutes_start_i = start_time_i
-                                                        fifteenth_minutes_end_i = end_time_i
-                                                        fifteenth_minutes_start_d = start_time_d - 0.14
-                                                        fifteenth_minutes_end_d = end_time_d + 0.14
-
-                                                        def check_minutes(time):
-                                                            # transforms minutes to hours if over 60
-                                                            if math.modf(time)[0] >= 0.60:
-                                                                x = math.modf(time)[1] + 1 + math.modf(time)[0] - 0.60
-                                                                return x
-                                                            else:
-                                                                return time
-                                                        fifteenth_minutes_start_i = check_minutes(
-                                                            fifteenth_minutes_start_i)
-                                                        fifteenth_minutes_end_i = check_minutes(
-                                                            fifteenth_minutes_end_i)
-                                                        fifteenth_minutes_start_d = check_minutes(
-                                                            fifteenth_minutes_start_d)
-                                                        fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
-                                                        if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= \
-                                                                fifteenth_minutes_end_d:
-                                                            self.time_conflict_comment(list_dict[course_i],
-                                                                                       list_dict[course_d + 1], True)
-                                                        elif fifteenth_minutes_start_d <= fifteenth_minutes_end_i <= \
-                                                                fifteenth_minutes_end_d:
-                                                            self.time_conflict_comment(list_dict[course_i],
-                                                                                       list_dict[course_d + 1], True)
+                                                    def check_minutes(time):
+                                                        # transforms minutes to hours if over 60
+                                                        if math.modf(time)[0] >= 0.60:
+                                                            x = math.modf(time)[1] + 1 + math.modf(time)[0] - 0.60
+                                                            return x
                                                         else:
-                                                            pass
+                                                            return time
+                                                    fifteenth_minutes_start_i = check_minutes(
+                                                        fifteenth_minutes_start_i)
+                                                    fifteenth_minutes_end_i = check_minutes(
+                                                        fifteenth_minutes_end_i)
+                                                    fifteenth_minutes_start_d = check_minutes(
+                                                        fifteenth_minutes_start_d)
+                                                    fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
+                                                    if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= \
+                                                            fifteenth_minutes_end_d:
+                                                        self.time_conflict_comment(list_dict[course_i],
+                                                                                   list_dict[course_d + 1], True)
+                                                    elif fifteenth_minutes_start_d <= fifteenth_minutes_end_i <= \
+                                                            fifteenth_minutes_end_d:
+                                                        self.time_conflict_comment(list_dict[course_i],
+                                                                                   list_dict[course_d + 1], True)
+                                                    else:
+                                                        pass
                     except IndexError:
                         pass
 
