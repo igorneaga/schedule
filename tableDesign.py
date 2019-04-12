@@ -2,6 +2,7 @@ import os
 import re
 import string
 
+import datetime
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, Alignment, PatternFill
@@ -32,36 +33,172 @@ class MasterDesign:
 
     def main_program_controller(self):
         self.create_master_file()
+
+        # Split course type by type
+        classroom_courses_list = []
+        hybrid_courses_list = []
+        online_courses_list = []
+        mba_macc_list = []
+        telepresence_courses_list = []
+        hubbard_courses_list = []
+        error_courses_list = []
+        for courses_len in range(len(self.list_dict_courses)):
+            for course_type in self.list_dict_courses[courses_len].get("Type"):
+                if course_type == "Classroom":
+                    classroom_courses_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "Hybrid":
+                    hybrid_courses_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "Online":
+                    online_courses_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "MBA":
+                    mba_macc_list.append(self.list_dict_courses[courses_len])
+
+                elif course_type == "MACC":
+                    mba_macc_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "Telepresence":
+                    telepresence_courses_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "Hubbard":
+                    hubbard_courses_list.append(self.list_dict_courses[courses_len])
+
+                if course_type == "Error":
+                    error_courses_list.append(self.list_dict_courses[courses_len])
+
         # Classroom table section
-        self.class_room_table(self.list_dict_courses, "Classroom Table", "Classroom Table", True)
+        self.classroom_table(classroom_courses_list, "Classroom Table", "Classroom Table", True)
         if not self.different_date_courses:
             pass
         else:
             sheet_name = "Classroom - 2nd Session"
-            heading = "Classroom Table - Second Session" + self.different_date_courses[0].get("Start_Date").strftime(
+            heading = "Classroom Table - Second Session " + self.different_date_courses[0].get("Start_Date").strftime(
                 "%m-%d-%Y")
-            self.class_room_table(self.different_date_courses, sheet_name, heading, False)
+            self.classroom_table(self.different_date_courses, sheet_name, heading, False)
+
+        # Hybrid table section
+        if hybrid_courses_list:
+            self.create_excel_sheet(sheet_name="Hybrid Table")
+            self.set_excel_heading(heading_name="Hybrid Table")
+            self.standard_table(hybrid_courses_list, "Hybrid Courses", 'cdeae6')
 
         # Online table section
-        # self.create_excel_sheet(sheet_name="Online Table")
-        # self.set_excel_heading(heading_name="Online Table")
-        # Hybrid table section
-        # self.create_excel_sheet(sheet_name="Hybrid Table")
-        # self.set_excel_heading(heading_name="Hybrid Table")
+        if online_courses_list:
+            self.create_excel_sheet(sheet_name="Online Table")
+            self.set_excel_heading(heading_name="Online Table")
+            self.standard_table(online_courses_list, "Online Courses", "d5d1e7")
+
         # MBA MACC table section
-        # self.create_excel_sheet(sheet_name="MBA MACC Table")
-        # self.set_excel_heading(heading_name="MBA MACC Table")
+        if mba_macc_list:
+            self.create_excel_sheet(sheet_name="MBA MACC Table")
+            self.set_excel_heading(heading_name="MBA MACC Table")
+            self.standard_table(mba_macc_list, "MBA/MACC Courses", "bfa0bc")
+
         # Telepresence table section
-        # self.create_excel_sheet(sheet_name="Telepresence Table")
-        # self.set_excel_heading(heading_name="Telepresence Table")
+        if telepresence_courses_list:
+            self.create_excel_sheet(sheet_name="Telepresence Table")
+            self.set_excel_heading(heading_name="Telepresence Table")
+            self.standard_table(telepresence_courses_list, "Telepresence Courses", "cdeae6")
+
+        # Hubbard table section
+        if hubbard_courses_list:
+            self.create_excel_sheet(sheet_name="Hubbard Table")
+            self.set_excel_heading(heading_name="Hubbard Table")
+            self.standard_table(hubbard_courses_list, "Hubbard Courses", "eebe95")
 
         # Not Included Courses table section
-        # self.create_excel_sheet(sheet_name="Not Included Courses")
-        # self.set_excel_heading(heading_name="Not Included Courses")
+        if error_courses_list:
+            self.create_excel_sheet(sheet_name="Not Included Courses")
+            self.set_excel_heading(heading_name="Not Included Courses")
+            self.standard_table(error_courses_list, "Telepresence Courses", "f6bfd6")
 
         self.save_excel_file()
 
-    def class_room_table(self, list_dict, name, heading, first):
+    def standard_table(self, list_dict, course_type, color):
+        """Creates a simple design table"""
+        self.course_types_list = []
+
+        self.sheet["A1"].fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
+        self.sheet["A2"].fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
+
+        def insert_table_type(sheet, table_type):
+            """Inserts table type on A2"""
+            sheet.merge_cells("A2:B2")
+            sheet["A2"] = table_type + ":"
+            sheet["A2"].font = Font(sz=11, bold=True, italic=False)
+            sheet["A2"].alignment = Alignment(horizontal='center', vertical='center')
+
+        def insert_table_headings(sheet):
+            """Inserts column headers on A3"""
+            def insert_heading(heading_column, title):
+                sheet[heading_column + "3"] = title
+                sheet[heading_column + "3"].font = Font(name="Arial", sz=11, bold=True, italic=False)
+                sheet[heading_column + "3"].alignment = Alignment(horizontal='left', vertical='center')
+
+            insert_heading("A", "Course#/Sec.")
+            insert_heading("B", "Cr.")
+            insert_heading("C", "Title of course")
+            insert_heading("D", "Days")
+            insert_heading("E", "Time")
+            insert_heading("F", "Room")
+            insert_heading("G", "Faculty")
+            insert_heading("H", "Dates")
+            insert_heading("I", "Cap.")
+
+        def insert_courses(sheet, excel_data):
+            """Inserts dictionary data to excel cell"""
+
+            for i in range(len(excel_data)):
+                d = []
+                row = i + 4
+                sheet["A" + str(row)] = excel_data[i].get("Course")
+                sheet["B" + str(row)] = excel_data[i].get("Credits")
+                sheet["C" + str(row)] = excel_data[i].get("Course_Title")
+                if excel_data[i].get("Course_Days"):
+                    for days in excel_data[i].get("Course_Days"):
+                        if days[0:2] == "Mo":
+                            d.append("M")
+                        elif days[0:2] == "Tu":
+                            d.append("T")
+                        elif days[0:2] == "We":
+                            d.append("W")
+                        elif days[0:2] == "Th":
+                            d.append("H")
+                        elif days[0:2] == "Fr":
+                            d.append("F")
+                        else:
+                            d.append(days)
+                sheet["D" + str(row)] = ''.join(d)
+                sheet["E" + str(row)] = excel_data[i].get("Start_Time") + "-" + excel_data[i].get("End_Time")
+                sheet["F" + str(row)] = excel_data[i].get("Room")
+                sheet["G" + str(row)] = excel_data[i].get("Faculty")
+                if isinstance(excel_data[i].get("Start_Date"), datetime.date) is True:
+                    sheet["H" + str(row)] = excel_data[i].get("Start_Date").strftime('%m/%d/%Y') + "-" + excel_data[i].get("End_Date").strftime('%m/%d/%Y')
+                else:
+                    sheet["H" + str(row)] = str(excel_data[i].get("Start_Date")) + "-" + str(excel_data[i].get("End_Date"))
+                sheet["I" + str(row)] = excel_data[i].get("Enrollment")
+
+        for course_len in range(len(list_dict)):
+            start_row = str(course_len + 4)
+            self.color_cell(list_dict[course_len].get("Course"), "A" + start_row)
+            # Fills the color
+            for column in range(8):
+                if course_len % 2 == 0:
+                    get_cell_cord = ''.join(string.ascii_uppercase[column + 1]) + start_row
+                    self.sheet[get_cell_cord].fill = PatternFill(start_color=color,
+                                                                 end_color=color, fill_type='solid')
+
+        insert_table_type(self.sheet, course_type)
+        insert_table_headings(self.sheet)
+        insert_courses(self.sheet, list_dict)
+        # Excel table design
+        self.border_all_cells("A3")
+        self.color_cell_meaning(row_num=4)
+        self.adjust_cells_width(False)
+
+    def classroom_table(self, list_dict, name, heading, first):
         # Sets variable to empty
         self.course_types_list = []
 
@@ -69,7 +206,7 @@ class MasterDesign:
         list_unique_times = self.set_time_row(list_dict)
         self.set_courses(list_dict, list_unique_times)
 
-        self.color_cell_meaning()
+        self.color_cell_meaning(row_num=2)
 
         self.set_excel_heading(heading_name=heading)
         self.adjust_cells_width()
@@ -172,7 +309,7 @@ class MasterDesign:
             time_row_column += 1
         return unique_times
 
-    def adjust_cells_width(self):
+    def adjust_cells_width(self, classroom_table=True):
         """Adjusts all the cell width. It is really cool"""
         # Gets last column
         excel_max_column = self.sheet.max_column
@@ -186,9 +323,16 @@ class MasterDesign:
             get_column = column[0].column
             # Column "A" and "B" will have a standard size
             if get_column is "A":
-                self.sheet.column_dimensions["A"].width = 12
+                if classroom_table is True:
+                    self.sheet.column_dimensions["A"].width = 12
+                else:
+                    self.sheet.column_dimensions["A"].width = 18
             elif get_column is "B":
-                self.sheet.column_dimensions["B"].width = 12
+                if classroom_table is True:
+                    self.sheet.column_dimensions["B"].width = 12
+                else:
+                    self.sheet.column_dimensions["B"].width = 6
+
             else:
                 for cell in column:
                     try:
@@ -198,14 +342,14 @@ class MasterDesign:
                         pass
                 # A formula for auto adjusted width
                 adjusted_width = (max_length + 2) * 1.05
-                # Limits adjusted width
-                if get_column is col_letter:
-                    # Last column needs to be bigger to fit everything correctly
-                    if adjusted_width > 24:
-                        adjusted_width = 24
-                elif adjusted_width > 14:
-                    adjusted_width = 14
-
+                if classroom_table is True:
+                    # Limits adjusted width
+                    if get_column is col_letter:
+                        # Last column needs to be bigger to fit everything correctly
+                        if adjusted_width > 24:
+                            adjusted_width = 24
+                    elif adjusted_width > 14:
+                        adjusted_width = 14
                 self.sheet.column_dimensions[get_column].width = adjusted_width
 
     def merge_excel_cells(self, start_row, start_column, end_row, end_column, style=False, bold=False):
@@ -220,6 +364,30 @@ class MasterDesign:
                                                                      vertical='center', wrap_text=True)
         if style is True:
             style_excel_cell(excel_sheet, start_row, start_column)
+
+    def border_all_cells(self, start_cell):
+        """Borders all table"""
+        # Gets table size
+        excel_max_row = self.sheet.max_row
+        excel_max_column = self.sheet.max_column
+
+        # Transfers column to an alphabetical format
+        col_letter = ''.join(string.ascii_uppercase[excel_max_column - 1])
+
+        # Gets full coordinates of a table
+        full_cord = start_cell + ":" + str(col_letter) + str(excel_max_row)
+
+        # Style of a border
+        thin_border = Border(left=Side(style='thin'),
+                             right=Side(style='thin'),
+                             top=Side(style='thin'),
+                             bottom=Side(style='thin'))
+
+        # Goes over each cell and applies border
+        rows = self.sheet.iter_rows(full_cord)
+        for r in rows:
+            for r_cell in r:
+                r_cell.border = thin_border
 
     def set_courses(self, list_dict, unique_times):
         """Sets courses in a excel file"""
@@ -248,30 +416,6 @@ class MasterDesign:
         def get_cell_value(get_column, sheet, get_row):
             """Returns a cell value"""
             return sheet[get_column + str(get_row)].value
-
-        def border_all_cells(sheet):
-            """Borders all table"""
-            # Gets table size
-            excel_max_row = sheet.max_row
-            excel_max_column = sheet.max_column
-
-            # Transfers column to an alphabetical format
-            col_letter = ''.join(string.ascii_uppercase[excel_max_column-1])
-
-            # Gets full coordinates of a table
-            full_cord = "A1:" + str(col_letter) + str(excel_max_row)
-
-            # Style of a border
-            thin_border = Border(left=Side(style='thin'),
-                                 right=Side(style='thin'),
-                                 top=Side(style='thin'),
-                                 bottom=Side(style='thin'))
-
-            # Goes over each cell and applies border
-            rows = sheet.iter_rows(full_cord)
-            for r in rows:
-                for r_cell in r:
-                    r_cell.border = thin_border
 
         # Creates a dictionary based on a room key
         room_course_dict = set_room_dict(list_dict)
@@ -514,7 +658,7 @@ class MasterDesign:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
                                     self.color_cell(value[l].get("Course"), c[0] + c[1])
 
-        border_all_cells(self.sheet)
+        self.border_all_cells("A1")
 
     def color_cell(self, text, coordinate, course_type_list=True):
         """Colors a course based on a department color"""
@@ -601,10 +745,10 @@ class MasterDesign:
         # Makes the text be in the center of a cell
         self.sheet[coordinate].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
-    def color_cell_meaning(self):
+    def color_cell_meaning(self, row_num):
         """Will appear on a right side which color assign to which department"""
         get_max_column = self.sheet.max_column
-        row = 2
+        row = row_num
 
         def remove_duplicates(course_list):
             return list(set(course_list))

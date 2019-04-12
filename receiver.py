@@ -369,6 +369,8 @@ class DataProcessor:
                 d_courses.get("Type").append("MACC")
             if d_courses.get("Room")[0:2] == "HU":
                 d_courses.get("Type").append("Hubbard")
+            if d_courses.get("Room")[0:7] == "MH 0211":
+                d_courses.get("Type").append("Telepresence")
 
             return d_courses.get("Type")
 
@@ -403,6 +405,10 @@ class DataProcessor:
                         dict_courses["Type"] = set_course_type(dict_courses)
                         dict_courses["Start_Date"] = j[13]
                         dict_courses["End_Date"] = j[14]
+                        dict_courses["Credits"] = j[6]
+                        dict_courses["Course_Title"] = j[7]
+                        dict_courses["Enrollment"] = j[11]
+                        dict_courses["Faculty"] = j[12]
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
