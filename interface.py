@@ -11,6 +11,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 
+import room_capacity
 import receiver
 
 
@@ -57,6 +58,9 @@ class UserInterface(Frame):
         self.table_order_default = None
         self.table_order_sorted = None
         self.table_name_insertion_box = None
+
+        # Stores data about room capacity
+        self.room_cap_dict = dict()
 
         # A label which will keep updating once user choose a data file
         self.button_text = tk.StringVar()
@@ -225,12 +229,9 @@ class UserInterface(Frame):
         """Updates the string in the GUI"""
         self.button_text.set(text)
 
-    def changes_window_open(self):
-        # For the future update
-        pass
-
     def selection_step_window(self):
         # Notifies a user that files need to be closed
+        self.room_cap_dict = room_capacity.RoomCapacity().check_file_exist()
         try:
             excel_file = glob.glob('__excel_files/*.xlsx')
             if not excel_file:
