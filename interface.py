@@ -739,7 +739,7 @@ class UserInterface(Frame):
         self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
                                                       self.table_settings_semester, self.table_settings_year,
                                                       self.table_settings_type,
-                                                      self.table_friday_include).get_excel_errors()
+                                                      self.table_friday_include, self.room_cap_dict).get_excel_errors()
         switch = True
         self.user_result_window()
 

@@ -31,7 +31,8 @@ class RoomCapacity:
                 capacity_html = div.findAll("div", {"class": "cl h"})
 
                 for rooms in room_html:
-                    list_of_rooms.append(building_number[symbol_index + 1:-1] + " " + rooms.text[0:4])
+                    list_of_rooms.append(building_number[symbol_index + 1:-1] + " " +
+                                         (rooms.text[0:5].replace(" ", "")))
                 for capacity in capacity_html:
                     list_of_capacity.append(capacity.text)
 

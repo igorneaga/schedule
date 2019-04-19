@@ -16,7 +16,7 @@ import tableDesign
 
 class DataProcessor:
 
-    def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday):
+    def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday, classroom_capacity):
         # Getting user information
         self.file_directory = file_directory
         self.table_name = table_name
@@ -24,6 +24,7 @@ class DataProcessor:
         self.table_year = table_year
         self.days_order = table_type
         self.friday_choice = friday
+        self.classroom_capacity = classroom_capacity
 
         self.days = []
         self.excel_data_list = None
@@ -242,9 +243,11 @@ class DataProcessor:
 
         get_excel_workbook = workbook
         # Goes through each error
+
         for i in range(len(self.user_excel_errors)):
             # Checks if this error is assign to this file
             if self.user_excel_errors[i].get("File_Path") == file_path:
+                self.user_excel_errors[i].get("File_Path")
                 edit_sheet = get_excel_workbook[self.user_excel_errors[i].get("Sheet_Name")]
                 # Takes error information
                 row_num = self.user_excel_errors[i].get("Row")
@@ -473,9 +476,34 @@ class DataProcessor:
                     return False
                 else:
                     return True
+
+        def check_room_capacity(course, dict_room_cap):
+
+            for rooms, rooms_cap in dict_room_cap.items():
+                if (rooms is not None) & (course.get("Room") is not None):
+                    if course.get("Room") == rooms:
+                        if course.get("Enrollment") == rooms_cap:
+                            pass
+                        else:
+                            if int(course.get("Enrollment")) > int(rooms_cap):
+                                return course, rooms_cap, "FEBBBB"
+                            else:
+                                return course, rooms_cap, "C5C5FF"
+
         # Creates a copy of our main dict
         list_dict = self.list_dict_courses.copy()
         for course_i in range(len(list_dict)):
+
+            try:
+                courses, room_cap, color = check_room_capacity(list_dict[course_i], self.classroom_capacity)
+                if (courses is not None) & (room_cap is not None):
+                    comment = courses.get("Room") + " capacity expected to be " + \
+                              str(room_cap) + " for " + courses.get("Course")
+                    self.create_report_dictionary(courses.get("Row"), 9, courses.get("File"), courses.get("Sheet_Name"),
+                                                  color, comment)
+            except TypeError:
+                pass
+
             for course_d in range(len(list_dict) - 1):
                 if course_i != (course_d + 1):
                     try:
