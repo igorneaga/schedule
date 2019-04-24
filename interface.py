@@ -972,8 +972,9 @@ class UserInterface(Frame):
 def create_interface(argv):
 
     root = Tk()
-    root.title("Uni-Table Maker")
+    root.title('Uni-Scheduler')
     root.geometry("659x337")
+    root.iconbitmap('assets\\unischeduler_icon.ico')
     UserInterface(root)
     root.mainloop()
 
