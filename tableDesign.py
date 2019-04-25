@@ -50,7 +50,7 @@ class MasterDesign:
                 if course_type == "Hybrid":
                     hybrid_courses_list.append(self.list_dict_courses[courses_len])
 
-                if course_type == "Online":
+                if (course_type == "Online") & (self.list_dict_courses[courses_len].get("Course") != "NONE None-None"):
                     online_courses_list.append(self.list_dict_courses[courses_len])
 
                 if course_type == "MBA":
@@ -175,9 +175,11 @@ class MasterDesign:
                 sheet["F" + str(row)] = excel_data[i].get("Room")
                 sheet["G" + str(row)] = excel_data[i].get("Faculty")
                 if isinstance(excel_data[i].get("Start_Date"), datetime.date) is True:
-                    sheet["H" + str(row)] = excel_data[i].get("Start_Date").strftime('%m/%d/%Y') + "-" + excel_data[i].get("End_Date").strftime('%m/%d/%Y')
+                    sheet["H" + str(row)] = excel_data[i].get("Start_Date").strftime('%m/%d/%Y') + "-" + \
+                                            excel_data[i].get("End_Date").strftime('%m/%d/%Y')
                 else:
-                    sheet["H" + str(row)] = str(excel_data[i].get("Start_Date")) + "-" + str(excel_data[i].get("End_Date"))
+                    sheet["H" + str(row)] = str(excel_data[i].get("Start_Date")) + "-" + \
+                                            str(excel_data[i].get("End_Date"))
                 sheet["I" + str(row)] = excel_data[i].get("Enrollment")
 
         for course_len in range(len(list_dict)):
@@ -197,6 +199,7 @@ class MasterDesign:
         self.border_all_cells("A3")
         self.color_cell_meaning(row_num=4)
         self.adjust_cells_width(False)
+        self.set_page_break()
 
     def classroom_table(self, list_dict, name, heading, first):
         # Sets variable to empty
