@@ -347,7 +347,7 @@ class DataProcessor:
                 return "Friday"
 
             else:
-                pass
+                return 'None'
 
         excel_data = clear_unnecessary_list(excel_data)
         self.mark_none_values(excel_data)
@@ -406,8 +406,42 @@ class DataProcessor:
                         dict_courses["File"] = j[2]
                         dict_courses["Sheet_Name"] = j[1]
                         dict_courses["Type"] = set_course_type(dict_courses)
-                        dict_courses["Start_Date"] = j[13]
-                        dict_courses["End_Date"] = j[14]
+                        if j[13] != "None":
+                            try:
+                                if type(j[13]) is str:
+                                    # Checking if the year is correct
+                                    if int(j[13][-4:]) > (int(datetime.datetime.now().year) + 2) or int(j[13][-4:]) < (
+                                            int(datetime.datetime.now().year) - 2):
+                                        comment = dict_courses.get("Course") + " course might have a wrong year. " \
+                                                                               "Please double check." + (' ' * 150)
+                                        self.create_report_dictionary(j[0], 11, j[2], j[1], 'FF687B', comment)
+
+                                    dict_courses["End_Date"] = datetime.datetime.strptime(j[13], '%m/%d/%Y')
+                                else:
+                                    dict_courses["Start_Date"] = j[13]
+                            except ValueError:
+                                # If the date format is incorrect
+                                comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
+                                          (' ' * 150)
+                                self.create_report_dictionary(j[0], 11, j[2], j[1], 'FF687B', comment)
+                        if j[14] != "None":
+                            try:
+                                if type(j[14]) is str:
+                                    # Checking if the year is correct
+                                    if int(j[14][-4:]) > (int(datetime.datetime.now().year) + 2) or int(j[14][-4:]) < (
+                                            int(datetime.datetime.now().year) - 2):
+                                        comment = dict_courses.get("Course") + " course might have a wrong year. " \
+                                                                               "Please double check." + (' ' * 150)
+                                        self.create_report_dictionary(j[0], 12, j[2], j[1], 'FF687B', comment)
+
+                                    dict_courses["End_Date"] = datetime.datetime.strptime(j[14], '%m/%d/%Y')
+                                else:
+                                    dict_courses["End_Date"] = j[14]
+                            except ValueError:
+                                # If the date format is incorrect
+                                comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
+                                          (' ' * 150)
+                                self.create_report_dictionary(j[0], 12, j[2], j[1], 'FF687B', comment)
                         dict_courses["Credits"] = j[6]
                         dict_courses["Course_Title"] = j[7]
                         dict_courses["Enrollment"] = j[11]
@@ -432,6 +466,13 @@ class DataProcessor:
                         if "," in j[self.excel_course_days + 2]:
                             split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
                             for l in range(len(split_by_comma)):
+                                # Checks if the function can convert user day format
+                                if convert_user_days(split_by_comma[l], 0) == 'None':
+                                    comment = dict_courses.get("Course") + " must follow the day format" + (' ' * 150)
+                                    self.create_report_dictionary(dict_courses.get("Row"), 7, dict_courses.get("File"),
+                                                                  dict_courses.get("Sheet_Name"), "FF687B", comment)
+                                    dict_courses["Type"] = ["Error"]
+
                                 dict_courses["Course_Days"].append(convert_user_days(split_by_comma[l], 0))
 
                         elif "None" in j[self.excel_course_days + 2]:
@@ -443,6 +484,13 @@ class DataProcessor:
                             dict_courses = set_online_course(dict_courses, j)
                         else:
                             for i in range(len(j[self.excel_course_days + 2])):
+                                # Checks if the function can convert user day format
+                                if convert_user_days(j[self.excel_course_days + 2], i) == 'None':
+                                    comment = dict_courses.get("Course") + " must follow the day format" + (' ' * 150)
+                                    self.create_report_dictionary(dict_courses.get("Row"), 7, dict_courses.get("File"),
+                                                                  dict_courses.get("Sheet_Name"), "FF687B", comment)
+                                    dict_courses["Type"] = ["Error"]
+
                                 dict_courses["Course_Days"].append(convert_user_days(j[self.excel_course_days + 2], i))
 
                 self.list_dict_courses.append(dict_courses.copy())
@@ -481,14 +529,17 @@ class DataProcessor:
 
             for rooms, rooms_cap in dict_room_cap.items():
                 if (rooms is not None) & (course.get("Room") is not None):
-                    if course.get("Room") == rooms:
-                        if course.get("Enrollment") == rooms_cap:
-                            pass
-                        else:
-                            if int(course.get("Enrollment")) > int(rooms_cap):
-                                return course, rooms_cap, "FEBBBB"
+                        if course.get("Room") == rooms:
+                            if course.get("Enrollment") == rooms_cap:
+                                pass
                             else:
-                                return course, rooms_cap, "C5C5FF"
+                                try:
+                                    if int(course.get("Enrollment")) > int(rooms_cap):
+                                        return course, rooms_cap, "FEBBBB"
+                                    else:
+                                        return course, rooms_cap, "C5C5FF"
+                                except ValueError:
+                                    pass
 
         # Creates a copy of our main dict
         list_dict = self.list_dict_courses.copy()
@@ -498,7 +549,7 @@ class DataProcessor:
                 courses, room_cap, color = check_room_capacity(list_dict[course_i], self.classroom_capacity)
                 if (courses is not None) & (room_cap is not None):
                     comment = courses.get("Room") + " capacity expected to be " + \
-                              str(room_cap) + " for " + courses.get("Course")
+                              str(room_cap) + " for " + courses.get("Course") + (" " * 140)
                     self.create_report_dictionary(courses.get("Row"), 9, courses.get("File"), courses.get("Sheet_Name"),
                                                   color, comment)
             except TypeError:
