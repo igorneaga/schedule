@@ -446,6 +446,8 @@ class DataProcessor:
                         dict_courses["Course_Title"] = j[7]
                         dict_courses["Enrollment"] = j[11]
                         dict_courses["Faculty"] = j[12]
+                        dict_courses["Semester"] = self.table_semester
+                        print(self.table_semester)
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
@@ -506,21 +508,26 @@ class DataProcessor:
         """Loops through each dictionary in the list. Looks for similar rooms and days.
         Finds a time conflict between courses. Deletes the conflict dict."""
 
-        def check_course_dates(start_date):
+        def check_course_dates(first_course, second_course):
             """Checks if courses has dates and dates differences"""
 
             # Dates from MNSU academic calendar 2019-2020
             course_fall_term = datetime.datetime(2019, 8, 26, 0, 0)
             course_spring_term = datetime.datetime(2019, 1, 13, 0, 0)
-
-            if start_date is "None" or start_date is None:
+            if first_course is "None" or first_course is None or second_course is "None" or second_course is None:
                 return False
             else:
                 # Checks if there is a difference bigger than 33 days in the dates.
-                if (course_fall_term - datetime.timedelta(days=33)).month \
-                        <= start_date.month <= (course_fall_term + datetime.timedelta(days=33)).month or \
-                        (course_spring_term - datetime.timedelta(days=33)).month <= start_date.month <= \
-                        (course_spring_term + datetime.timedelta(days=33)).month:
+                if ((course_fall_term - datetime.timedelta(days=33)).month
+                        <= first_course.month <= (course_fall_term + datetime.timedelta(days=33)).month or
+                        (course_spring_term - datetime.timedelta(days=33)).month <= first_course.month <=
+                        (course_spring_term + datetime.timedelta(days=33)).month) and \
+                        ((course_fall_term - datetime.timedelta(days=33)).month
+                         <= second_course.month <= (course_fall_term + datetime.timedelta(days=33)).month or
+                         (course_spring_term - datetime.timedelta(days=33)).month <= second_course.month <=
+                         (course_spring_term + datetime.timedelta(days=33)).month):
+                    return False
+                elif first_course.month == second_course.month:
                     return False
                 else:
                     return True
@@ -604,16 +611,12 @@ class DataProcessor:
 
                                     elif room_ig == room_d:
                                         # Checks for dates
-                                        if check_course_dates(start_date_i) is True and check_course_dates(
-                                                start_date_d) is True:
-                                            self.list_different_date.append(self.list_dict_courses[course_d + 1])
-                                            del self.list_dict_courses[course_d + 1]
-                                        elif check_course_dates(start_date_d) is True:
+                                        if check_course_dates(start_date_i, start_date_d) is True:
+                                            print(self.list_dict_courses[course_d])
                                             self.list_different_date.append(self.list_dict_courses[course_d + 1])
                                             del self.list_dict_courses[course_d + 1]
                                         else:
-                                            if check_course_dates(start_date_i) is False and check_course_dates(
-                                                    start_date_d) is False:
+                                            if check_course_dates(start_date_i, start_date_d) is False:
                                                 # Transforms variables to float
                                                 start_time_i = (float(start_time_i[0:2] + '.' + start_time_i[3:5]))
                                                 start_time_d = (float(start_time_d[0:2] + '.' + start_time_d[3:5]))
