@@ -244,31 +244,31 @@ class DataProcessor:
         get_excel_workbook = workbook
         # Goes through each error
 
-        for i in range(len(self.user_excel_errors)):
+        for len_errors in range(len(self.user_excel_errors)):
             # Checks if this error is assign to this file
-            if self.user_excel_errors[i].get("File_Path") == file_path:
-                self.user_excel_errors[i].get("File_Path")
-                edit_sheet = get_excel_workbook[self.user_excel_errors[i].get("Sheet_Name")]
+            if self.user_excel_errors[len_errors].get("File_Path") == file_path:
+                self.user_excel_errors[len_errors].get("File_Path")
+                edit_sheet = get_excel_workbook[self.user_excel_errors[len_errors].get("Sheet_Name")]
                 # Takes error information
-                row_num = self.user_excel_errors[i].get("Row")
-                column_num = self.user_excel_errors[i].get("Column")
-                error_color = self.user_excel_errors[i].get("Color")
+                row_num = self.user_excel_errors[len_errors].get("Row")
+                column_num = self.user_excel_errors[len_errors].get("Column")
+                error_color = self.user_excel_errors[len_errors].get("Color")
                 # Fills cell with error color
                 edit_sheet.cell(row=row_num, column=column_num).fill = PatternFill(start_color=error_color,
                                                                                    end_color=error_color,
                                                                                    fill_type='solid')
                 # Comments cell
-                if self.user_excel_errors[i].get("Comment") is not None:
-                    comment = self.user_excel_errors[i].get("Comment")
+                if self.user_excel_errors[len_errors].get("Comment") is not None:
+                    comment = self.user_excel_errors[len_errors].get("Comment")
                     edit_sheet.cell(row=row_num, column=column_num).comment = Comment(comment, author="TableMaker")
                 else:
                     pass
 
     def mark_none_values(self, data_list):
         """Marks none values with specific color"""
-        for i in range(len(data_list)):
+        for len_data in range(len(data_list)):
             # Goes every None value
-            none_index = [i for i, e in enumerate(data_list[i]) if e == "None"]
+            none_index = [i for i, e in enumerate(data_list[len_data]) if e == "None"]
             for val_length in range(len(none_index)):
                 column = none_index[val_length] - 2
                 # if column is above 13 we don't need to mark
@@ -276,8 +276,8 @@ class DataProcessor:
                     pass
                 else:
                     try:
-                        self.create_report_dictionary(data_list[i][0], column, data_list[i][2],
-                                                      data_list[i][1], error_color="FADDA7")
+                        self.create_report_dictionary(data_list[len_data][0], column, data_list[len_data][2],
+                                                      data_list[len_data][1], error_color="FADDA7")
                     except IndexError:
                         pass
 
@@ -374,7 +374,6 @@ class DataProcessor:
                 d_courses.get("Type").append("Hubbard")
             if d_courses.get("Room")[0:7] == "MH 0211":
                 d_courses.get("Type").append("Telepresence")
-
             return d_courses.get("Type")
 
         for j in excel_data:
@@ -447,7 +446,6 @@ class DataProcessor:
                         dict_courses["Enrollment"] = j[11]
                         dict_courses["Faculty"] = j[12]
                         dict_courses["Semester"] = self.table_semester
-                        print(self.table_semester)
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
@@ -511,9 +509,9 @@ class DataProcessor:
         def check_course_dates(first_course, second_course):
             """Checks if courses has dates and dates differences"""
 
-            # Dates from MNSU academic calendar 2019-2020
-            course_fall_term = datetime.datetime(2019, 8, 26, 0, 0)
-            course_spring_term = datetime.datetime(2019, 1, 13, 0, 0)
+            # Dates from MNSU academic calendar
+            course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
+            course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
             if first_course is "None" or first_course is None or second_course is "None" or second_course is None:
                 return False
             else:
@@ -533,20 +531,19 @@ class DataProcessor:
                     return True
 
         def check_room_capacity(course, dict_room_cap):
-
             for rooms, rooms_cap in dict_room_cap.items():
                 if (rooms is not None) & (course.get("Room") is not None):
-                        if course.get("Room") == rooms:
-                            if course.get("Enrollment") == rooms_cap:
+                    if course.get("Room") == rooms:
+                        if course.get("Enrollment") == rooms_cap:
+                            pass
+                        else:
+                            try:
+                                if int(course.get("Enrollment")) > int(rooms_cap):
+                                    return course, rooms_cap, "FEBBBB"
+                                else:
+                                    return course, rooms_cap, "C5C5FF"
+                            except ValueError:
                                 pass
-                            else:
-                                try:
-                                    if int(course.get("Enrollment")) > int(rooms_cap):
-                                        return course, rooms_cap, "FEBBBB"
-                                    else:
-                                        return course, rooms_cap, "C5C5FF"
-                                except ValueError:
-                                    pass
 
         # Creates a copy of our main dict
         list_dict = self.list_dict_courses.copy()
@@ -612,7 +609,6 @@ class DataProcessor:
                                     elif room_ig == room_d:
                                         # Checks for dates
                                         if check_course_dates(start_date_i, start_date_d) is True:
-                                            print(self.list_dict_courses[course_d])
                                             self.list_different_date.append(self.list_dict_courses[course_d + 1])
                                             del self.list_dict_courses[course_d + 1]
                                         else:
