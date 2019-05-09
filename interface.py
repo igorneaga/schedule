@@ -30,6 +30,7 @@ class UserInterface(Frame):
         self.excel_copy_fie = tk.PhotoImage(file='assets\\excel_files_icon.png')
         self.excel_main_file = tk.PhotoImage(file='assets\\master_file_icon.png')
         self.exit_file = tk.PhotoImage(file='assets\\quit_button.png')
+        self.u_logo = tk.PhotoImage(file='assets\\u_logo.png')
 
         # Default table characteristics
         self.table_settings_type = 1
@@ -37,6 +38,10 @@ class UserInterface(Frame):
         self.table_settings_semester = "Fall"
         self.table_settings_name = "Uni_Table"
         self.table_friday_include = 0
+
+        # Intro secntion
+        self.cost_center_ibus = "None"
+        self.file = 'cost_center.cvs'
 
         # Information from data files
         self.file_name = None
@@ -47,6 +52,7 @@ class UserInterface(Frame):
         # GUI windows
         self.selection_window = None
         self.files_manipulation_window = None
+        self.introduction = None
         self.settings_window = None
         self.creating_step_window = None
         self.notification_window = None
@@ -79,8 +85,11 @@ class UserInterface(Frame):
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
 
-        # Starts at this window
-        self.selection_step_window()
+        # Determines starting window
+        if os.path.isfile(self.file):
+            self.selection_step_window()
+        else:
+            self.settings_step_window()
 
     def submit_tickcet_form(self):
         """Opens a Google Form to collect any reports or requests"""
@@ -150,6 +159,9 @@ class UserInterface(Frame):
 
     def interface_window_remover(self):
         """Removes window once a user goes to a next step or previous step."""
+
+        if self.introduction:
+            self.introduction.grid_remove()
 
         if self.selection_window:
             self.selection_window.grid_remove()
@@ -229,8 +241,103 @@ class UserInterface(Frame):
         """Updates the string in the GUI"""
         self.button_text.set(text)
 
+    def settings_step_window(self):
+        """Window gains information necessary information to create a payroll table from user"""
+        button_frame = self.introduction = Frame(self)
+        button_frame.grid()
+
+        # Short welcome text
+        welcome_text = ttk.Label(button_frame,
+                                 text="Hello!",
+                                 foreground="green",
+                                 font=('Arial', 21))
+        # Placing coordinates
+        welcome_text.grid(column=0,
+                          row=0,
+                          padx=25,
+                          pady=25,
+                          sticky="n")
+        # Logo of a program on the right
+        u_logo_image = Label(button_frame, image=self.u_logo)
+        u_logo_image.photo = self.u_logo
+        u_logo_image.grid(column=1,
+                          row=0,
+                          padx=25,
+                          pady=0)
+        # Description of a reason to have this window
+        welcome_description = ttk.Label(button_frame,
+                                        text="As a first step program needs to know the cost center\n "
+                                             "for each department(Angie might help with them)",
+                                        foreground="green",
+                                        font=('Arial', 12))
+        welcome_description.grid(column=0,
+                                 row=0,
+                                 rowspan=2,
+                                 padx=20,
+                                 pady=75)
+        # Cost Center instructions
+        box_instructions = ttk.Label(button_frame,
+                                     text="Split each cost center(6 digit number) by comma. For example 200101, 200300 "
+                                          "and etc.\nPlease follow these department order: Marketing, Accounting & "
+                                          "Business Law,\nFinance, International Business, MACC, Management, MBA.",
+                                     foreground="black",
+                                     font=('Arial', 12))
+        box_instructions.grid(column=0,
+                              columnspan=2,
+                              row=4,
+                              padx=20,
+                              pady=0,
+                              sticky='n')
+        # Moves to main menu
+        self.move_to_main_button = Button(button_frame,
+                                          relief="groove",
+                                          bg='#c5eb93',
+                                          border='4',
+                                          text="Done!",
+                                          command=self.selection_step_window,
+                                          foreground="green",
+                                          font=('Arial', 16, 'bold'))
+        self.move_to_main_button.grid(sticky='n',
+                                      column=1,
+                                      columnspan=2,
+                                      row=5,
+                                      pady=40,
+                                      padx=43)
+
+        self.table_name_insertion_box = Text(button_frame,
+                                             height=1.4,
+                                             width=55)
+        self.table_name_insertion_box.grid(column=0,
+                                           columnspan=3,
+                                           row=4,
+                                           rowspan=5,
+                                           padx=20,
+                                           pady=68,
+                                           sticky='n')
+        # Insertion box settings
+        self.table_name_insertion_box.insert(END, "000000,000000,000000,000000,000000,000000,000000")  # Default value
+        self.table_name_insertion_box.bind("<1>", self.insert_action())
+        self.table_name_insertion_box.configure(font=('Courier', 12, 'italic'),
+                                                foreground="gray")
+        self.table_name_insertion_box.bind("<Leave>", self.return_cost_center_list)
+
+    def insert_action(self, event):
+        inp = self.table_name_insertion_box.get("1.0", END)
+        if inp[:48] == "000000,000000,000000,000000,000000,000000,000000":
+            self.table_name_insertion_box.delete("1.0", END)
+            self.table_name_insertion_box.insert(END, " ")
+            self.table_name_insertion_box.configure(font=('Courier', 12, 'bold'),
+                                                    foreground="black")
+
     def selection_step_window(self):
         # Notifies a user that files need to be closed
+        if (self.cost_center_ibus.replace(" ", ""))[0:5] == "00000":
+            pass
+        else:
+            self.cost_center_ibus = self.cost_center_ibus.replace(" ", "")
+            with open(self.file, 'w') as new_file:
+                new_file.write(self.cost_center_ibus)
+
         self.room_cap_dict = room_capacity.RoomCapacity().check_file_exist()
         try:
             excel_file = glob.glob('__excel_files/*.xlsx')
@@ -560,7 +667,7 @@ class UserInterface(Frame):
         semesters_options = ["Fall",
                              "Spring"]
 
-        self.table_name_insertion_box.bind("<Leave>", self.return_name)
+        self.table_name_insertion_box.bind("<Leave>", self.return_table_name)
 
         # Will provide the user with a four-year option depending on your current year.
         year_options = []
@@ -684,9 +791,13 @@ class UserInterface(Frame):
         """Captures user selection - semester"""
         self.table_settings_semester = semester_value
 
-    def return_name(self, event):
+    def return_table_name(self, event):
         """Presents a user what he wrote as a table name"""
         self.table_settings_name = self.table_name_insertion_box.get("1.0", END)
+
+    def return_cost_center_list(self, event):
+        """Presents a user what he wrote as a table name"""
+        self.cost_center_ibus = self.table_name_insertion_box.get("1.0", END)
 
     def open_master_table(self):
         """Opens a master table"""
