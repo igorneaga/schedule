@@ -29,9 +29,9 @@ class MasterDesign:
 
         self.course_types_list = []
 
-        self.main_program_controller()
+        self.main_class_controller()
 
-    def main_program_controller(self):
+    def main_class_controller(self):
         self.create_master_file()
 
         # Split course type by type
@@ -184,7 +184,7 @@ class MasterDesign:
 
         for course_len in range(len(list_dict)):
             start_row = str(course_len + 4)
-            self.color_cell(list_dict[course_len].get("Course"), "A" + start_row)
+            self.color_cell(list_dict[course_len].get("Department"), "A" + start_row)
             # Fills the color
             for column in range(8):
                 if course_len % 2 == 0:
@@ -577,13 +577,12 @@ class MasterDesign:
                                                  merge_five_cell_four, merge_five_cell_five) is True:
                                 merge_one_row(merge_five_sheet, merge_five_cell_one)
                                 return [merge_five_cell_two, merge_five_cell_one]
-
                         if len(value[l].get("Cell")) < 2:
                             first_cell = split_cell_value(value[l], 0)
 
                             merge_one_row(self.sheet, first_cell)
                             inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
-                            self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                            self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
                         # If course happens twice a week
                         elif len(value[l].get("Cell")) == 2:
                             first_cell = split_cell_value(value[l], 0)
@@ -593,24 +592,24 @@ class MasterDesign:
                             if cell is True:
                                 inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
                                 # Colors the cell by specific color
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
                             if cell is not True:
                                 for c in cell:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
-                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+                                    self.color_cell(value[l].get("Department"), c[0] + c[1])
 
                                 if value[l].get("Time_Comment") is None:
                                     self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course")
                                     self.sheet[second_cell[0] + second_cell[1]] = value[l].get("Course")
-                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
-                                    self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
+                                    self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
+                                    self.color_cell(value[l].get("Department"), second_cell[0] + second_cell[1])
                                 else:
                                     self.sheet[first_cell[0] + first_cell[1]] = value[l].get("Course") + "\n" + \
                                                                                 value[l].get("Time_Comment")
                                     self.sheet[second_cell[0] + second_cell[1]] = \
                                         value[l].get("Course") + "\n" + value[l].get("Time_Comment")
-                                    self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
-                                    self.color_cell(value[l].get("Course"), second_cell[0] + second_cell[1])
+                                    self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
+                                    self.color_cell(value[l].get("Department"), second_cell[0] + second_cell[1])
 
                         elif len(value[l].get("Cell")) == 3:
                             first_cell = split_cell_value(value[l], 0)
@@ -622,11 +621,11 @@ class MasterDesign:
                             if cell is True:
                                 inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
                                 # Colors the cell by specific color
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
                             if cell is not True:
                                 for c in cell:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
-                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+                                    self.color_cell(value[l].get("Department"), c[0] + c[1])
 
                         elif len(value[l].get("Cell")) == 4:
                             first_cell = split_cell_value(value[l], 0)
@@ -638,11 +637,11 @@ class MasterDesign:
                             if cell is True:
                                 inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
                                 # Colors the cell by specific color
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
                             if cell is not True:
                                 for c in cell:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
-                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+                                    self.color_cell(value[l].get("Department"), c[0] + c[1])
 
                         elif len(value[l].get("Cell")) == 5:
                             first_cell = split_cell_value(value[l], 0)
@@ -655,15 +654,15 @@ class MasterDesign:
                             if cell is True:
                                 inset_cell_value(self.sheet, value, l, first_cell, 0, 1)
                                 # Colors the cell by specific color
-                                self.color_cell(value[l].get("Course"), first_cell[0] + first_cell[1])
+                                self.color_cell(value[l].get("Department"), first_cell[0] + first_cell[1])
                             if cell is not True:
                                 for c in cell:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
-                                    self.color_cell(value[l].get("Course"), c[0] + c[1])
+                                    self.color_cell(value[l].get("Department"), c[0] + c[1])
 
         self.border_all_cells("A1")
 
-    def color_cell(self, text, coordinate, course_type_list=True):
+    def color_cell(self, course_department, coordinate, course_type_list=True):
         """Colors a course based on a department color"""
         # Different colors for each department
         # Accounting
@@ -695,53 +694,52 @@ class MasterDesign:
                            fill_type='solid')
 
         # Checks for the first two letters to identify the color
-        # Accounting
-        if text[:2] == "AC":
+        if course_department == "Accounting":
             color = acct
             if course_type_list is True:
-                self.course_types_list.append("ACCT")
+                self.course_types_list.append("Accounting")
         # Business Law
-        elif text[:2] == "BL":
+        elif course_department == "Business Law":
             color = blaw
             if course_type_list is True:
-                self.course_types_list.append("BLAW")
+                self.course_types_list.append("Business Law")
         # Business
-        elif text[:2] == "BU":
+        elif course_department == "Business":
             color = bus
             if course_type_list is True:
-                self.course_types_list.append("BUS")
+                self.course_types_list.append("Business")
         # Finance
-        elif text[:2] == "FI":
+        elif course_department == "Finance":
             color = fin
             if course_type_list is True:
-                self.course_types_list.append("FIN")
+                self.course_types_list.append("Finance")
         # International Business
-        elif text[:2] == "IB":
+        elif course_department == "International Business":
             color = ibus
             if course_type_list is True:
-                self.course_types_list.append("IBUS")
+                self.course_types_list.append("International Business")
         # Master of Business Administration
-        elif text[:2] == "MB":
+        elif course_department == "MBA":
             color = mba
             if course_type_list is True:
                 self.course_types_list.append("MBA")
         # Master of Accounting
-        elif text[:2] == "MA":
+        elif course_department == "MACC":
             color = macc
             if course_type_list is True:
                 self.course_types_list.append("MACC")
         # Management
-        elif text[:2] == "MG":
+        elif course_department == "Management":
             color = mgmt
             if course_type_list is True:
-                self.course_types_list.append("MGMT")
+                self.course_types_list.append("Management")
         # Marketing
-        elif text[:2] == "MR":
+        elif course_department == "Marketing":
             color = mrkt
             if course_type_list is True:
-                self.course_types_list.append("MRKT")
+                self.course_types_list.append("Marketing")
         else:
-            color = PatternFill(start_color='eeefef', end_color='eeefef',
+            color = PatternFill(start_color='EEEFEF', end_color='EEEFEF',
                                 fill_type='solid')
         # Fills the color
         self.sheet[coordinate].fill = color
@@ -797,3 +795,5 @@ class MasterDesign:
                 openpyxl.worksheet.pagebreak.PageBreak.tagname = 'colBreaks'
                 page_break_column = Break(get_max_column + 1)
                 self.sheet.page_breaks.append(page_break_column)
+        # Landscape orientation
+        self.sheet.page_setup.orientation = self.sheet.ORIENTATION_LANDSCAPE
