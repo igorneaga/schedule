@@ -13,6 +13,7 @@ from tkinter import ttk
 
 import room_capacity
 import receiver
+import PreviousData
 
 
 class UserInterface(Frame):
@@ -38,6 +39,10 @@ class UserInterface(Frame):
         self.table_settings_semester = "Fall"
         self.table_settings_name = "Uni_Table"
         self.table_friday_include = 0
+
+        self.web_department = "Accounting"
+        self.web_year = "2019"
+        self.web_semester= "Fall"
 
         # Intro secntion
         self.cost_center_ibus = "None"
@@ -634,10 +639,10 @@ class UserInterface(Frame):
         variable_web_semesters.set(web_semesters_options[0])
         variable_web_years.set(web_year_options[0])
 
-        deparmtent_selection_text = ttk.Label(button_frame,
-                                   text="Select department:",
-                                   font=('Arial', 16))
-        deparmtent_selection_text.place(x=30, y=160)
+        department_selection_text = ttk.Label(button_frame,
+                                              text="Select department:",
+                                              font=('Arial', 16))
+        department_selection_text.place(x=30, y=160)
 
         selection_text = ttk.Label(button_frame,
                                   text="Select the semester and year: ",
@@ -685,7 +690,7 @@ class UserInterface(Frame):
                                   bg='#c5eb93',
                                   border='4',
                                   text="Create table",
-                                  command=self.create_master_table,
+                                  command=self.create_web_table,
                                   foreground="green",
                                   font=('Arial', 16, 'bold'))
         web_create_table.grid(sticky="E",
@@ -706,6 +711,11 @@ class UserInterface(Frame):
                          pady=15,
                          padx=8)
 
+    def create_web_table(self):
+        PreviousData.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+
+        for filename in glob.glob(os.path.join('web_files\\', '*.xlsx')):
+            os.startfile(filename)
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
