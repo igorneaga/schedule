@@ -91,14 +91,13 @@ class UserInterface(Frame):
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
 
-        self.get_table_example_window()
-        """
+
         # Determines starting window
         if os.path.isfile(self.file):
             self.selection_step_window()
         else:
             self.settings_step_window()
-        """
+
 
     def submit_tickcet_form(self):
         """Opens a Google Form to collect any reports or requests"""
