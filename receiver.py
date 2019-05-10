@@ -11,7 +11,7 @@ import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
 
-import tableDesign
+import room_schedule_table
 
 
 class DataProcessor:
@@ -49,9 +49,9 @@ class DataProcessor:
         # In case of any errors, it will give three chances before the program stops
         self.number_close_trials = 0
 
-        self.main_program_order()
+        self.main_class_order()
 
-    def main_program_order(self):
+    def main_class_order(self):
         """Main program logic"""
 
         def assign_days_order(user_choice):
@@ -114,7 +114,7 @@ class DataProcessor:
                     self.list_file_paths = []
                     self.list_dict_courses = []
                     self.list_different_date = []
-                    self.main_program_order()
+                    self.main_class_order()
 
     def get_excel_data(self, wb_copy, file_path):
         """Gets all information from excel file"""
@@ -294,6 +294,7 @@ class DataProcessor:
 
         def course_room_format(room_number):
             """Formats room to follow the same format"""
+            room_number = room_number.replace(" ", "")
             str_list = re.split('(\\d+)', room_number)
             # Removes empty str
             filter_str_list = list(filter(None, str_list))
@@ -376,6 +377,35 @@ class DataProcessor:
                 d_courses.get("Type").append("Telepresence")
             return d_courses.get("Type")
 
+        def set_course_department(course_title):
+            # Accounting
+            if course_title[:2] == "AC":
+                return "Accounting"
+            # Business Law
+            elif course_title[:2] == "BL":
+                return "Business Law"
+            # Business
+            elif course_title[:2] == "BU":
+                return "Business"
+            # Finance
+            elif course_title[:2] == "FI":
+                return "Finance"
+            # International Business
+            elif course_title[:2] == "IB":
+                return "International Business"
+            # Master of Business Administration
+            elif course_title[:2] == "MB":
+                return "MBA"
+            # Master of Accounting
+            elif course_title[:2] == "MA":
+                return "MACC"
+            # Management
+            elif course_title[:2] == "MG":
+                return "Management"
+            # Marketing
+            elif course_title[:2] == "MR":
+                return "Marketing"
+
         for j in excel_data:
             try:
                 dict_courses = dict()
@@ -446,6 +476,7 @@ class DataProcessor:
                         dict_courses["Enrollment"] = j[11]
                         dict_courses["Faculty"] = j[12]
                         dict_courses["Semester"] = self.table_semester
+                        dict_courses["Department"] = set_course_department(dict_courses.get("Course"))
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
@@ -462,6 +493,9 @@ class DataProcessor:
                             dict_courses["Start_Time"] = "None"
                             dict_courses["End_Time"] = "None"
                             dict_courses["Type"] = "Error"
+                        # Removes white spaces
+                        if " " in j[self.excel_course_days + 2]:
+                            j[self.excel_course_days + 2] = j[self.excel_course_days + 2].replace(" ", "")
                         # Splits days and converts to the proper format
                         if "," in j[self.excel_course_days + 2]:
                             split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
@@ -695,8 +729,8 @@ class DataProcessor:
 
     def create_excel_table(self):
         """Moves into another class"""
-        tableDesign.MasterDesign(self.list_dict_courses, self.list_different_date,
-                                 self.days, self.table_year, self.table_name, self.table_semester)
+        room_schedule_table.MasterDesign(self.list_dict_courses, self.list_different_date,
+                                         self.days, self.table_year, self.table_name, self.table_semester)
 
     def get_excel_errors(self):
         """Returns founded errors"""
