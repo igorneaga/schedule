@@ -56,6 +56,7 @@ class UserInterface(Frame):
         self.settings_window = None
         self.creating_step_window = None
         self.notification_window = None
+        self.get_example_window = None
 
         # GUI buttons, radio buttons, insertion box and others
         self.create_table_button = None
@@ -85,11 +86,14 @@ class UserInterface(Frame):
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
 
+        self.get_table_example_window()
+        """
         # Determines starting window
         if os.path.isfile(self.file):
             self.selection_step_window()
         else:
             self.settings_step_window()
+        """
 
     def submit_tickcet_form(self):
         """Opens a Google Form to collect any reports or requests"""
@@ -162,6 +166,9 @@ class UserInterface(Frame):
 
         if self.introduction:
             self.introduction.grid_remove()
+
+        if self.get_example_window:
+            self.get_example_window.grid_remove()
 
         if self.selection_window:
             self.selection_window.grid_remove()
@@ -316,7 +323,7 @@ class UserInterface(Frame):
                                            sticky='n')
         # Insertion box settings
         self.table_name_insertion_box.insert(END, "000000,000000,000000,000000,000000,000000,000000")  # Default value
-        self.table_name_insertion_box.bind("<1>", self.insert_action())
+        self.table_name_insertion_box.bind("<1>", self.insert_action)
         self.table_name_insertion_box.configure(font=('Courier', 12, 'italic'),
                                                 foreground="gray")
         self.table_name_insertion_box.bind("<Leave>", self.return_cost_center_list)
@@ -331,7 +338,7 @@ class UserInterface(Frame):
 
     def selection_step_window(self):
         # Notifies a user that files need to be closed
-        if (self.cost_center_ibus.replace(" ", ""))[0:5] == "00000":
+        if ((self.cost_center_ibus.replace(" ", ""))[0:5] == "00000") or (self.cost_center_ibus == "None"):
             pass
         else:
             self.cost_center_ibus = self.cost_center_ibus.replace(" ", "")
@@ -408,6 +415,21 @@ class UserInterface(Frame):
                                       row=8,
                                       pady=167,
                                       padx=43)
+
+        self.get_table_example_button = Button(button_frame,
+                                               relief="groove",
+                                               bg='#c5eb93',
+                                               border='4',
+                                               text="Get department table",
+                                               command=self.get_table_example_window,
+                                               foreground="green",
+                                               font=('Arial', 16, 'bold'))
+        self.get_table_example_button.grid(sticky='w',
+                                           column=0,
+                                           columnspan=2,
+                                           row=8,
+                                           pady=167,
+                                           padx=43)
 
         if not self.files_show_directory:
 
@@ -548,6 +570,142 @@ class UserInterface(Frame):
                              sticky="WS",
                              padx=20,
                              pady=135)
+
+    def get_table_example_window(self):
+        """Creates a table based on previous semesters web data"""
+        self.interface_window_remover()
+
+        button_frame = self.get_example_window = Frame(self)
+        button_frame.grid()
+
+
+        # Short welcome text
+        welcome_text = ttk.Label(button_frame,
+                                 text="Get a table by department",
+                                 foreground="green",
+                                 font=('Arial', 18))
+        # Placing coordinates
+        welcome_text.grid(column=0,
+                          row=0,
+                          padx=25,
+                          pady=25,
+                          sticky="n")
+        # Logo of a program on the right
+        u_logo_image = Label(button_frame, image=self.u_logo)
+        u_logo_image.photo = self.u_logo
+        u_logo_image.grid(column=1,
+                          row=0,
+                          padx=0,
+                          pady=0)
+        # Description of a reason to have this window
+        welcome_description = ttk.Label(button_frame,
+                                        text="The program will generate a table by using data from university website.",
+                                        foreground="green",
+                                        font=('Arial', 11))
+        welcome_description.grid(column=0,
+                                 row=0,
+                                 rowspan=2,
+                                 padx=20,
+                                 pady=75)
+        # Semesters options. Summer will be added in the future.
+
+        web_semesters_options = ["Fall", "Spring"]
+        web_deparment_options = ["Accouting", "Business Law", "Finance", "Management", "Marketing", "International Business",
+                                 "Master of Business Administration", "Master in Accounting"]
+        web_year_options = ["2019"]
+        # Future work
+        """
+        for i in range(len(self.param)):
+            for key in self.param[i]:
+                if key[0:4] == "FALL" or key[0:4] == "SPRI":
+                    find_year_index = key.find("2")
+                    web_semesters_options.append(key[0:find_year_index])
+                    web_year_options.append(key[find_year_index:])
+                else:
+                    web_deparment_options.append(key)
+        """
+        # Holds variables
+        variable_web_semesters = StringVar(button_frame)
+        variable_web_years = StringVar(button_frame)
+        variable_web_deparment = StringVar(button_frame)
+
+        # Sets defaults values
+        variable_web_deparment.set(web_deparment_options[0])
+        variable_web_semesters.set(web_semesters_options[0])
+        variable_web_years.set(web_year_options[0])
+
+        deparmtent_selection_text = ttk.Label(button_frame,
+                                   text="Select department:",
+                                   font=('Arial', 16))
+        deparmtent_selection_text.place(x=30, y=160)
+
+        selection_text = ttk.Label(button_frame,
+                                  text="Select the semester and year: ",
+                                  font=('Arial', 16))
+        selection_text.place(x=30, y=200)
+
+        # Option menu / Check buttons
+        web_department_options_menu = OptionMenu(button_frame,
+                                               variable_web_deparment,
+                                               *web_deparment_options,
+                                               command=self.return_web_department)
+        web_department_options_menu.place(x=230, y=160)
+
+        web_department_options_menu.configure(relief="groove",
+                                            bg='#c5eb93',
+                                            border='4',
+                                            foreground="green",
+                                            font=('Arial', 10, 'bold'))
+
+        web_semester_options_menu = OptionMenu(button_frame,
+                                           variable_web_semesters,
+                                           *web_semesters_options,
+                                           command=self.return_web_semester)
+        web_semester_options_menu.place(x=320, y=200)
+
+        web_semester_options_menu.configure(relief="groove",
+                                        bg='#c5eb93',
+                                        border='4',
+                                        foreground="green",
+                                        font=('Arial', 10, 'bold'))
+
+        web_year_options_menu = OptionMenu(button_frame,
+                                       variable_web_years,
+                                       *web_year_options,
+                                       command=self.return_web_year)
+        web_year_options_menu.place(x=425, y=200)
+        web_year_options_menu.configure(relief="groove",
+                                    bg='#c5eb93',
+                                    border='4',
+                                    foreground="green",
+                                    font=('Arial', 10, 'bold'))
+
+        web_create_table = Button(button_frame,
+                                  relief="groove",
+                                  bg='#c5eb93',
+                                  border='4',
+                                  text="Create table",
+                                  command=self.create_master_table,
+                                  foreground="green",
+                                  font=('Arial', 16, 'bold'))
+        web_create_table.grid(sticky="E",
+                              column=0,
+                              columnspan=2,
+                              row=3,
+                              padx=20,
+                              pady=110)
+
+        back_button = Button(button_frame,
+                             border='0',
+                             image=self.back_image,
+                             command=self.selection_step_window)
+        back_button.grid(sticky='WN',
+                         column=0,
+                         row=0,
+                         rowspan=2,
+                         pady=15,
+                         padx=8)
+
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
@@ -787,6 +945,15 @@ class UserInterface(Frame):
         """Captures user selection - year"""
         self.table_settings_year = year_value
 
+    def return_web_department(self, department):
+        self.web_department = department
+
+    def return_web_year(self, year):
+        self.web_year = year
+
+    def return_web_semester(self, semester):
+        self.web_semester = semester
+
     def return_semester(self, semester_value):
         """Captures user selection - semester"""
         self.table_settings_semester = semester_value
@@ -816,12 +983,11 @@ class UserInterface(Frame):
     def exit_function(self):
         sys.exit()
 
-    def program_loading_window(self):
+    def program_loading_window(self, block_table=True, gains_data = False, payroll_table = False):
         self.interface_window_remover()
 
         button_frame = self.creating_step_window = Frame(self)
         button_frame.grid()
-
         global switch
         switch = False
 
@@ -835,8 +1001,8 @@ class UserInterface(Frame):
                                       foreground="green",
                                       font=('Courier', 20, 'bold'))
                 wait_label.grid(column=1, row=2, rowspan=2, padx=10, pady=10)
-
-                wait_text.set("\r \n \n \n  Please Wait...")
+                if block_table is True:
+                    wait_text.set("\r \n \n \n  Creating a scheduling table...")
                 wait_label.configure(textvariable=wait_text)
 
                 sys.stdout.flush()
@@ -847,10 +1013,12 @@ class UserInterface(Frame):
         button_frame.update()
 
         # Moves to the next class which is processing all the files
-        self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
-                                                      self.table_settings_semester, self.table_settings_year,
-                                                      self.table_settings_type,
-                                                      self.table_friday_include, self.room_cap_dict).get_excel_errors()
+        if block_table is True:
+            self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
+                                                          self.table_settings_semester, self.table_settings_year,
+                                                          self.table_settings_type,
+                                                          self.table_friday_include,
+                                                          self.room_cap_dict).get_excel_errors()
         switch = True
         self.user_result_window()
 
