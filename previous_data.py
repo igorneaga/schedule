@@ -13,7 +13,7 @@ from openpyxl.worksheet.pagebreak import Break
 
 
 class PreviousCourses:
-    def __init__(self, department, semester, year):
+    def __init__(self, department, semester, year, url_department=None, url_smemester=None, url_year=None):
         self.department = department
         self.year = year
         self.semester = semester
@@ -31,6 +31,24 @@ class PreviousCourses:
         self.main_class_controller()
 
     def main_class_controller(self):
+        def transfer_department_name(department):
+            if department == "ACCT":
+                return "Accounting"
+            elif department == "BLAW":
+                return "Business Law"
+            elif department == "FINA":
+                return "Finance"
+            elif department == "IBUS":
+                return "International Business"
+            elif department == "MGMT":
+                return "Management"
+            elif department == "MRKT":
+                return "Marketing"
+            elif department == "MACC":
+                return "Master in Accounting"
+            else:
+                return "Master of Business Administration"
+
         def get_payload_encode(url, year, semester, department):
 
             page_link = url
@@ -52,12 +70,17 @@ class PreviousCourses:
                 if search_option[0:len(department_option)] == department_option:
                     params['subject'] = option['value']
 
+            return params, semester_option
+
+        def transfer_params(params, semester_option):
             params = urllib.parse.urlencode(params)
 
             params_list = [semester_option, params]
             return params_list
 
-        self.payload = get_payload_encode(self.url, self.year, self.semester, self.department)
+        self.department = transfer_department_name(department=self.department)
+        web_params, sem_option = get_payload_encode(self.url, self.year, self.semester, self.department)
+        self.payload = transfer_params(web_params, sem_option)
 
         response = requests.request("POST", self.url, data=self.payload[1], headers=self.headers)
         self.get_data(response)

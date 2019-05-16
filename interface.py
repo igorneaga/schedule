@@ -13,7 +13,8 @@ from tkinter import ttk
 
 import room_capacity
 import receiver
-import PreviousData
+import previous_data
+import previous_semesters
 
 
 class UserInterface(Frame):
@@ -34,15 +35,20 @@ class UserInterface(Frame):
         self.u_logo = tk.PhotoImage(file='assets\\u_logo.png')
 
         # Default table characteristics
+        today_date = time.strftime("%Y,%m")
+        today_date_split = today_date.split(',')
         self.table_settings_type = 1
-        self.table_settings_year = "2019"
+        self.table_settings_year = today_date_split[0]
         self.table_settings_semester = "Fall"
         self.table_settings_name = "Uni_Table"
         self.table_friday_include = 0
 
-        self.web_department = "Accounting"
-        self.web_year = "2019"
-        self.web_semester= "Fall"
+        if int(today_date_split[1]) < 5:
+            self.web_semester = "Spring"
+        else:
+            self.web_semester = "Fall"
+        self.web_department = "ACCT"
+        self.web_year = today_date_split[0]
 
         # Intro secntion
         self.cost_center_ibus = "None"
@@ -90,7 +96,9 @@ class UserInterface(Frame):
         # Deletes previous files
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
+        shutil.rmtree('web_files', ignore_errors=True)
 
+        self.param = previous_semesters.ReceiveSemesters().return_courses_semesters()
 
         # Determines starting window
         if os.path.isfile(self.file):
@@ -582,7 +590,6 @@ class UserInterface(Frame):
         button_frame = self.get_example_window = Frame(self)
         button_frame.grid()
 
-
         # Short welcome text
         welcome_text = ttk.Label(button_frame,
                                  text="Get a table by department",
@@ -611,30 +618,29 @@ class UserInterface(Frame):
                                  rowspan=2,
                                  padx=20,
                                  pady=75)
-        # Semesters options. Summer will be added in the future.
+        # Semesters options
+        web_semesters_options = []
+        web_department_options = []
+        web_year_options = []
 
-        web_semesters_options = ["Fall", "Spring"]
-        web_deparment_options = ["Accouting", "Business Law", "Finance", "Management", "Marketing", "International Business",
-                                 "Master of Business Administration", "Master in Accounting"]
-        web_year_options = ["2019"]
-        # Future work
-        """
         for i in range(len(self.param)):
+            # Finds available options from scraping
             for key in self.param[i]:
                 if key[0:4] == "FALL" or key[0:4] == "SPRI":
                     find_year_index = key.find("2")
                     web_semesters_options.append(key[0:find_year_index])
                     web_year_options.append(key[find_year_index:])
                 else:
-                    web_deparment_options.append(key)
-        """
+                    symbol_index = key.find("(")
+                    web_department_options.append(key[symbol_index + 1:-1])
+
         # Holds variables
         variable_web_semesters = StringVar(button_frame)
         variable_web_years = StringVar(button_frame)
-        variable_web_deparment = StringVar(button_frame)
+        variable_web_department = StringVar(button_frame)
 
         # Sets defaults values
-        variable_web_deparment.set(web_deparment_options[0])
+        variable_web_department.set(web_department_options[0])
         variable_web_semesters.set(web_semesters_options[0])
         variable_web_years.set(web_year_options[0])
 
@@ -644,45 +650,45 @@ class UserInterface(Frame):
         department_selection_text.place(x=30, y=160)
 
         selection_text = ttk.Label(button_frame,
-                                  text="Select the semester and year: ",
-                                  font=('Arial', 16))
+                                   text="Select the semester and year: ",
+                                   font=('Arial', 16))
         selection_text.place(x=30, y=200)
 
         # Option menu / Check buttons
         web_department_options_menu = OptionMenu(button_frame,
-                                               variable_web_deparment,
-                                               *web_deparment_options,
-                                               command=self.return_web_department)
+                                                 variable_web_department,
+                                                 *web_department_options,
+                                                 command=self.return_web_department)
         web_department_options_menu.place(x=230, y=160)
 
         web_department_options_menu.configure(relief="groove",
+                                              bg='#c5eb93',
+                                              border='4',
+                                              foreground="green",
+                                              font=('Arial', 10, 'bold'))
+
+        web_semester_options_menu = OptionMenu(button_frame,
+                                               variable_web_semesters,
+                                               *web_semesters_options,
+                                               command=self.return_web_semester)
+        web_semester_options_menu.place(x=320, y=200)
+
+        web_semester_options_menu.configure(relief="groove",
                                             bg='#c5eb93',
                                             border='4',
                                             foreground="green",
                                             font=('Arial', 10, 'bold'))
 
-        web_semester_options_menu = OptionMenu(button_frame,
-                                           variable_web_semesters,
-                                           *web_semesters_options,
-                                           command=self.return_web_semester)
-        web_semester_options_menu.place(x=320, y=200)
-
-        web_semester_options_menu.configure(relief="groove",
+        web_year_options_menu = OptionMenu(button_frame,
+                                           variable_web_years,
+                                           *web_year_options,
+                                           command=self.return_web_year)
+        web_year_options_menu.place(x=425, y=200)
+        web_year_options_menu.configure(relief="groove",
                                         bg='#c5eb93',
                                         border='4',
                                         foreground="green",
                                         font=('Arial', 10, 'bold'))
-
-        web_year_options_menu = OptionMenu(button_frame,
-                                       variable_web_years,
-                                       *web_year_options,
-                                       command=self.return_web_year)
-        web_year_options_menu.place(x=425, y=200)
-        web_year_options_menu.configure(relief="groove",
-                                    bg='#c5eb93',
-                                    border='4',
-                                    foreground="green",
-                                    font=('Arial', 10, 'bold'))
 
         web_create_table = Button(button_frame,
                                   relief="groove",
@@ -711,10 +717,20 @@ class UserInterface(Frame):
                          padx=8)
 
     def create_web_table(self):
-        PreviousData.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
-
-        for filename in glob.glob(os.path.join('web_files\\', '*.xlsx')):
-            os.startfile(filename)
+        """Department chairs might need an example of a file from the previous semester. This function will create a
+        table based on university records."""
+        previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+        # Checking if the folder exists
+        if os.path.isdir('web_files\\'):
+            # Opens all files in the folder
+            for filename in glob.glob(os.path.join('web_files\\', '*.xlsx')):
+                os.startfile(filename)
+            # Notifies user that file is about to open
+            messagebox.showinfo("File created", "Excel file is opening...")
+        else:
+            messagebox.showinfo("Error occurred", "Something went wrong... Try again")
+        # Brings back to the main menu
+        self.selection_step_window()
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
