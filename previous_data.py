@@ -13,10 +13,12 @@ from openpyxl.worksheet.pagebreak import Break
 
 
 class PreviousCourses:
-    def __init__(self, department, semester, year, url_department=None, url_smemester=None, url_year=None):
+    def __init__(self, department, semester, year, url_smemester=None, url_department=None):
         self.department = department
         self.year = year
         self.semester = semester
+        self.url_department = url_department
+        self.url_smemester = url_smemester
 
         self.url = "https://secure2.mnsu.edu/courses/selectform.asp"
         self.headers = {
@@ -49,7 +51,7 @@ class PreviousCourses:
             else:
                 return "Master of Business Administration"
 
-        def get_payload_encode(url, year, semester, department):
+        def get_payload_encode(params,url, year, semester, department):
 
             page_link = url
             page_response = requests.get(page_link)
@@ -58,10 +60,6 @@ class PreviousCourses:
             semester_option = semester + str(year)
             semester_option = semester_option.upper()
             department_option = (department.replace(" ", "")).upper()
-
-            params = {'semester': None, 'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
-                      'startTime': '0600',
-                      'endTime': '2359', 'days': 'ALL', 'All': 'All Sections', 'subject': None, 'undefined': ''}
 
             for option in soup.find_all('option'):
                 search_option = (option.text.replace(" ", "")).upper()
@@ -72,17 +70,26 @@ class PreviousCourses:
 
             return params, semester_option
 
-        def transfer_params(params, semester_option):
+        def transfer_params(params):
             params = urllib.parse.urlencode(params)
 
-            params_list = [semester_option, params]
+            params_list = [params]
             return params_list
 
         self.department = transfer_department_name(department=self.department)
-        web_params, sem_option = get_payload_encode(self.url, self.year, self.semester, self.department)
-        self.payload = transfer_params(web_params, sem_option)
+        params = {'semester': None, 'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
+                  'startTime': '0600',
+                  'endTime': '2359', 'days': 'ALL', 'All': 'All Sections', 'subject': None, 'undefined': ''}
+        # if not None, skips one function to increase performance
+        if self.url_department is not None:
+            params['subject'] = self.url_department
+            params['semester'] = self.url_smemester
+            self.payload = transfer_params(params)
+        else:
+            web_params, sem_option = get_payload_encode(params, self.url, self.year, self.semester, self.department)
+            self.payload = transfer_params(web_params)
 
-        response = requests.request("POST", self.url, data=self.payload[1], headers=self.headers)
+        response = requests.request("POST", self.url, data=self.payload[0], headers=self.headers)
         self.get_data(response)
         CreateStandardTable(self.course_list, "Finance", "Fall", "2019")
 

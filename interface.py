@@ -49,8 +49,9 @@ class UserInterface(Frame):
             self.web_semester = "Fall"
         self.web_department = "ACCT"
         self.web_year = today_date_split[0]
+        self.urlencode_dict_list = []  # Holds user choice as normal and as urlencode
 
-        # Intro secntion
+        # Intro section
         self.cost_center_ibus = "None"
         self.file = 'cost_center.cvs'
 
@@ -626,13 +627,19 @@ class UserInterface(Frame):
         for i in range(len(self.param)):
             # Finds available options from scraping
             for key in self.param[i]:
+                test_dict = dict()
                 if key[0:4] == "FALL" or key[0:4] == "SPRI":
                     find_year_index = key.find("2")
                     web_semesters_options.append(key[0:find_year_index])
                     web_year_options.append(key[find_year_index:])
+                    test_dict[key[0:find_year_index]] = self.param[i].get(key)
+                    self.urlencode_dict_list.append(test_dict)
+
                 else:
                     symbol_index = key.find("(")
                     web_department_options.append(key[symbol_index + 1:-1])
+                    test_dict[key[symbol_index + 1:-1]] = self.param[i].get(key)
+                    self.urlencode_dict_list.append(test_dict)
 
         # Holds variables
         variable_web_semesters = StringVar(button_frame)
@@ -719,7 +726,23 @@ class UserInterface(Frame):
     def create_web_table(self):
         """Department chairs might need an example of a file from the previous semester. This function will create a
         table based on university records."""
-        previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+
+        urlencode_list = []
+        if not self.urlencode_dict_list:
+            previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+        else:
+            for len_list in range(len(self.urlencode_dict_list)):
+                for departament_semester, urlencode in self.urlencode_dict_list[len_list].items():
+                    if departament_semester == self.web_department:
+                        urlencode_list.append(urlencode)
+                    if departament_semester == self.web_semester:
+                        urlencode_list.append(urlencode)
+            if len(urlencode_list) == 2:
+                previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year),
+                                              urlencode_list[0], urlencode_list[1])
+            else:
+                previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+
         # Checking if the folder exists
         if os.path.isdir('web_files\\'):
             # Opens all files in the folder
