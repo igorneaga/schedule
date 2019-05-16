@@ -91,7 +91,7 @@ class PreviousCourses:
 
         response = requests.request("POST", self.url, data=self.payload[0], headers=self.headers)
         self.get_data(response)
-        CreateStandardTable(self.course_list, "Finance", "Fall", "2019")
+        CreateStandardTable(self.course_list, self.department, self.semester, str(self.year))
 
     def get_data(self, web_response):
         soup = BeautifulSoup(web_response.text, 'html.parser')
@@ -140,7 +140,7 @@ class CreateStandardTable:
         self.adjust_cells_width()
         self.border_all_cells("A1")
         self.set_page_break()
-        self.workbook.save('web_files\\' + "WebFile" + ".xlsx")
+        self.workbook.save('web_files\\' + self.departament.lower() + "_" + self.year + ".xlsx")
 
     def create_excel_file(self):
         def create_directory():
