@@ -1123,13 +1123,14 @@ class UserInterface(Frame):
                         pass
                     elif str(clear_error_list[i].get("Message")) == "A program couldn't read this row correctly. " \
                                                                     "Report it if needed.":
-                        pass
+                        ui_message = 'Check for additional errors by pressing "Open excel copies"' + (' ' * 100)
+                        Label(frame, text=ui_message, background="#ee8282").grid(sticky="w", row=0, column=0)
                     else:
                         # Shows only even to eliminate repetitive conflicts
                         if i % 2 == 0:
                             conflict_row_message = str(clear_error_list[i].get("Message"))
                             Label(frame, text=conflict_row_message, background="#ee8282").grid(sticky="w",
-                                                                                               row=i, column=0)
+                                                                                               row=99, column=0)
 
             def show_all_messages(event):
                 canvas.configure(scrollregion=canvas.bbox("all"), width=600, height=60)
