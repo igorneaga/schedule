@@ -100,13 +100,15 @@ class UserInterface(Frame):
         shutil.rmtree('web_files', ignore_errors=True)
 
         self.param = previous_semesters.ReceiveSemesters().return_courses_semesters()
-
+        # Future work
+        """
         # Determines starting window
         if os.path.isfile(self.file):
             self.selection_step_window()
         else:
             self.settings_step_window()
-
+        """
+        self.selection_step_window()
 
     def submit_tickcet_form(self):
         """Opens a Google Form to collect any reports or requests"""

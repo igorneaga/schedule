@@ -445,7 +445,7 @@ class DataProcessor:
                                                                                "Please double check." + (' ' * 150)
                                         self.create_report_dictionary(j[0], 11, j[2], j[1], 'FF687B', comment)
 
-                                    dict_courses["End_Date"] = datetime.datetime.strptime(j[13], '%m/%d/%Y')
+                                    dict_courses["Start_Date"] = datetime.datetime.strptime(j[13], '%m/%d/%Y')
                                 else:
                                     dict_courses["Start_Date"] = j[13]
                             except ValueError:
@@ -546,7 +546,9 @@ class DataProcessor:
             # Dates from MNSU academic calendar
             course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
             course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
-            if first_course is "None" or first_course is None or second_course is "None" or second_course is None:
+
+            if (first_course is "None") or (first_course is None) or (second_course is "None") or \
+                    (second_course is None):
                 return False
             else:
                 # Checks if there is a difference bigger than 33 days in the dates.
