@@ -353,7 +353,8 @@ class MasterDesign:
                             adjusted_width = 24
                     elif adjusted_width > 14:
                         adjusted_width = 14
-                self.sheet.column_dimensions[get_column].width = adjusted_width
+                column_letter = chr(get_column + 64)
+                self.sheet.column_dimensions[column_letter].width = adjusted_width
 
     def merge_excel_cells(self, start_row, start_column, end_row, end_column, style=False, bold=False):
         """Merges excel cells"""
@@ -374,12 +375,6 @@ class MasterDesign:
         excel_max_row = self.sheet.max_row
         excel_max_column = self.sheet.max_column
 
-        # Transfers column to an alphabetical format
-        col_letter = ''.join(string.ascii_uppercase[excel_max_column - 1])
-
-        # Gets full coordinates of a table
-        full_cord = start_cell + ":" + str(col_letter) + str(excel_max_row)
-
         # Style of a border
         thin_border = Border(left=Side(style='thin'),
                              right=Side(style='thin'),
@@ -387,10 +382,13 @@ class MasterDesign:
                              bottom=Side(style='thin'))
 
         # Goes over each cell and applies border
-        rows = self.sheet.iter_rows(full_cord)
-        for r in rows:
-            for r_cell in r:
-                r_cell.border = thin_border
+        for column in range(excel_max_column):
+            # Transfers column to an alphabetical format
+            col_letter = ''.join(string.ascii_uppercase[column])
+            for row in range(excel_max_row):
+                row += 1
+                print(col_letter + str(row))
+                self.sheet[col_letter + str(row)].border = thin_border
 
     def set_courses(self, list_dict, unique_times):
         """Sets courses in a excel file"""

@@ -18,7 +18,7 @@ class PreviousCourses:
         self.year = year
         self.semester = semester
         self.url_department = url_department
-        self.url_smemester = url_smemester
+        self.url_semester = url_smemester
 
         self.url = "https://secure2.mnsu.edu/courses/selectform.asp"
         self.headers = {
@@ -34,6 +34,7 @@ class PreviousCourses:
 
     def main_class_controller(self):
         def transfer_department_name(department):
+            """Transfers to the full department name"""
             if department == "ACCT":
                 return "Accounting"
             elif department == "BLAW":
@@ -51,7 +52,8 @@ class PreviousCourses:
             else:
                 return "Master of Business Administration"
 
-        def get_payload_encode(params,url, year, semester, department):
+        def get_payload_encode(encode_params, url, year, semester, department):
+            """Gets parameters for semester and subject"""
 
             page_link = url
             page_response = requests.get(page_link)
@@ -64,16 +66,17 @@ class PreviousCourses:
             for option in soup.find_all('option'):
                 search_option = (option.text.replace(" ", "")).upper()
                 if semester_option == search_option:
-                    params['semester'] = option['value']
+                    encode_params['semester'] = option['value']
                 if search_option[0:len(department_option)] == department_option:
-                    params['subject'] = option['value']
+                    encode_params['subject'] = option['value']
 
-            return params, semester_option
+            return encode_params, semester_option
 
-        def transfer_params(params):
-            params = urllib.parse.urlencode(params)
+        def transfer_params(parse_params):
+            """Urlparse"""
+            parse_params = urllib.parse.urlencode(parse_params)
 
-            params_list = [params]
+            params_list = [parse_params]
             return params_list
 
         self.department = transfer_department_name(department=self.department)
@@ -83,7 +86,7 @@ class PreviousCourses:
         # if not None, skips one function to increase performance
         if self.url_department is not None:
             params['subject'] = self.url_department
-            params['semester'] = self.url_smemester
+            params['semester'] = self.url_semester
             self.payload = transfer_params(params)
         else:
             web_params, sem_option = get_payload_encode(params, self.url, self.year, self.semester, self.department)
@@ -261,19 +264,14 @@ class CreateStandardTable:
                 if adjusted_width > 25:
                     adjusted_width = 25
 
-                self.sheet.column_dimensions[get_column].width = adjusted_width
+                column_letter = chr(get_column + 64)
+                self.sheet.column_dimensions[column_letter].width = adjusted_width
 
     def border_all_cells(self, start_cell):
         """Borders all table"""
         # Gets table size
         excel_max_row = self.sheet.max_row
         excel_max_column = self.sheet.max_column
-
-        # Transfers column to an alphabetical format
-        col_letter = ''.join(string.ascii_uppercase[excel_max_column - 1])
-
-        # Gets full coordinates of a table
-        full_cord = start_cell + ":" + str(col_letter) + str(excel_max_row)
 
         # Style of a border
         thin_border = Border(left=Side(style='thin'),
@@ -282,10 +280,13 @@ class CreateStandardTable:
                              bottom=Side(style='thin'))
 
         # Goes over each cell and applies border
-        rows = self.sheet.iter_rows(full_cord)
-        for r in rows:
-            for r_cell in r:
-                r_cell.border = thin_border
+        for column in range(excel_max_column):
+            # Transfers column to an alphabetical format
+            col_letter = ''.join(string.ascii_uppercase[column])
+            for row in range(excel_max_row):
+                row += 1
+                print(col_letter + str(row))
+                self.sheet[col_letter + str(row)].border = thin_border
 
     def set_page_break(self):
         # 40 rows per page
