@@ -13,7 +13,7 @@ class ReceiveSemesters:
 
     def web_scrap_param(self):
         page_link = self.url
-        page_response = requests.get(page_link)
+        page_response = requests.get(page_link, verify=False)
         soup = BeautifulSoup(page_response.content, "html.parser")
 
         cob_departments = ["ACCOUNTING(ACCT)", "BUSINESSLAW(BLAW)", "FINANCE(FINA)", "MANAGEMENT(MGMT)", "MARKETING(MRKT)", "INTERNATIONALBUSINESS(IBUS)",

@@ -17,7 +17,7 @@ class RoomCapacity:
 
         def get_room_capacity(url):
             page_link = url
-            page_response = requests.get(page_link)
+            page_response = requests.get(page_link, verify=False)
             page_content = BeautifulSoup(page_response.content, "html.parser")
             list_of_rooms = []
             list_of_capacity = []
