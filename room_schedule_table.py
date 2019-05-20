@@ -353,8 +353,7 @@ class MasterDesign:
                             adjusted_width = 24
                     elif adjusted_width > 14:
                         adjusted_width = 14
-                column_letter = chr(get_column + 64)
-                self.sheet.column_dimensions[column_letter].width = adjusted_width
+                self.sheet.column_dimensions[get_column].width = adjusted_width
 
     def merge_excel_cells(self, start_row, start_column, end_row, end_column, style=False, bold=False):
         """Merges excel cells"""

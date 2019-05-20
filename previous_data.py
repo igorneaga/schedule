@@ -264,8 +264,7 @@ class CreateStandardTable:
                 if adjusted_width > 25:
                     adjusted_width = 25
 
-                column_letter = chr(get_column + 64)
-                self.sheet.column_dimensions[column_letter].width = adjusted_width
+                self.sheet.column_dimensions[get_column].width = adjusted_width
 
     def border_all_cells(self, start_cell):
         """Borders all table"""
