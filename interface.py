@@ -115,10 +115,11 @@ class UserInterface(Frame):
 
         webbrowser.open("https://goo.gl/forms/wNkzjymOQ7wiNavf1")
 
-    def open_pdf(self):
+    def open_instructions(self):
         """Instructions on how to use this program. Extremely useful"""
 
-        return os.startfile("Uni-Scheduler-Instructions.pdf")
+        webbrowser.open(
+            "https://docs.google.com/document/d/1htRsKmxDX33yawrYqeHkCLWlEL-juRjeM-if8N4f2yo/edit?usp=sharing")
 
     def main_text_interface(self, button_frame, x=52, include_instructions=True):
         """Repeated title text"""
@@ -163,7 +164,7 @@ class UserInterface(Frame):
                                  border='0',
                                  text="Instructions/Information",
                                  foreground="blue",
-                                 command=self.open_pdf,
+                                 command=self.open_instructions,
                                  font=('Arial', 11, 'underline'))
             info_button.grid(sticky="SE",
                              column=2,
@@ -1297,17 +1298,3 @@ class UserInterface(Frame):
                                       row=3,
                                       sticky="EW",
                                       pady=60)
-
-
-def create_interface(argv):
-
-    root = Tk()
-    root.title('Uni-Scheduler')
-    root.geometry("659x337")
-    root.iconbitmap('assets\\unischeduler_icon.ico')
-    UserInterface(root)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    create_interface(sys.argv)

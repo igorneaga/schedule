@@ -285,7 +285,6 @@ class CreateStandardTable:
             col_letter = ''.join(string.ascii_uppercase[column])
             for row in range(excel_max_row):
                 row += 1
-                print(col_letter + str(row))
                 self.sheet[col_letter + str(row)].border = thin_border
 
     def set_page_break(self):
