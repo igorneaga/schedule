@@ -48,7 +48,6 @@ class RoomCapacity:
                     room_cap = dict(row)
 
                 previous_date = datetime.strptime(room_cap.get("Date"), '%Y-%m-%d')
-                print(previous_date)
                 if date.today() > previous_date.date() + timedelta(days=60):
                     # Will rewrite file if it older than 60 days
                     room_cap = get_room_capacity(self.room_cap_url)
