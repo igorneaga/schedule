@@ -427,6 +427,8 @@ class MasterDesign:
             if not (key == "ONLINE" or key == "NONE" or key == "ARR"):
                 if key in self.cob_rooms:
                     pass
+                elif key[0:2].upper() == "HU":
+                    pass
                 else:
                     # Marks a room if it is not a part of a college of business rooms.
                     clr = PatternFill(start_color='d5d8e0', end_color='d5d8e0', fill_type='solid')
