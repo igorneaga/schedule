@@ -503,9 +503,21 @@ class DataProcessor:
                             dict_courses["Type"] = "Error"
                         # Removes white spaces
                         if " " in j[self.excel_course_days + 2]:
+                            if "OR" in j[self.excel_course_days + 2].upper():
+                                modified_str = j[self.excel_course_days + 2].upper()
+                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
+                            if "AND" in j[self.excel_course_days + 2].upper():
+                                modified_str = j[self.excel_course_days + 2].upper()
+                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
                             j[self.excel_course_days + 2] = j[self.excel_course_days + 2].replace(" ", "")
                         # Splits days and converts to the proper format
                         if "," in j[self.excel_course_days + 2]:
+                            if "OR" in j[self.excel_course_days + 2].upper():
+                                modified_str = j[self.excel_course_days + 2].upper()
+                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
+                            if "AND" in j[self.excel_course_days + 2].upper():
+                                modified_str = j[self.excel_course_days + 2].upper()
+                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
                             split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
                             for l in range(len(split_by_comma)):
                                 # Checks if the function can convert user day format
