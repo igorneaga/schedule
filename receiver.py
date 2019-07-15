@@ -414,10 +414,21 @@ class DataProcessor:
                     dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
                                                                  str(j[self.excel_course_number + 2]),
                                                                  str(j[self.excel_course_section + 2]))
+
                     dict_courses["Credits"] = j[6]
                     dict_courses["Course_Title"] = j[7]
-                    dict_courses["Faculty"] = j[12]
-                    dict_courses["Enrollment"] = j[11]
+                    data_coord = 12
+                    if (j[9] != "None") and (j[10] != "None"):
+                        data_coord -= 2
+                    elif j[9] != "None":
+                        data_coord -= 1
+                    elif j[10] != "None":
+                        data_coord -= 1
+                    else:
+                        pass
+
+                    dict_courses["Faculty"] = j[data_coord]
+                    dict_courses["Enrollment"] = j[data_coord-1]
                     dict_courses = set_online_course(dict_courses, j)
                 else:
                     time_split = j[self.excel_course_time + 2].split('-')
