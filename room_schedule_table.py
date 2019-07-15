@@ -89,6 +89,9 @@ class MasterDesign:
             self.create_excel_sheet(sheet_name="Online Table")
             self.set_excel_heading(heading_name="Online Table")
             self.standard_table(online_courses_list, "Online Courses", "d5d1e7")
+            for i in range(len(online_courses_list)):
+                if self.sheet["H" + str(i+4)].value == "None-None":
+                    self.sheet["H" + str(i+4)] = ""
 
         # MBA MACC table section
         if mba_macc_list:
