@@ -79,7 +79,7 @@ class PreviousCourses:
             params_list = [parse_params]
             return params_list
 
-        self.department = transfer_department_name(department=self.department)
+        full_department_name = transfer_department_name(department=self.department)
         params = {'semester': None, 'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
                   'startTime': '0600',
                   'endTime': '2359', 'days': 'ALL', 'All': 'All Sections', 'subject': None, 'undefined': ''}
@@ -89,12 +89,12 @@ class PreviousCourses:
             params['semester'] = self.url_semester
             self.payload = transfer_params(params)
         else:
-            web_params, sem_option = get_payload_encode(params, self.url, self.year, self.semester, self.department)
+            web_params, sem_option = get_payload_encode(params, self.url, self.year, self.semester, full_department_name)
             self.payload = transfer_params(web_params)
 
         response = requests.request("POST", self.url, data=self.payload[0], headers=self.headers)
         self.get_data(response)
-        CreateStandardTable(self.course_list, self.department, self.semester, str(self.year))
+        CreateStandardTable(self.course_list, full_department_name, self.semester, str(self.year), self.department)
 
     def get_data(self, web_response):
         soup = BeautifulSoup(web_response.text, 'html.parser')
@@ -121,11 +121,12 @@ class PreviousCourses:
 
 
 class CreateStandardTable:
-    def __init__(self, raw_data, departament, semester, year):
+    def __init__(self, raw_data, departament_full, semester, year, department_abbreviation):
         self.raw_data = raw_data
-        self.departament = departament
+        self.departament = departament_full
         self.semester = semester
         self.year = year
+        self.abb_department = department_abbreviation
 
         self.workbook = None
         self.sheet = None
@@ -143,7 +144,7 @@ class CreateStandardTable:
         self.adjust_cells_width()
         self.border_all_cells("A1")
         self.set_page_break()
-        self.workbook.save('web_files\\' + (self.departament.lower()).replace(" ", "_")[0:27] + "_" +
+        self.workbook.save('web_files\\' + self.abb_department.replace(" ", "_")[0:27] + "_" +
                            self.year + ".xlsx")
 
     def create_excel_file(self):
