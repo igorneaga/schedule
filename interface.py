@@ -1,6 +1,7 @@
 import datetime
 import glob
 import os
+import csv
 import shutil  # Delete folder
 import threading
 import time
@@ -33,7 +34,7 @@ class UserInterface(Frame):
         self.excel_copy_fie = tk.PhotoImage(file='assets\\excel_files_icon.png')
         self.excel_main_file = tk.PhotoImage(file='assets\\master_file_icon.png')
         self.create_master_image = tk.PhotoImage(file='assets\\create_master.png')
-        self.create_fwm_image = tk.PhotoImage(file='assets\\create_fwm_table.png')
+        self.create_fwm_image = tk.PhotoImage(file='assets\\create_fwm_table2.png')
         self.get_previous_table_image = tk.PhotoImage(file='assets\\get_prev_tables.png')
         self.exit_file = tk.PhotoImage(file='assets\\quit_button.png')
         self.u_logo = tk.PhotoImage(file='assets\\u_logo.png')
@@ -74,6 +75,7 @@ class UserInterface(Frame):
         self.notification_window = None
         self.get_example_window = None
         self.payroll_window = None
+        self.cost_department_list = None
 
         # GUI buttons, radio buttons, insertion box and others
         self.create_table_button = None
@@ -85,6 +87,9 @@ class UserInterface(Frame):
 
         # Stores data about room capacity
         self.room_cap_dict = dict()
+
+        # Stores data about cost center for each COB department
+        self.department_cost_dict = {}
 
         # A label which will keep updating once user choose a data file
         self.button_text = tk.StringVar()
@@ -204,6 +209,10 @@ class UserInterface(Frame):
         if self.introduction:
             self.introduction.grid_remove()
 
+        if self.payroll_window:
+            self.payroll_window.grid_remove()
+            self.cost_department_list.grid_remove()
+
         if self.get_example_window:
             self.get_example_window.grid_remove()
 
@@ -221,9 +230,6 @@ class UserInterface(Frame):
 
         if self.notification_window:
             self.notification_window.grid_remove()
-
-        if self.payroll_window:
-            self.payroll_window.gird_remove()
 
         self.create_files_names.place_forget()
 
@@ -328,7 +334,7 @@ class UserInterface(Frame):
         table_image_default_2 = Button(button_frame,
                                        border='0',
                                        image=self.create_fwm_image,
-                                       command=self.payroll_table_window)
+                                       command=self.payroll_table_first_step)
         table_image_default_2.grid(column=0,
                                    row=4,
                                    sticky='w',
@@ -347,7 +353,7 @@ class UserInterface(Frame):
                             pady=30,
                             padx=245)
 
-    def payroll_table_window(self):
+    def payroll_table_first_step(self):
         pass
 
     def selection_step_window(self):
@@ -394,7 +400,7 @@ class UserInterface(Frame):
                                              font=("Arial", 10, 'bold'))
         button_select_description.place(x=105, y=178)
 
-        # For future update which will allow to Change/View/Delete file(s)
+        # Allows to Change/View/Delete file(s)
         difference_explanation_text = tk.Button(button_frame,
                                                 border=0,
                                                 text='Change/View/Delete file(s)',
@@ -581,13 +587,15 @@ class UserInterface(Frame):
         u_logo_image.photo = self.u_logo
         u_logo_image.grid(column=1,
                           row=0,
+                          sticky="w",
                           padx=0,
                           pady=0)
         # Description of a reason to have this window
         welcome_description = ttk.Label(button_frame,
-                                        text="The program will generate a table by using data from university website.",
-                                        foreground="green",
-                                        font=('Arial', 11))
+                                        text="The program will generate a table by using data from MNSU website",
+                                        foreground="gray",
+                                        font=('Arial', 12))
+
         welcome_description.grid(column=0,
                                  row=0,
                                  rowspan=2,
