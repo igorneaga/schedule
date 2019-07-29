@@ -1,25 +1,27 @@
 import datetime
 import glob
 import os
-import csv
 import shutil  # Delete folder
 import threading
 import time
 import tkinter as tk
 import webbrowser
-import requests
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 
-import room_capacity
-import receiver
+import requests
+
 import previous_data
 import previous_semesters
+import receiver
 
 
 class UserInterface(Frame):
+    # It is better to define values like the following ones as constants (uppercase) in a single place (like here)
+    GOOGLE_FORM_URL = 'https://goo.gl/forms/wNkzjymOQ7wiNavf1'
+    INSTRUCTIONS_URL = 'https://docs.google.com/document/d/1htRsKmxDX33yawrYqeHkCLWlEL-juRjeM-if8N4f2yo/edit?usp=sharing'
 
     def __init__(self, master):
         super().__init__(master)
@@ -139,13 +141,11 @@ class UserInterface(Frame):
 
     def submit_tickcet_form(self):
         """Opens a Google Form to collect any reports or requests"""
-        webbrowser.open("https://goo.gl/forms/wNkzjymOQ7wiNavf1")
+        webbrowser.open(self.GOOGLE_FORM_URL)
 
     def open_instructions(self):
         """Instructions on how to use this program. Extremely useful"""
-
-        webbrowser.open(
-            "https://docs.google.com/document/d/1htRsKmxDX33yawrYqeHkCLWlEL-juRjeM-if8N4f2yo/edit?usp=sharing")
+        webbrowser.open(self.INSTRUCTIONS_URL)
 
     def main_text_interface(self, button_frame, x=52, include_instructions=True):
         """Repeated title text"""

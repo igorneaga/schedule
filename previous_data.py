@@ -1,15 +1,16 @@
-import requests
-from bs4 import BeautifulSoup
+import datetime
 import os
 import string
-
-import datetime
-import openpyxl
 import urllib.parse
 
+import openpyxl
+import requests
+from bs4 import BeautifulSoup
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.styles.borders import Border, Side
 from openpyxl.worksheet.pagebreak import Break
+
+from previous_semesters import ReceiveSemesters
 
 
 class PreviousCourses:
@@ -20,37 +21,29 @@ class PreviousCourses:
         self.url_department = url_department
         self.url_semester = url_smemester
 
-        self.url = "https://secure2.mnsu.edu/courses/selectform.asp"
         self.headers = {
-                        'Content-Type': "application/x-www-form-urlencoded",
-                        'Origin': "https://secure2.mnsu.edu",
-                        'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
-                        'cache-control': "no-cache",
-                        'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
-                        }
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Origin': "https://secure2.mnsu.edu",
+            'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
+            'cache-control': "no-cache",
+            'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
+        }
         self.payload = None
         self.course_list = []
         self.main_class_controller()
 
     def main_class_controller(self):
-        def transfer_department_name(department):
+        def transfer_department_name(department_abbreviation):
             """Transfers to the full department name"""
-            if department == "ACCT":
-                return "Accounting"
-            elif department == "BLAW":
-                return "Business Law"
-            elif department == "FINA":
-                return "Finance"
-            elif department == "IBUS":
-                return "International Business"
-            elif department == "MGMT":
-                return "Management"
-            elif department == "MRKT":
-                return "Marketing"
-            elif department == "MACC":
-                return "Master in Accounting"
-            else:
-                return "Master of Business Administration"
+            return {
+                'ACCT': 'Accounting',
+                'BLAW': 'Business Law',
+                'FINA': 'Finance',
+                'IBUS': 'International Business',
+                'MGMT': 'Management',
+                'MRKT': 'Marketing',
+                'MACC': 'Master in Accounting'
+            }.get(department_abbreviation, default='Master of Business Administration')
 
         def get_payload_encode(encode_params, url, year, semester, department):
             """Gets parameters for semester and subject"""
@@ -79,20 +72,27 @@ class PreviousCourses:
             params_list = [parse_params]
             return params_list
 
-        full_department_name = transfer_department_name(department=self.department)
-        params = {'semester': None, 'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
-                  'startTime': '0600',
-                  'endTime': '2359', 'days': 'ALL', 'All': 'All Sections', 'subject': None, 'undefined': ''}
+        full_department_name = transfer_department_name(department_abbreviation=self.department)
+        params = {
+            'semester': None,
+            'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
+            'startTime': '0600',
+            'endTime': '2359',
+            'days': 'ALL',
+            'All': 'All Sections',
+            'subject': None,
+            'undefined': ''
+        }
         # if not None, skips one function to increase performance
         if self.url_department is not None:
             params['subject'] = self.url_department
             params['semester'] = self.url_semester
             self.payload = transfer_params(params)
         else:
-            web_params, sem_option = get_payload_encode(params, self.url, self.year, self.semester, full_department_name)
+            web_params, sem_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.year, self.semester, full_department_name)
             self.payload = transfer_params(web_params)
 
-        response = requests.request("POST", self.url, data=self.payload[0], headers=self.headers)
+        response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.payload[0], headers=self.headers)
         self.get_data(response)
         CreateStandardTable(self.course_list, full_department_name, self.semester, str(self.year), self.department)
 

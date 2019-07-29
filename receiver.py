@@ -1,4 +1,5 @@
 import datetime
+import math
 import os
 import re
 import sys
@@ -6,7 +7,6 @@ import threading
 from itertools import chain
 from tkinter import messagebox
 
-import math
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
@@ -58,16 +58,14 @@ class DataProcessor:
             """Returns a day's order selected by the user"""
             if user_choice is 2:
                 return ["Monday", "Tuesday", "Wednesday", "Thursday"]
-            else:
-                return ["Monday", "Wednesday", "Tuesday", "Thursday"]
+            return ["Monday", "Wednesday", "Tuesday", "Thursday"]
 
         def friday_option(user_friday_option, current_days):
             """Checks if the user selected the Friday option. Returns it in the day's list"""
             if user_friday_option == 1:
                 current_days.append("Friday")
                 return current_days
-            else:
-                return current_days
+            return current_days
 
         def create_excel_copies():
             """Creates a folder to store all the copy files"""
@@ -287,6 +285,7 @@ class DataProcessor:
         def clear_unnecessary_list(data_list):
             data_list = list(filter(None, data_list))  # Deletes empty lists
             # Deletes None lists
+            # TODO: refactor the following 3 lines, because it is really hard to read/understand
             data_list = [None if list(set(v)) == [None] else v for v in data_list]
             data_list = [v for v in data_list if v is not None]
             data_list = [['None' if v is None else v for v in row] for row in data_list]
@@ -312,7 +311,7 @@ class DataProcessor:
             c_title = course_title.replace(' ', '')
             c_number = course_number.replace(' ', '')
             c_section = course_section.replace(' ', '')
-            return c_title.upper() + " " + c_number + "-" + c_section
+            return f'{c_title.upper()} {c_number}-{c_section}'  # Use f-strings instead of concatenation
 
         def convert_user_days(day, k):
             """Transfers day into proper format"""
@@ -347,8 +346,8 @@ class DataProcessor:
                     or any(c in day[k:7].upper() for c in "FRIDAY"):
                 return "Friday"
 
-            else:
-                return 'None'
+            # By default
+            return 'None'
 
         excel_data = clear_unnecessary_list(excel_data)
         self.mark_none_values(excel_data)
@@ -378,33 +377,17 @@ class DataProcessor:
             return d_courses.get("Type")
 
         def set_course_department(course_title):
-            # Accounting
-            if course_title[:2] == "AC":
-                return "Accounting"
-            # Business Law
-            elif course_title[:2] == "BL":
-                return "Business Law"
-            # Business
-            elif course_title[:2] == "BU":
-                return "Business"
-            # Finance
-            elif course_title[:2] == "FI":
-                return "Finance"
-            # International Business
-            elif course_title[:2] == "IB":
-                return "International Business"
-            # Master of Business Administration
-            elif course_title[:2] == "MB":
-                return "MBA"
-            # Master of Accounting
-            elif course_title[:2] == "MA":
-                return "MACC"
-            # Management
-            elif course_title[:2] == "MG":
-                return "Management"
-            # Marketing
-            elif course_title[:2] == "MR":
-                return "Marketing"
+            return {
+                'AC': 'Accounting',
+                'BL': 'Business Law',
+                'BU': 'Business',
+                'FI': 'Finance',
+                'IB': 'International Business',
+                'MB': 'MBA',  # Master of Business Administration
+                'MA': 'MACC',  # Master of Accounting
+                'MG': 'Management',
+                'MR': 'Marketing'
+            }.get(course_title[:2], default=None)
 
         for j in excel_data:
             try:
@@ -509,8 +492,7 @@ class DataProcessor:
                                 dict_courses["End_Time"] = "06:00"
                         except IndexError:
                             # Marks a course if program couldn't read it
-                            dict_courses["Start_Time"] = "None"
-                            dict_courses["End_Time"] = "None"
+                            dict_courses["Start_Time"] = dict_courses["End_Time"] = "None"
                             dict_courses["Type"] = "Error"
                         # Removes white spaces
                         if " " in j[self.excel_course_days + 2]:
