@@ -1,16 +1,17 @@
 import csv
-from bs4 import BeautifulSoup
-from bs4 import element
-import requests
 import os
 from datetime import date, timedelta, datetime
 
+import requests
+from bs4 import BeautifulSoup
+from bs4 import element
+
 
 class RoomCapacity:
+    ROOM_CAP_URL = 'https://mnsu.bookitadmin.minnstate.edu/BrowseForSpace.aspx'
+
     """Web scraping university website to gain data about classroom capacity"""
     def __init__(self):
-
-        self.room_cap_url = 'https://mnsu.bookitadmin.minnstate.edu/BrowseForSpace.aspx'
         self.file = 'room_cap.csv'
 
     def check_file_exist(self):
@@ -50,19 +51,18 @@ class RoomCapacity:
                 previous_date = datetime.strptime(room_cap.get("Date"), '%Y-%m-%d')
                 if date.today() > previous_date.date() + timedelta(days=60):
                     # Will rewrite file if it older than 60 days
-                    room_cap = get_room_capacity(self.room_cap_url)
+                    room_cap = get_room_capacity(self.ROOM_CAP_URL)
                     room_cap["Date"] = date.today()
                     with open(self.file, 'w') as over_write_file:
                         write_file = csv.DictWriter(over_write_file, room_cap.keys())
                         write_file.writeheader()
                         write_file.writerow(room_cap)
                     return room_cap
-                else:
-                    return dict(room_cap)
+                return dict(room_cap)
 
         else:
             # Creates a CSV file
-            room_cap = get_room_capacity(self.room_cap_url)
+            room_cap = get_room_capacity(self.ROOM_CAP_URL)
             room_cap["Date"] = date.today()
             with open(self.file, 'w') as new_file:
                 write_file = csv.DictWriter(new_file, room_cap.keys())

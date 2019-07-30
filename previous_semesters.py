@@ -3,17 +3,16 @@ from bs4 import BeautifulSoup
 
 
 class ReceiveSemesters:
-    def __init__(self):
-        self.url = "https://secure2.mnsu.edu/courses/selectform.asp"
+    COURSES_URL = 'https://secure2.mnsu.edu/courses/selectform.asp'
 
+    def __init__(self):
         self.list_of_dict = []
 
         self.web_scrap_param()
         self.return_courses_semesters()
 
     def web_scrap_param(self):
-        page_link = self.url
-        page_response = requests.get(page_link, verify=False)
+        page_response = requests.get(self.COURSES_URL, verify=False)
         soup = BeautifulSoup(page_response.content, "html.parser")
 
         cob_departments = ["ACCOUNTING(ACCT)", "BUSINESSLAW(BLAW)", "FINANCE(FINA)", "MANAGEMENT(MGMT)", "MARKETING(MRKT)", "INTERNATIONALBUSINESS(IBUS)",
