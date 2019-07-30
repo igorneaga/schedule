@@ -387,7 +387,7 @@ class DataProcessor:
                 'MA': 'MACC',  # Master of Accounting
                 'MG': 'Management',
                 'MR': 'Marketing'
-            }.get(course_title[:2], default=None)
+            }.get(course_title[:2], None)
 
         for j in excel_data:
             try:
