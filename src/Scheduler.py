@@ -1,7 +1,7 @@
 from src import interface
 from tkinter import *
 
-version = 'v0.5'  # Current version
+version = 'v0.6'  # Current version
 
 
 def create_interface(argv):
