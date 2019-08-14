@@ -43,7 +43,7 @@ class PreviousCourses:
                 'MGMT': 'Management',
                 'MRKT': 'Marketing',
                 'MACC': 'Master in Accounting'
-            }.get(department_abbreviation, default='Master of Business Administration')
+            }.get(department_abbreviation, 'Accounting')
 
         def get_payload_encode(encode_params, url, year, semester, department):
             """Gets parameters for semester and subject"""
