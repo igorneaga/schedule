@@ -89,10 +89,10 @@ class ThreadedTask(threading.Thread):
         page_response = requests.get(API_GITHUB_URL)
         git_app_date = page_response.json().get("published_at")
 
-        if os.path.exists(script_directory + 'src\\UScheduler.exe') is False:
+        if os.path.exists(script_directory + '\\src\\UScheduler.exe') is False:
             # Downloads file from github
             urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/UScheduler.exe',
-                                       script_directory + 'src\\UScheduler.exe')
+                                       script_directory + '\\src\\UScheduler.exe')
         else:
             file_date = os.path.getmtime("C:\\Users\\Igor\\PycharmProjects\\schedule\\src\\UScheduler.exe")
             modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
@@ -104,9 +104,9 @@ class ThreadedTask(threading.Thread):
                     pass
 
                 urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/Scheduler.exe',
-                                           script_directory + 'src\\UScheduler.exe')
+                                           script_directory + '\\src\\UScheduler.exe')
 
-        os.system(script_directory + 'src\\UScheduler.exe')
+        os.system(script_directory + '\\src\\UScheduler.exe')
         self.queue.put("Task finished")
 
 
