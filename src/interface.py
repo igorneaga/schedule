@@ -135,7 +135,6 @@ class UserInterface(Frame):
         except IOError:
             messagebox.showerror("Close File", "Please close excel files to eliminate errors")
 
-        os.system("TASKKILL /F /IM Scheduler.exe")
         self.introduction_window()
 
     def submit_tickcet_form(self):

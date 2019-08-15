@@ -7,7 +7,7 @@ import urllib.request
 from tkinter import *
 from tkinter import ttk
 import time
-
+import subprocess
 
 import requests
 
@@ -106,7 +106,8 @@ class ThreadedTask(threading.Thread):
                 urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/Scheduler.exe',
                                            script_directory + '\\src\\UScheduler.exe')
 
-        os.system(script_directory + '\\src\\UScheduler.exe')
+        subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
+
         self.queue.put("Task finished")
 
 
