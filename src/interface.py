@@ -26,18 +26,19 @@ class UserInterface(Frame):
         self.grid()
 
         # Assets
-        self.fix_image = tk.PhotoImage(file='assets\\report_x45.png')
-        self.info_image = tk.PhotoImage(file='assets\\info_x45.png')
-        self.back_image = tk.PhotoImage(file='assets\\back_icon_45x45.png')
-        self.out_order_image = tk.PhotoImage(file='assets\\table_v05_default.png')
-        self.in_order_image = tk.PhotoImage(file='assets\\table_v05_in_order.png')
-        self.excel_copy_fie = tk.PhotoImage(file='assets\\excel_files_icon.png')
-        self.excel_main_file = tk.PhotoImage(file='assets\\master_file_icon.png')
-        self.create_master_image = tk.PhotoImage(file='assets\\create_master.png')
-        self.create_fwm_image = tk.PhotoImage(file='assets\\create_fwm_table2.png')
-        self.get_previous_table_image = tk.PhotoImage(file='assets\\get_prev_tables.png')
-        self.exit_file = tk.PhotoImage(file='assets\\quit_button.png')
-        self.u_logo = tk.PhotoImage(file='assets\\u_logo.png')
+        cwd = os.getcwd()
+        self.fix_image = tk.PhotoImage(file=cwd + '\\src\\assets\\report_x45.png')
+        self.info_image = tk.PhotoImage(file=cwd + '\\src\\assets\\info_x45.png')
+        self.back_image = tk.PhotoImage(file=cwd + '\\src\\assets\\back_icon_45x45.png')
+        self.out_order_image = tk.PhotoImage(file=cwd + '\\src\\assets\\table_v05_default.png')
+        self.in_order_image = tk.PhotoImage(file=cwd + '\\src\\assets\\table_v05_in_order.png')
+        self.excel_copy_fie = tk.PhotoImage(file=cwd + '\\src\\assets\\excel_files_icon.png')
+        self.excel_main_file = tk.PhotoImage(file=cwd + '\\src\\assets\\master_file_icon.png')
+        self.create_master_image = tk.PhotoImage(file=cwd + '\\src\\assets\\create_master.png')
+        self.create_fwm_image = tk.PhotoImage(file=cwd + '\\src\\assets\\create_fwm_table2.png')
+        self.get_previous_table_image = tk.PhotoImage(file=cwd + '\\src\\assets\\get_prev_tables.png')
+        self.exit_file = tk.PhotoImage(file=cwd + '\\src\\assets\\quit_button.png')
+        self.u_logo = tk.PhotoImage(file=cwd + '\\src\\assets\\u_logo.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")
@@ -134,6 +135,7 @@ class UserInterface(Frame):
         except IOError:
             messagebox.showerror("Close File", "Please close excel files to eliminate errors")
 
+        os.system("TASKKILL /F /IM Scheduler.exe")
         self.introduction_window()
 
     def submit_tickcet_form(self):
