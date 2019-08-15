@@ -107,7 +107,7 @@ class ThreadedTask(threading.Thread):
                                            script_directory + '\\src\\UScheduler.exe')
 
         subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
-
+        time.sleep(5)
         self.queue.put("Task finished")
 
 
