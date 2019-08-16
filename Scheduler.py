@@ -8,10 +8,14 @@ from tkinter import *
 from tkinter import ttk
 import time
 import subprocess
+import zipfile
+import io
+import shutil
 
 import requests
 
-API_GITHUB_URL = "https://api.github.com/repos/igorneaga/schedule/releases/latest"
+API_GITHUB_UPDATE = "https://api.github.com/repos/igorneaga/schedule/releases/latest"
+API_GITHUB_ASSETS = "https://api.github.com/repos/igorneaga/schedule/contents/src/assets"
 
 
 class UpdateInterface(Frame):
@@ -85,29 +89,48 @@ class ThreadedTask(threading.Thread):
 
     def run(self):
         script_directory = os.path.dirname(os.path.abspath(__file__))
-
-        page_response = requests.get(API_GITHUB_URL)
+        # Assets
+        page_response_assets = requests.get(API_GITHUB_ASSETS)
+        github_assets_data = page_response_assets.json()
+        # Version / Date
+        page_response = requests.get(API_GITHUB_UPDATE)
         git_app_date = page_response.json().get("published_at")
 
-        if os.path.exists(script_directory + '\\src\\UScheduler.exe') is False:
-            # Downloads file from github
-            urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/UScheduler.exe',
-                                       script_directory + '\\src\\UScheduler.exe')
-        else:
-            file_date = os.path.getmtime("C:\\Users\\Igor\\PycharmProjects\\schedule\\src\\UScheduler.exe")
-            modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
+        file_date = os.path.getmtime("C:\\Users\\Igor\\PycharmProjects\\schedule\\src\\UScheduler.exe")
+        # Gets the proper format of the file date
+        modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
 
-            if git_app_date[:10] > modification_time[:10]:      # Checking if the version
-                try:
-                    os.remove("src\\UScheduler.exe")
-                except FileNotFoundError:
+        try:
+            for github_assets in github_assets_data:
+                if github_assets.get("name") in os.listdir(script_directory + '\\src\\assets'):
                     pass
+                else:
+                    urllib.request.urlretrieve(github_assets.get("download_url"),
+                                               script_directory + '\\src\\assets')
+        except (PermissionError, FileNotFoundError):
+            if (git_app_date[:10] > modification_time[:10]) or (os.path.isdir('src\\assets') is False):
+                # Using a more complicated(unzip) way download proper files
+                shutil.rmtree(script_directory + "\\src", ignore_errors=True)
+                response = requests.get('https://github.com/igorneaga/schedule/archive/master.zip',
+                                        allow_redirects=True)
+                zip_file = zipfile.ZipFile(io.BytesIO(response.content))
 
-                urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/Scheduler.exe',
-                                           script_directory + '\\src\\UScheduler.exe')
+                for file in zip_file.namelist():
+                    if file.startswith('schedule-master/src/'):
+                        zip_file.extract(file)
+                os.rename(script_directory + '\\schedule-master\\src', script_directory + "\\src")
+
+        if git_app_date[:10] > modification_time[:10]:      # Checking if the version
+            try:
+                os.remove("src\\UScheduler.exe")
+            except FileNotFoundError:
+                pass
+
+            urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/Scheduler.exe',
+                                       script_directory + '\\src\\UScheduler.exe')
 
         subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
-        time.sleep(5)
+        time.sleep(7)
         self.queue.put("Task finished")
 
 
@@ -123,7 +146,11 @@ def create_interface(argv):
     # Positions the window in the center of the page.
     root.geometry("+{}+{}".format(screen_middle_w, screen_middle_h))
 
-    root.iconbitmap('src\\assets\\unischeduler_icon.ico')
+    try:
+        root.iconbitmap('src\\assets\\unischeduler_icon.ico')
+    except:
+        pass
+
     UpdateInterface(root)
     root.mainloop()
 
