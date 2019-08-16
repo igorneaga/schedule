@@ -97,16 +97,19 @@ class ThreadedTask(threading.Thread):
         # Version / Date
         page_response = requests.get(API_GITHUB_UPDATE)
         git_app_date = page_response.json().get("published_at")
-        if os.path.isdir(script_directory + "\\src\\UScheduler.exe") is False:
-            urllib.request.urlretrieve(MAIN_EXE_URL,
-                                       script_directory + '\\src\\UScheduler.exe')
-        else:
-            file_date = os.path.getmtime(script_directory + "\\src\\UScheduler.exe")
-            modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
-            if git_app_date[:10] > modification_time[:10]:  # Checking if the version
-                os.remove("src\\UScheduler.exe")
+        try:
+            if os.path.isdir(script_directory + "\\src\\UScheduler.exe") is False:
                 urllib.request.urlretrieve(MAIN_EXE_URL,
                                            script_directory + '\\src\\UScheduler.exe')
+            else:
+                file_date = os.path.getmtime(script_directory + "\\src\\UScheduler.exe")
+                modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
+                if git_app_date[:10] > modification_time[:10]:  # Checking if the version
+                    os.remove("src\\UScheduler.exe")
+                    urllib.request.urlretrieve(MAIN_EXE_URL,
+                                               script_directory + '\\src\\UScheduler.exe')
+        except FileNotFoundError:
+            pass
         try:
             for github_assets in github_assets_data:
                 if github_assets.get("name") in os.listdir(script_directory + '\\src\\assets'):
