@@ -16,6 +16,8 @@ import requests
 
 API_GITHUB_UPDATE = "https://api.github.com/repos/igorneaga/schedule/releases/latest"
 API_GITHUB_ASSETS = "https://api.github.com/repos/igorneaga/schedule/contents/src/assets"
+MAIN_EXE_URL = "https://github.com/igorneaga/schedule/raw/master/src/UScheduler.exe"
+MAIN_ZIP_URL = "https://github.com/igorneaga/schedule/archive/master.zip"
 
 
 class UpdateInterface(Frame):
@@ -95,10 +97,17 @@ class ThreadedTask(threading.Thread):
         # Version / Date
         page_response = requests.get(API_GITHUB_UPDATE)
         git_app_date = page_response.json().get("published_at")
-
-        file_date = os.path.getmtime("C:\\Users\\Igor\\PycharmProjects\\schedule\\src\\UScheduler.exe")
+        try:
+            file_date = os.path.getmtime(script_directory + "\\src\\UScheduler.exe")
+            modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
+            if git_app_date[:10] > modification_time[:10]:  # Checking if the version
+                os.remove("src\\UScheduler.exe")
+                urllib.request.urlretrieve(MAIN_EXE_URL,
+                                           script_directory + '\\src\\UScheduler.exe')
+        except FileNotFoundError:
+            urllib.request.urlretrieve(MAIN_EXE_URL,
+                                       script_directory + '\\src\\UScheduler.exe')
         # Gets the proper format of the file date
-        modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
 
         try:
             for github_assets in github_assets_data:
@@ -108,10 +117,10 @@ class ThreadedTask(threading.Thread):
                     urllib.request.urlretrieve(github_assets.get("download_url"),
                                                script_directory + '\\src\\assets')
         except (PermissionError, FileNotFoundError):
-            if (git_app_date[:10] > modification_time[:10]) or (os.path.isdir('src\\assets') is False):
+            if os.path.isdir('src\\assets') is False:
                 # Using a more complicated(unzip) way download proper files
                 shutil.rmtree(script_directory + "\\src", ignore_errors=True)
-                response = requests.get('https://github.com/igorneaga/schedule/archive/master.zip',
+                response = requests.get(MAIN_ZIP_URL,
                                         allow_redirects=True)
                 zip_file = zipfile.ZipFile(io.BytesIO(response.content))
 
@@ -119,15 +128,6 @@ class ThreadedTask(threading.Thread):
                     if file.startswith('schedule-master/src/'):
                         zip_file.extract(file)
                 os.rename(script_directory + '\\schedule-master\\src', script_directory + "\\src")
-
-        if git_app_date[:10] > modification_time[:10]:      # Checking if the version
-            try:
-                os.remove("src\\UScheduler.exe")
-            except FileNotFoundError:
-                pass
-
-            urllib.request.urlretrieve('https://github.com/igorneaga/schedule/raw/master/src/Scheduler.exe',
-                                       script_directory + '\\src\\UScheduler.exe')
 
         subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
         time.sleep(7)
