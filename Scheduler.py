@@ -97,7 +97,9 @@ class ThreadedTask(threading.Thread):
         # Version / Date
         page_response = requests.get(API_GITHUB_UPDATE)
         git_app_date = page_response.json().get("published_at")
-        try:
+        x = 0
+        if os.path.isdir(script_directory + "\\src") is True:
+            print("ha1")
             if os.path.isdir(script_directory + "\\src\\UScheduler.exe") is False:
                 urllib.request.urlretrieve(MAIN_EXE_URL,
                                            script_directory + '\\src\\UScheduler.exe')
@@ -108,18 +110,29 @@ class ThreadedTask(threading.Thread):
                     os.remove("src\\UScheduler.exe")
                     urllib.request.urlretrieve(MAIN_EXE_URL,
                                                script_directory + '\\src\\UScheduler.exe')
-        except FileNotFoundError:
-            pass
-        try:
-            for github_assets in github_assets_data:
-                if github_assets.get("name") in os.listdir(script_directory + '\\src\\assets'):
-                    pass
-                else:
-                    urllib.request.urlretrieve(github_assets.get("download_url"),
-                                               script_directory + '\\src\\assets')
-        except (PermissionError, FileNotFoundError):
-            if os.path.isdir('src\\assets') is False:
-                # Using a more complicated(unzip) way download proper files
+
+        if os.path.isdir('src\\assets') is False:
+            # Using a more complicated(unzip) way download proper files
+            shutil.rmtree(script_directory + "\\src", ignore_errors=True)
+            response = requests.get(MAIN_ZIP_URL,
+                                    allow_redirects=True)
+            zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+            for file in zip_file.namelist():
+                if file.startswith('schedule-master/src/'):
+                    zip_file.extract(file)
+            os.rename(script_directory + '\\schedule-master\\src', script_directory + "\\src")
+            shutil.rmtree(script_directory + "\\schedule-master", ignore_errors=True)
+
+        else:
+            try:
+                for github_assets in github_assets_data:
+                    if github_assets.get("name") in os.listdir(script_directory + '\\src\\assets'):
+                        pass
+                    else:
+                        urllib.request.urlretrieve(github_assets.get("download_url"),
+                                                   script_directory + '\\src\\assets')
+            except PermissionError:
                 shutil.rmtree(script_directory + "\\src", ignore_errors=True)
                 response = requests.get(MAIN_ZIP_URL,
                                         allow_redirects=True)
@@ -129,6 +142,7 @@ class ThreadedTask(threading.Thread):
                     if file.startswith('schedule-master/src/'):
                         zip_file.extract(file)
                 os.rename(script_directory + '\\schedule-master\\src', script_directory + "\\src")
+                shutil.rmtree(script_directory + "\\schedule-master", ignore_errors=True)
 
         subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
         time.sleep(7)
