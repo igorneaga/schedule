@@ -97,9 +97,7 @@ class ThreadedTask(threading.Thread):
         # Version / Date
         page_response = requests.get(API_GITHUB_UPDATE)
         git_app_date = page_response.json().get("published_at")
-        x = 0
         if os.path.isdir(script_directory + "\\src") is True:
-            print("ha1")
             if os.path.isdir(script_directory + "\\src\\UScheduler.exe") is False:
                 urllib.request.urlretrieve(MAIN_EXE_URL,
                                            script_directory + '\\src\\UScheduler.exe')
