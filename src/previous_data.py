@@ -14,21 +14,22 @@ from src.previous_semesters import ReceiveSemesters
 
 
 class PreviousCourses:
-    def __init__(self, department, semester, year, url_smemester=None, url_department=None):
-        self.department = department
-        self.year = year
-        self.semester = semester
-        self.url_department = url_department
-        self.url_semester = url_smemester
+    def __init__(self, department, semester, year, semester_parameters=None, department_parameters=None):
+        self.user_selected_department = department
+        self.user_selected_year = year
+        self.user_selected_semester = semester
+        self.department_parameters = department_parameters
+        self.semester_parameters = semester_parameters
 
-        self.headers = {
-            'Content-Type': "application/x-www-form-urlencoded",
-            'Origin': "https://secure2.mnsu.edu",
-            'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
-            'cache-control': "no-cache",
-            'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
-        }
-        self.payload = None
+        self.request_headers = {
+                                'Content-Type': "application/x-www-form-urlencoded",
+                                'Origin': "https://secure2.mnsu.edu",
+                                'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
+                                'cache-control': "no-cache",
+                                'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
+                                }
+        self.user_request_encode = None
+
         self.course_list = []
         self.main_class_controller()
 
@@ -36,27 +37,27 @@ class PreviousCourses:
         def transfer_department_name(department_abbreviation):
             """Transfers to the full department name"""
             return {
-                'ACCT': 'Accounting',
-                'BLAW': 'Business Law',
-                'FINA': 'Finance',
-                'IBUS': 'International Business',
-                'MGMT': 'Management',
-                'MRKT': 'Marketing',
-                'MACC': 'Master in Accounting'
-            }.get(department_abbreviation, 'Accounting')
+                    'ACCT': 'Accounting',
+                    'BLAW': 'Business Law',
+                    'FINA': 'Finance',
+                    'IBUS': 'International Business',
+                    'MGMT': 'Management',
+                    'MRKT': 'Marketing',
+                    'MACC': 'Master in Accounting'
+                    }.get(department_abbreviation, 'Accounting')
 
         def get_payload_encode(encode_params, url, year, semester, department):
             """Gets parameters for semester and subject"""
-
-            page_link = url
-            page_response = requests.get(page_link)
-            soup = BeautifulSoup(page_response.content, "html.parser")
+            university_courses_url = url
+            page_response = requests.get(university_courses_url)
+            url_html_parser = BeautifulSoup(page_response.content, "html.parser")
 
             semester_option = semester + str(year)
             semester_option = semester_option.upper()
+
             department_option = (department.replace(" ", "")).upper()
 
-            for option in soup.find_all('option'):
+            for option in url_html_parser.find_all('option'):
                 search_option = (option.text.replace(" ", "")).upper()
                 if semester_option == search_option:
                     encode_params['semester'] = option['value']
@@ -72,7 +73,7 @@ class PreviousCourses:
             params_list = [parse_params]
             return params_list
 
-        full_department_name = transfer_department_name(department_abbreviation=self.department)
+        full_department_name = transfer_department_name(department_abbreviation=self.user_selected_department)
         params = {
             'semester': None,
             'campus': '1,2,3,4,5,6,7,9,A,B,C,I,L,M,N,P,Q,R,S,T,W,U,V,X,Y,Z',
@@ -84,17 +85,18 @@ class PreviousCourses:
             'undefined': ''
         }
         # if not None, skips one function to increase performance
-        if self.url_department is not None:
-            params['subject'] = self.url_department
-            params['semester'] = self.url_semester
-            self.payload = transfer_params(params)
+        if self.department_parameters is not None:
+            params['subject'] = self.department_parameters
+            params['semester'] = self.semester_parameters
+            self.user_request_encode = transfer_params(params)
+            print(self.user_request_encode)
         else:
-            web_params, sem_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.year, self.semester, full_department_name)
-            self.payload = transfer_params(web_params)
+            web_params, sem_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.user_selected_year, self.user_selected_semester, full_department_name)
+            self.user_request_encode = transfer_params(web_params)
 
-        response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.payload[0], headers=self.headers)
+        response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.user_request_encode[0], headers=self.request_headers)
         self.get_data(response)
-        CreateStandardTable(self.course_list, full_department_name, self.semester, str(self.year), self.department)
+        CreateStandardTable(self.course_list, full_department_name, self.user_selected_semester, str(self.user_selected_year), self.user_selected_department)
 
     def get_data(self, web_response):
         soup = BeautifulSoup(web_response.text, 'html.parser')

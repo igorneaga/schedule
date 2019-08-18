@@ -50,10 +50,10 @@ class UserInterface(Frame):
         self.table_friday_include = 0
 
         if int(today_date_split[1]) < 5:
-            self.web_semester = "Spring"
+            self.web_semester_parameters = "Spring"
         else:
-            self.web_semester = "Fall"
-        self.web_department = "ACCT"
+            self.web_semester_parameters = "Fall"
+        self.web_department_parameters = "ACCT"
         self.web_year = today_date_split[0]
         # Holds user choice both standard and urlencode
         self.urlencode_dict_list = []
@@ -332,7 +332,7 @@ class UserInterface(Frame):
         # Button for report/request
         problem_button = Button(button_frame,
                                 border='0',
-                                text="Instructions / Information",
+                                text="Instructions & Information",
                                 command=self.open_instructions_url,
                                 foreground="blue",
                                 font=('Arial', 11, 'underline'))
@@ -622,9 +622,9 @@ class UserInterface(Frame):
         variable_web_semesters.set(web_semesters_options[0])
         variable_web_years.set(web_year_options[0])
         # Sets defaults values for script
-        self.web_department = web_department_options[0]
+        self.web_department_parameters = web_department_options[0]
         self.web_year = web_year_options[0]
-        self.web_semester = web_semesters_options[0]
+        self.web_semester_parameters = web_semesters_options[0]
 
         department_selection_label = tk.Label(button_frame,
                                               text="Select department:",
@@ -704,22 +704,25 @@ class UserInterface(Frame):
 
         try:
             if not self.urlencode_dict_list:
-                previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+                previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
+                                              int(self.web_year))
             else:
                 for len_list in range(len(self.urlencode_dict_list)):
                     for departament_semester, urlencode in self.urlencode_dict_list[len_list].items():
-                        if departament_semester == self.web_department:
+                        if departament_semester == self.web_department_parameters:
                             urlencode_list.append(urlencode)
-                        if departament_semester == self.web_semester:
+                        if departament_semester == self.web_semester_parameters:
                             urlencode_list.append(urlencode)
                 if len(urlencode_list) == 2:
-                    previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year),
+                    previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
+                                                  int(self.web_year),
                                                   urlencode_list[0], urlencode_list[1])
                 else:
-                    previous_data.PreviousCourses(self.web_department, self.web_semester, int(self.web_year))
+                    previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
+                                                  int(self.web_year))
 
             if os.path.isdir('web_files\\'):
-                os.startfile('web_files\\' + self.web_department + "_" + str(self.web_year) + ".xlsx")
+                os.startfile('web_files\\' + self.web_department_parameters + "_" + str(self.web_year) + ".xlsx")
                 # Gives some time to launch the excel file
                 time.sleep(1)
             else:
@@ -964,13 +967,13 @@ class UserInterface(Frame):
         self.table_settings_year = year_value
 
     def return_web_department(self, department):
-        self.web_department = department
+        self.web_department_parameters = department
 
     def return_web_year(self, year):
         self.web_year = year
 
     def return_web_semester(self, semester):
-        self.web_semester = semester
+        self.web_semester_parameters = semester
 
     def return_semester(self, semester_value):
         """Captures user selection - semester"""
