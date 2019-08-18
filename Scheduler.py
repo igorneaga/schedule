@@ -11,6 +11,7 @@ import urllib.request
 
 import os
 import time
+import datetime
 import subprocess
 
 import zipfile
@@ -140,6 +141,10 @@ class ThreadedTask(threading.Thread):
                     else:
                         urllib.request.urlretrieve(github_assets.get("download_url"),
                                                    script_directory + '\\src\\assets')
+                        current_date_time = datetime.datetime.now()
+                        modified_time = time.mktime(current_date_time.timetuple())
+                        os.utime(script_directory + '\\src\\UScheduler.exe', (modified_time, modified_time))
+
             # Running without administrator permission will need to go through a complicated way
             except PermissionError:
                 download_zip(script_directory, MAIN_ZIP_URL)
