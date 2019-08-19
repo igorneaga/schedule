@@ -89,9 +89,8 @@ class PreviousCourses:
             params['subject'] = self.department_parameters
             params['semester'] = self.semester_parameters
             self.user_request_encode = transfer_params(params)
-            print(self.user_request_encode)
         else:
-            web_params, sem_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.user_selected_year, self.user_selected_semester, full_department_name)
+            web_params, semester_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.user_selected_year, self.user_selected_semester, full_department_name)
             self.user_request_encode = transfer_params(web_params)
 
         response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.user_request_encode[0], headers=self.request_headers)
@@ -99,39 +98,40 @@ class PreviousCourses:
         CreateStandardTable(self.course_list, full_department_name, self.user_selected_semester, str(self.user_selected_year), self.user_selected_department)
 
     def get_data(self, web_response):
-        soup = BeautifulSoup(web_response.text, 'html.parser')
+        data_html_parser = BeautifulSoup(web_response.text, 'html.parser')
 
-        for table_data in soup.find_all("tr"):
-            course_data_part_one = []
-            course_data_part_two = []
+        for table_data in data_html_parser.find_all("tr"):
+            course_titles_list = []
+            course_data_list = []
 
             course_title_raw = table_data.find(color="#ffffff")
             if course_title_raw is not None:
                 for course_title in course_title_raw("b"):
                     title_text = course_title.get_text()
-                    course_data_part_one.append(title_text)
+                    course_titles_list.append(title_text)
             if (table_data["bgcolor"] == "#E1E1CC") or (table_data["bgcolor"] == "#FFFFFF"):
                 for course_data in table_data("td"):
                     course_data_text = course_data.get_text()
-                    course_data_part_two.append(course_data_text)
+                    course_data_list.append(course_data_text)
 
-            if course_data_part_one:
-                self.course_list.append(course_data_part_one)
-            if course_data_part_two:
-                if len(course_data_part_two[0]) == 6:
-                    self.course_list.append(course_data_part_two)
+            if course_titles_list:
+                self.course_list.append(course_titles_list)
+            if course_data_list:
+                if len(course_data_list[0]) == 6:
+                    self.course_list.append(course_data_list)
 
 
 class CreateStandardTable:
-    def __init__(self, raw_data, departament_full, semester, year, department_abbreviation):
-        self.raw_data = raw_data
-        self.departament = departament_full
+    def __init__(self, web_course_data, departament_full, semester, year, department_abbreviation):
+        self.full_departament_name = departament_full
+        self.department_abbreviation = department_abbreviation
         self.semester = semester
         self.year = year
-        self.abb_department = department_abbreviation
 
-        self.workbook = None
-        self.sheet = None
+        self.web_course_data = web_course_data
+
+        self.excel_workbook = None
+        self.excel_sheet = None
 
         self.main_program_controller()
 
@@ -141,13 +141,13 @@ class CreateStandardTable:
         self.create_excel_sheet()
 
         self.department_heading()
-        self.column_headings()
+        self.excel_column_headings()
         self.set_data()
         self.adjust_cells_width()
         self.border_all_cells("A1")
         self.set_page_break()
-        self.workbook.save('web_files\\' + self.abb_department.replace(" ", "_")[0:27] + "_" +
-                           self.year + ".xlsx")
+        self.excel_workbook.save('web_files\\' + self.department_abbreviation.replace(" ", "_")[0:27] + "_" +
+                                 self.year + ".xlsx")
 
     def create_excel_file(self):
         def create_directory():
@@ -156,124 +156,132 @@ class CreateStandardTable:
                 os.makedirs('web_files')
         create_directory()
 
-        self.workbook = openpyxl.Workbook()
+        self.excel_workbook = openpyxl.Workbook()
 
     def create_excel_sheet(self):
-        file_date = datetime.datetime.today().strftime('%Y')
+        today_year = datetime.datetime.today().strftime('%Y')
 
-        self.sheet = self.workbook.get_sheet_by_name("Sheet")
-        self.sheet.title = self.departament + "_" + file_date
+        self.excel_sheet = self.excel_workbook.get_sheet_by_name("Sheet")
+        self.excel_sheet.title = self.full_departament_name + "_" + today_year
 
     def department_heading(self):
-        self.sheet["A1"] = self.departament.upper() + " " + self.semester.upper() + " " + self.year
-        self.sheet.merge_cells("A1:M2")
-        self.sheet["A1"].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        self.sheet["A1"].font = Font(sz=12, bold=True, italic=False)
+        self.excel_sheet.merge_cells("A1:M2")
 
-        clr = PatternFill(start_color='EEEEEE', end_color='EEEEEE', fill_type='solid')
-        self.sheet["A1"].fill = clr
+        self.excel_sheet["A1"] = self.full_departament_name.upper() + " " + self.semester.upper() + " " + self.year
+        self.excel_sheet["A1"].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        self.excel_sheet["A1"].font = Font(sz=12, bold=True, italic=False)
 
-    def column_headings(self):
-        col_headings = ["Course", "Number", "Section", "Credits", "Title of Course", "Room", "Days", "Time",
-                        "Enrollment", "Faculty", "Start Date", "End Date", "Notes"]
-        for col in range(len(col_headings)):
-            coordinate = ''.join(string.ascii_uppercase[col]) + "3"  # i.e "A3"
-            self.sheet[coordinate] = col_headings[col]
-            self.sheet[coordinate].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            self.sheet[coordinate].font = Font(sz=12, bold=False, italic=False)
+        cell_color = PatternFill(start_color='EEEEEE', end_color='EEEEEE', fill_type='solid')
+        self.excel_sheet["A1"].fill = cell_color
+
+    def excel_column_headings(self):
+        excel_headings_list = ["Course", "Number", "Section", "Credits", "Title of Course", "Room", "Days", "Time",
+                               "Enrollment", "Faculty", "Start Date", "End Date", "Notes"]
+        for heading_column in range(len(excel_headings_list)):
+            heading_coordinate = ''.join(string.ascii_uppercase[heading_column]) + "3"  # i.e "A3"
+            self.excel_sheet[heading_coordinate] = excel_headings_list[heading_column]
+            self.excel_sheet[heading_coordinate].alignment = Alignment(horizontal='center', vertical='center',
+                                                                       wrap_text=True)
+            self.excel_sheet[heading_coordinate].font = Font(sz=12, bold=False, italic=False)
 
     def set_data(self):
-        index = 0
-        start_row = 4
+        starting_excel_row = 4
+        excel_cell_index = 0
 
-        def insert_cells(raw_data, sheet, c_index, c_start_row):
-            raw_data = raw_data
-            sheet = sheet
-            c_index = c_index
-            c_start_row = c_start_row
-            if raw_data[c_index][0]:
-                if raw_data[c_index][0].isdigit() is not True:
-                    course = raw_data[c_index][0]
-                    course_number = raw_data[c_index][1]
-                    symbol_index = raw_data[c_index][3].find("(")
-                    course_credits = str(raw_data[c_index][3][symbol_index+1:symbol_index+2])
-                    course_name = str(raw_data[c_index][2]).strip()
+        def insert_cells(web_courses_data, excel_sheet, cell_index, starting_row):
+            web_courses_data = web_courses_data
+            excel_sheet = excel_sheet
+            cell_index = cell_index
+            starting_row = starting_row
+            if web_courses_data[cell_index][0]:
+                if web_courses_data[cell_index][0].isdigit() is not True:
+                    course = web_courses_data[cell_index][0]
+                    course_number = web_courses_data[cell_index][1]
+                    symbol_index = web_courses_data[cell_index][3].find("(")
+                    course_credits = str(web_courses_data[cell_index][3][symbol_index + 1:symbol_index + 2])
+                    course_title = str(web_courses_data[cell_index][2]).strip()
 
-                    while len(raw_data[c_index + 1][0]) == 6 and (raw_data[c_index + 1][0].isdigit()):
-                        sheet["A"+str(c_start_row)] = course
-                        sheet["B" + str(c_start_row)] = int(course_number)
-                        sheet["C" + str(c_start_row)] = int(raw_data[c_index + 1][1][0:2])
-                        sheet["D" + str(c_start_row)] = int(course_credits)
-                        sheet["E" + str(c_start_row)] = course_name
-                        if raw_data[c_index + 1][4][0:3] == "ARR":
-                            sheet["F" + str(c_start_row)] = "ARR"
+                    while len(web_courses_data[cell_index + 1][0]) == 6 and (
+                            web_courses_data[cell_index + 1][0].isdigit()):
+                        excel_sheet["A" + str(starting_row)] = course
+                        excel_sheet["B" + str(starting_row)] = int(course_number)
+                        excel_sheet["C" + str(starting_row)] = int(web_courses_data[cell_index + 1][1][0:2])
+                        excel_sheet["D" + str(starting_row)] = int(course_credits)
+                        excel_sheet["E" + str(starting_row)] = course_title
+
+                        if web_courses_data[cell_index + 1][4][0:3] == "ARR":
+                            excel_sheet["F" + str(starting_row)] = "ARR"
                         else:
-                            sheet["F" + str(c_start_row)] = raw_data[c_index + 1][6]
-                        sheet["G" + str(c_start_row)] = str(raw_data[c_index + 1][3]).strip()
-                        if raw_data[c_index + 1][6].replace(" ", "") == "ONLINE":
-                            sheet["F" + str(c_start_row)] = "ONLINE"
-                            sheet["H" + str(c_start_row)] = "ONLINE"
+                            excel_sheet["F" + str(starting_row)] = web_courses_data[cell_index + 1][6]
+                        excel_sheet["G" + str(starting_row)] = str(web_courses_data[cell_index + 1][3]).strip()
+
+                        if web_courses_data[cell_index + 1][6].replace(" ", "") == "ONLINE":
+                            excel_sheet["F" + str(starting_row)] = "ONLINE"
+                            excel_sheet["H" + str(starting_row)] = "ONLINE"
                         else:
-                            sheet["H" + str(c_start_row)] = raw_data[c_index + 1][4]
-                        sheet["I" + str(c_start_row)] = int(raw_data[c_index + 1][9])
-                        sheet["J" + str(c_start_row)] = raw_data[c_index + 1][7]
+                            excel_sheet["H" + str(starting_row)] = web_courses_data[cell_index + 1][4]
 
-                        date = raw_data[c_index + 1][5].split("-")
-                        date[0] = date[0].replace(" ", "")
-                        date[0] = date[0][:-2] + '20' + date[0][-2:]
-                        date[1] = date[1].replace(" ", "")
-                        date[1] = date[1][:-2] + '20' + date[1][-2:]
+                        excel_sheet["I" + str(starting_row)] = int(web_courses_data[cell_index + 1][9])
+                        excel_sheet["J" + str(starting_row)] = web_courses_data[cell_index + 1][7]
 
-                        sheet["K" + str(c_start_row)] = date[0]
-                        sheet["L" + str(c_start_row)] = date[1]
+                        start_end_date = web_courses_data[cell_index + 1][5].split("-")
+                        start_end_date[0] = start_end_date[0].replace(" ", "")
+                        start_end_date[0] = start_end_date[0][:-2] + '20' + start_end_date[0][-2:]
+                        start_end_date[1] = start_end_date[1].replace(" ", "")
+                        start_end_date[1] = start_end_date[1][:-2] + '20' + start_end_date[1][-2:]
 
-                        for col in range(12):
-                            coordinate = ''.join(string.ascii_uppercase[col]) + str(c_start_row)
-                            self.sheet[coordinate].alignment = Alignment(horizontal='center', vertical='center',
-                                                                         wrap_text=True)
+                        excel_sheet["K" + str(starting_row)] = start_end_date[0]
+                        excel_sheet["L" + str(starting_row)] = start_end_date[1]
 
-                        c_index += 1
-                        c_start_row += 1
+                        for all_columns in range(12):
+                            cell_coordinate = ''.join(string.ascii_uppercase[all_columns]) + str(starting_row)
+                            self.excel_sheet[cell_coordinate].alignment = Alignment(horizontal='center',
+                                                                                    vertical='center',
+                                                                                    wrap_text=True)
+
+                        cell_index += 1
+                        starting_row += 1
                     else:
-                        insert_cells(raw_data, sheet, c_index + 1, c_start_row)
+                        insert_cells(web_courses_data, excel_sheet, cell_index + 1, starting_row)
 
         try:
-            insert_cells(self.raw_data, self.sheet, index, start_row)
+            insert_cells(self.web_course_data, self.excel_sheet, excel_cell_index, starting_excel_row)
         except IndexError:
             pass
 
     def adjust_cells_width(self):
         """Adjusts all the cell width. It is really cool"""
 
-        for column in self.sheet.columns:
-            max_length = 0
+        for column in self.excel_sheet.columns:
+            max_cell_length = 0
             get_column = column[0].column
-            if get_column is "A":
-                self.sheet.column_dimensions["A"].width = 9
-            elif get_column is "B":
-                self.sheet.column_dimensions["A"].width = 7.9
 
+            if get_column is "A":
+                self.excel_sheet.column_dimensions["A"].width = 9
+            elif get_column is "B":
+                self.excel_sheet.column_dimensions["A"].width = 7.9
             else:
                 for cell in column:
                     try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(cell.value)
+                        if len(str(cell.value)) > max_cell_length:
+                            max_cell_length = len(cell.value)
                     except TypeError:
                         pass
+
                 # A formula for auto adjusted width
-                adjusted_width = (max_length + 2) * 1.02
+                adjusted_width = (max_cell_length + 2) * 1.02
 
                 # Limit width
                 if adjusted_width > 25:
                     adjusted_width = 25
 
-                self.sheet.column_dimensions[get_column].width = adjusted_width
+                self.excel_sheet.column_dimensions[get_column].width = adjusted_width
 
     def border_all_cells(self, start_cell):
         """Borders all table"""
         # Gets table size
-        excel_max_row = self.sheet.max_row
-        excel_max_column = self.sheet.max_column
+        excel_max_row = self.excel_sheet.max_row
+        excel_max_column = self.excel_sheet.max_column
 
         # Style of a border
         thin_border = Border(left=Side(style='thin'),
@@ -287,32 +295,32 @@ class CreateStandardTable:
             col_letter = ''.join(string.ascii_uppercase[column])
             for row in range(excel_max_row):
                 row += 1
-                self.sheet[col_letter + str(row)].border = thin_border
+                self.excel_sheet[col_letter + str(row)].border = thin_border
 
     def set_page_break(self):
         # 40 rows per page
-        get_max_row = self.sheet.max_row
-        get_max_column = self.sheet.max_column
+        get_max_row = self.excel_sheet.max_row
+        get_max_column = self.excel_sheet.max_column
 
         if get_max_row >= 32:
             while get_max_row >= 32:
-                self.sheet.sheet_properties.pageSetUpPr.fitToPage = True
+                self.excel_sheet.sheet_properties.pageSetUpPr.fitToPage = True
                 openpyxl.worksheet.pagebreak.PageBreak.tagname = 'rowBreaks'
                 page_break_row = Break((get_max_row + 1) - 31)
-                self.sheet.page_breaks.append(page_break_row)
+                self.excel_sheet.page_breaks.append(page_break_row)
 
                 openpyxl.worksheet.pagebreak.PageBreak.tagname = 'colBreaks'
                 page_break_column = Break(get_max_column + 1)
-                self.sheet.page_breaks.append(page_break_column)
+                self.excel_sheet.page_breaks.append(page_break_column)
                 get_max_row -= 32
         else:
-            self.sheet.sheet_properties.pageSetUpPr.fitToPage = True
+            self.excel_sheet.sheet_properties.pageSetUpPr.fitToPage = True
             openpyxl.worksheet.pagebreak.PageBreak.tagname = 'rowBreaks'
             page_break_row = Break(get_max_row + 1)
-            self.sheet.page_breaks.append(page_break_row)
+            self.excel_sheet.page_breaks.append(page_break_row)
 
             openpyxl.worksheet.pagebreak.PageBreak.tagname = 'colBreaks'
             page_break_column = Break(get_max_column + 1)
-            self.sheet.page_breaks.append(page_break_column)
+            self.excel_sheet.page_breaks.append(page_break_column)
         # Landscape orientation
-        self.sheet.page_setup.orientation = self.sheet.ORIENTATION_LANDSCAPE
+        self.excel_sheet.page_setup.orientation = self.excel_sheet.ORIENTATION_LANDSCAPE
