@@ -22,12 +22,12 @@ class PreviousCourses:
         self.semester_parameters = semester_parameters
 
         self.request_headers = {
-                                'Content-Type': "application/x-www-form-urlencoded",
-                                'Origin': "https://secure2.mnsu.edu",
-                                'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
-                                'cache-control': "no-cache",
-                                'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
-                                }
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Origin': "https://secure2.mnsu.edu",
+            'Referer': "https://secure2.mnsu.edu/courses/Default.asp",
+            'cache-control': "no-cache",
+            'Postman-Token': "6f1fa71c-c6fa-4fc4-b7df-e3cefe723179"
+        }
         self.user_request_encode = None
 
         self.course_list = []
@@ -37,14 +37,14 @@ class PreviousCourses:
         def transfer_department_name(department_abbreviation):
             """Transfers to the full department name"""
             return {
-                    'ACCT': 'Accounting',
-                    'BLAW': 'Business Law',
-                    'FINA': 'Finance',
-                    'IBUS': 'International Business',
-                    'MGMT': 'Management',
-                    'MRKT': 'Marketing',
-                    'MACC': 'Master in Accounting'
-                    }.get(department_abbreviation, 'Accounting')
+                'ACCT': 'Accounting',
+                'BLAW': 'Business Law',
+                'FINA': 'Finance',
+                'IBUS': 'International Business',
+                'MGMT': 'Management',
+                'MRKT': 'Marketing',
+                'MACC': 'Master in Accounting'
+            }.get(department_abbreviation, 'Accounting')
 
         def get_payload_encode(encode_params, url, year, semester, department):
             """Gets parameters for semester and subject"""
@@ -52,19 +52,19 @@ class PreviousCourses:
             page_response = requests.get(university_courses_url)
             url_html_parser = BeautifulSoup(page_response.content, "html.parser")
 
-            semester_option = semester + str(year)
-            semester_option = semester_option.upper()
+            semester_year_option = semester + str(year)
+            semester_year_option = semester_year_option.upper()
 
             department_option = (department.replace(" ", "")).upper()
 
             for option in url_html_parser.find_all('option'):
                 search_option = (option.text.replace(" ", "")).upper()
-                if semester_option == search_option:
+                if semester_year_option == search_option:
                     encode_params['semester'] = option['value']
                 if search_option[0:len(department_option)] == department_option:
                     encode_params['subject'] = option['value']
 
-            return encode_params, semester_option
+            return encode_params, semester_year_option
 
         def transfer_params(parse_params):
             """Urlparse"""
@@ -90,12 +90,16 @@ class PreviousCourses:
             params['semester'] = self.semester_parameters
             self.user_request_encode = transfer_params(params)
         else:
-            web_params, semester_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL, self.user_selected_year, self.user_selected_semester, full_department_name)
+            web_params, semester_option = get_payload_encode(params, ReceiveSemesters.COURSES_URL,
+                                                             self.user_selected_year, self.user_selected_semester,
+                                                             full_department_name)
             self.user_request_encode = transfer_params(web_params)
 
-        response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.user_request_encode[0], headers=self.request_headers)
+        response = requests.request("POST", ReceiveSemesters.COURSES_URL, data=self.user_request_encode[0],
+                                    headers=self.request_headers)
         self.get_data(response)
-        CreateStandardTable(self.course_list, full_department_name, self.user_selected_semester, str(self.user_selected_year), self.user_selected_department)
+        CreateStandardTable(self.course_list, full_department_name, self.user_selected_semester,
+                            str(self.user_selected_year), self.user_selected_department)
 
     def get_data(self, web_response):
         data_html_parser = BeautifulSoup(web_response.text, 'html.parser')
@@ -154,6 +158,7 @@ class CreateStandardTable:
             """Creates directory for created excel file"""
             if not os.path.exists('web_files'):
                 os.makedirs('web_files')
+
         create_directory()
 
         self.excel_workbook = openpyxl.Workbook()
