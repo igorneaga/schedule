@@ -11,6 +11,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 
+import csv
+
 import requests
 
 from src import receiver, previous_semesters, previous_data
@@ -323,7 +325,7 @@ class UserInterface(Frame):
         create_payroll_button = Button(button_frame,
                                        border='0',
                                        image=self.CreatePayrollImage,
-                                       command=self.payroll_table_first_step)
+                                       command= self.payroll_cost_center)
         create_payroll_button.grid(column=0,
                                    row=4,
                                    sticky='w',
@@ -1269,3 +1271,134 @@ class UserInterface(Frame):
                                       row=3,
                                       sticky="EW",
                                       pady=60)
+
+    def payroll_cost_center(self):
+        self.interface_window_remover()
+
+        button_frame = self.payroll_window = Frame(self)
+        button_frame.grid()
+
+        # Sets repeated text
+        self.main_text_interface(button_frame)
+
+        # The back button which will allow moving to the previous window
+        back_button = Button(button_frame,
+                             border='0',
+                             image=self.BackImage,
+                             command=self.introduction_window)
+        back_button.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=7,
+                         padx=3)
+
+        payroll_step_description = ttk.Label(button_frame,
+                                     text="1. First Step: Provide Cost Center",
+                                     foreground="gray",
+                                     font=('Arial', 16))
+        payroll_step_description.place(x=50, y=65)
+
+        comma_note = ttk.Label(button_frame,
+                               text="- Use a comma if the specific department has multiple cost\n centers.",
+                               foreground="green",
+                               font=('Arial', 12))
+        comma_note.place(x=200, y=125)
+
+        prof_note = ttk.Label(button_frame,
+                              text='- Type "Professor" if the department cost center is based on\n '
+                                   'the professor of other departments',
+                              foreground="green",
+                              font=('Arial', 12))
+        prof_note.place(x=200, y=175)
+
+        example_note = ttk.Label(button_frame,
+                                 text='Example: BUS = Professor will result in giving each professor\n'
+                                      'department of cost center he teaches',
+                                 foreground="gray",
+                                 font=('Arial', 11, 'italic'))
+        example_note.place(x=200, y=233)
+
+        self.move_next_step = Button(button_frame,
+                                     relief="groove",
+                                     bg='#c5eb93',
+                                     border='4',
+                                     text="Next step >",
+                                     command=self.cost_dict,
+                                     foreground="green",
+                                     font=('Arial', 16, 'bold'))
+        self.move_next_step.grid(sticky='w',
+                                 column=1,
+                                 columnspan=4,
+                                 row=6,
+                                 pady=180,
+                                 padx=40)
+
+        def show_all_departments(event):
+            canvas.configure(scrollregion=canvas.bbox("all"), width=125, height=190)
+
+        self.cost_department_list = Frame(button_frame, relief=GROOVE, width=125, height=190, bd=1)
+        self.cost_department_list.grid()
+        self.cost_department_list.place(x=40, y=110)
+
+        canvas = Canvas(self.cost_department_list)
+
+        self.mini_frame = Frame(canvas)
+
+        # Scroll bar on a right side
+        user_scrollbar_y = tk.Scrollbar(self.cost_department_list, orient="vertical")
+        user_scrollbar_y.pack(side=RIGHT, fill=Y)
+        canvas.configure(yscrollcommand=user_scrollbar_y.set)
+        canvas.pack(side=RIGHT, fill=BOTH)
+        user_scrollbar_y.config(command=canvas.yview)
+
+        canvas.create_window((0, 0), window=self.mini_frame, anchor='nw')
+        self.mini_frame.bind("<Configure>", show_all_departments)
+        self.mini_frame.bind("<Enter>", show_all_departments)
+        self.mini_frame.bind("<Leave>", show_all_departments)
+
+        self.scroll_error_messages()
+
+    def scroll_error_messages(self):
+        """Shows all the errors"""
+
+        def get_csv_file(file):
+            if os.path.isfile(file):
+                with open(file) as csv_file:
+                    read_csv_file = csv.DictReader(csv_file, delimiter=',')
+                    for row in read_csv_file:
+                        cost_center = dict(row)
+                return cost_center
+
+        csv_file_data = get_csv_file('department_cost.csv')
+        print(csv_file_data)
+
+        cob_department_list = ["Marketing", "Accounting", "Business Law", "Finance", "International Business",
+                               "MACC", "Management", "MBA", "BUS"]
+
+        self.cost_box_insert = []
+        department_label_list = []
+
+        for i in range(len(cob_department_list)):
+            department_label_list.append(Label(self.mini_frame, text=cob_department_list[i]))  # creates entry boxes
+            self.cost_box_insert.append(Entry(self.mini_frame, text=cob_department_list[i]))  # creates entry boxes
+            department_label_list[i].pack()
+            if csv_file_data is None:
+                pass
+            else:
+                self.cost_box_insert[i].insert(END, csv_file_data.get(cob_department_list[i]))
+
+            self.cost_box_insert[i].pack()
+
+    def cost_dict(self):
+        for i in range(len(self.cost_box_insert)):
+            self.department_cost_dict.update({self.cost_box_insert[i].cget("text"): self.cost_box_insert[i].get()})
+
+        # Creates a CSV file
+        # TODO: Update data instead of keep creating csv file
+        cost_file = 'department_cost.csv'
+        with open(cost_file, 'w') as new_file:
+            write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
+            write_file.writeheader()
+            write_file.writerow(self.department_cost_dict)
+
