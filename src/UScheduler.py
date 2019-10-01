@@ -1,6 +1,7 @@
-from src import interface
-from tkinter import *
 import os
+from tkinter import *
+
+from src import interface
 
 
 def create_interface(argv):
@@ -9,7 +10,7 @@ def create_interface(argv):
     root = Tk()
     root.title('Uni-Scheduler')
     root.geometry("659x337")
-    root.iconbitmap(cwd + '\\src\\assets\\unischeduler_icon.ico')
+    root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
     interface.UserInterface(root)
     root.mainloop()
 

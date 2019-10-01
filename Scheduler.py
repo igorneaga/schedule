@@ -1,22 +1,19 @@
+import datetime
+import io
+import os
+import queue as Queue
+import shutil
+import subprocess
+import threading
+import time
+import tkinter as tk
+import urllib.request
+import urllib.request
+import zipfile
 from tkinter import *
 from tkinter import ttk
-import tkinter as tk
-
-import queue as Queue
-import threading
 
 import requests
-import urllib.request
-import urllib.request
-
-import os
-import time
-import datetime
-import subprocess
-
-import zipfile
-import io
-import shutil
 
 API_GITHUB_UPDATE = "https://api.github.com/repos/igorneaga/schedule/releases/latest"
 API_GITHUB_ASSETS = "https://api.github.com/repos/igorneaga/schedule/contents/src/assets"
@@ -106,7 +103,7 @@ class ThreadedTask(threading.Thread):
             for file in zip_file.namelist():
                 if file.startswith('schedule-master/src/'):
                     zip_file.extract(file)
-            os.rename(directory + '\\schedule-master\\src', directory + "\\src")
+            os.rename(f'{directory}\\schedule-master\\src', f'{directory}\\src')
             shutil.rmtree(directory + "\\schedule-master", ignore_errors=True)
 
         script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -119,16 +116,14 @@ class ThreadedTask(threading.Thread):
         if os.path.isdir(script_directory + "\\src") is True:
             # Checks for main file
             if os.path.isfile(script_directory + "\\src\\UScheduler.exe") is False:
-                urllib.request.urlretrieve(MAIN_EXE_URL,
-                                           script_directory + '\\src\\UScheduler.exe')
+                urllib.request.urlretrieve(MAIN_EXE_URL, f'{script_directory}\\src\\UScheduler.exe')
             else:
                 # Checks for new release
                 file_date = os.path.getmtime(script_directory + "\\src\\UScheduler.exe")
                 modification_time = time.strftime('%Y-%m-%d', time.localtime(file_date))
                 if git_app_date[:10] > modification_time[:10]:
                     os.remove("src\\UScheduler.exe")
-                    urllib.request.urlretrieve(MAIN_EXE_URL,
-                                               script_directory + '\\src\\UScheduler.exe')
+                    urllib.request.urlretrieve(MAIN_EXE_URL, f'{script_directory}\\src\\UScheduler.exe')
 
         if os.path.isdir('src\\assets') is False:
             download_zip(script_directory, MAIN_ZIP_URL)
@@ -136,20 +131,19 @@ class ThreadedTask(threading.Thread):
             try:
                 # Goes through assets files to find if any updated one exists.
                 for github_assets in github_assets_data:
-                    if github_assets.get("name") in os.listdir(script_directory + '\\src\\assets'):
+                    if github_assets.get("name") in os.listdir(f'{script_directory}\\src\\assets'):
                         pass
                     else:
-                        urllib.request.urlretrieve(github_assets.get("download_url"),
-                                                   script_directory + '\\src\\assets')
+                        urllib.request.urlretrieve(github_assets.get("download_url"), f'{script_directory}\\src\\assets')
                         current_date_time = datetime.datetime.now()
                         modified_time = time.mktime(current_date_time.timetuple())
-                        os.utime(script_directory + '\\src\\UScheduler.exe', (modified_time, modified_time))
+                        os.utime(f'{script_directory}\\src\\UScheduler.exe', (modified_time, modified_time))
 
             # Running without administrator permission will need to go through a complicated way
             except PermissionError:
                 download_zip(script_directory, MAIN_ZIP_URL)
 
-        subprocess.Popen(script_directory + '\\src\\UScheduler.exe', close_fds=True)
+        subprocess.Popen(f'{script_directory}\\src\\UScheduler.exe', close_fds=True)
         # Gives some time for the main file to launch
         time.sleep(7)
         self.queue.put("Task finished")
