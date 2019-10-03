@@ -1,8 +1,8 @@
+import datetime
 import os
 import re
 import string
 
-import datetime
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, Alignment, PatternFill
@@ -666,84 +666,23 @@ class MasterDesign:
     def color_cell(self, course_department, coordinate, course_type_list=True):
         """Colors a course based on a department color"""
         # Different colors for each department
-        # Accounting
-        acct = PatternFill(start_color='FF958C', end_color='FF958C',
-                           fill_type='solid')
-        # Business Law
-        blaw = PatternFill(start_color='FFCC00', end_color='FFCC00',
-                           fill_type='solid')
-        # Business
-        bus = PatternFill(start_color='FFFF00', end_color='FFFF00',
-                          fill_type='solid')
-        # Finance
-        fin = PatternFill(start_color='99CC00', end_color='99CC00',
-                          fill_type='solid')
-        # International Business
-        ibus = PatternFill(start_color='8CF6FF', end_color='8CF6FF',
-                           fill_type='solid')
-        # Master of Business Administration
-        mba = PatternFill(start_color='33CCCC', end_color='33CCCC',
-                          fill_type='solid')
-        # Master of Accounting
-        macc = PatternFill(start_color='FF00FF', end_color='FF00FF',
-                           fill_type='solid')
-        # Management
-        mgmt = PatternFill(start_color='CC99FF', end_color='CC99FF',
-                           fill_type='solid')
-        # Marketing
-        mrkt = PatternFill(start_color='A28CFF', end_color='A28CFF',
-                           fill_type='solid')
+        colors = {  # each value can ve optimized if we use destructuring (dict to arguments)
+            'Accounting': PatternFill(start_color='FF958C', end_color='FF958C', fill_type='solid'),
+            'Business Law': PatternFill(start_color='FFCC00', end_color='FFCC00', fill_type='solid'),
+            'Business': PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid'),
+            'Finance': PatternFill(start_color='99CC00', end_color='99CC00', fill_type='solid'),
+            'International Business': PatternFill(start_color='8CF6FF', end_color='8CF6FF', fill_type='solid'),
+            # Master of Business Administration
+            'MBA': PatternFill(start_color='33CCCC', end_color='33CCCC', fill_type='solid'),
+            # Master of Accounting
+            'MACC': PatternFill(start_color='FF00FF', end_color='FF00FF', fill_type='solid'),
+            'Management': PatternFill(start_color='CC99FF', end_color='CC99FF', fill_type='solid'),
+            'Marketing': PatternFill(start_color='A28CFF', end_color='A28CFF', fill_type='solid')
+        }
+        self.sheet[coordinate].fill = colors.get(course_department, PatternFill(start_color='EEEFEF', end_color='EEEFEF', fill_type='solid'))
+        if course_type_list is True:
+            self.course_types_list.append(course_department)
 
-        # Checks for the first two letters to identify the color
-        if course_department == "Accounting":
-            color = acct
-            if course_type_list is True:
-                self.course_types_list.append("Accounting")
-        # Business Law
-        elif course_department == "Business Law":
-            color = blaw
-            if course_type_list is True:
-                self.course_types_list.append("Business Law")
-        # Business
-        elif course_department == "Business":
-            color = bus
-            if course_type_list is True:
-                self.course_types_list.append("Business")
-        # Finance
-        elif course_department == "Finance":
-            color = fin
-            if course_type_list is True:
-                self.course_types_list.append("Finance")
-        # International Business
-        elif course_department == "International Business":
-            color = ibus
-            if course_type_list is True:
-                self.course_types_list.append("International Business")
-        # Master of Business Administration
-        elif course_department == "MBA":
-            color = mba
-            if course_type_list is True:
-                self.course_types_list.append("MBA")
-        # Master of Accounting
-        elif course_department == "MACC":
-            color = macc
-            if course_type_list is True:
-                self.course_types_list.append("MACC")
-        # Management
-        elif course_department == "Management":
-            color = mgmt
-            if course_type_list is True:
-                self.course_types_list.append("Management")
-        # Marketing
-        elif course_department == "Marketing":
-            color = mrkt
-            if course_type_list is True:
-                self.course_types_list.append("Marketing")
-        else:
-            color = PatternFill(start_color='EEEFEF', end_color='EEEFEF',
-                                fill_type='solid')
-        # Fills the color
-        self.sheet[coordinate].fill = color
         # Makes the text be in the center of a cell
         self.sheet[coordinate].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
