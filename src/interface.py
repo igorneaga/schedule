@@ -1273,6 +1273,7 @@ class UserInterface(Frame):
                                       pady=60)
 
     def payroll_cost_center(self):
+        return None
         self.interface_window_remover()
 
         button_frame = self.payroll_window = Frame(self)
