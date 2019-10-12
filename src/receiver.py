@@ -413,6 +413,7 @@ class DataProcessor:
 
                     dict_courses["Credits"] = each_excel_data[6]
                     dict_courses["Course_Title"] = each_excel_data[7]
+                    dict_courses["Department"] = set_course_department(dict_courses.get("Course"))
                     data_coord = 12  # 12 excel columns
 
                     if (each_excel_data[9] != "None") and (each_excel_data[10] != "None"):

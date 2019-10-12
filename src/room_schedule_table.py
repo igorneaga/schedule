@@ -701,10 +701,13 @@ class MasterDesign:
         unique_types = sort_list(remove_duplicates(self.course_types_list))
 
         for i in range(len(unique_types)):
-            alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
-            self.color_cell(unique_types[i], alphabet+str(row), False)
-            self.sheet[''.join(string.ascii_uppercase[get_max_column+2])+str(row)] = "-" + unique_types[i]
-            row += 1
+            if unique_types[i] is None:
+                pass
+            else:
+                alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
+                self.color_cell(unique_types[i], alphabet+str(row), False)
+                self.sheet[''.join(string.ascii_uppercase[get_max_column+2])+str(row)] = "-" + unique_types[i]
+                row += 1
 
     def set_page_break(self):
         # 40 rows per page
