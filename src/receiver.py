@@ -1,12 +1,10 @@
 import datetime
-import math
 import os
 import re
-import sys
-import threading
-from itertools import chain
+from itertools import chain  # For more efficient looping
 from tkinter import messagebox
 
+import math
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
@@ -17,7 +15,6 @@ from src import room_schedule_table
 class DataProcessor:
 
     def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday, classroom_capacity):
-        # Getting user information
         self.file_directory = file_directory
         self.table_name = table_name
         self.table_semester = table_semester
@@ -26,12 +23,13 @@ class DataProcessor:
         self.friday_choice = friday
         self.classroom_capacity = classroom_capacity
 
-        self.days = []
+        self.course_days = []
         self.excel_data_list = None
+        self.dict_courses_list = []
+        self.different_date_list = []
+
+        self.file_paths_list = []
         self.user_excel_errors = []
-        self.list_file_paths = []
-        self.list_dict_courses = []
-        self.list_different_date = []
 
         # User-Excel-Columns identification
         self.excel_course_name = 1
@@ -44,7 +42,7 @@ class DataProcessor:
         self.excel_course_time = 8
 
         # Start-user-data
-        self.start_row = 4
+        self.starting_excel_row = 4
 
         # In case of any errors, it will give three chances before the program stops
         self.number_close_trials = 0
@@ -56,6 +54,8 @@ class DataProcessor:
 
         def assign_days_order(user_choice):
             """Returns a day's order selected by the user"""
+            # 1 - out order days
+            # 2 - in order days
             if user_choice is 2:
                 return ["Monday", "Tuesday", "Wednesday", "Thursday"]
             return ["Monday", "Wednesday", "Tuesday", "Thursday"]
@@ -75,12 +75,12 @@ class DataProcessor:
 
         def close_file_error():
             user_response = messagebox.showerror("Close File", "Save and close excel files to continue... \n\n"
-                                                 + str(p))
+                                                 + str(permission_error_message))
             return user_response
 
         try:
             table_order = assign_days_order(self.days_order)
-            self.days = friday_option(self.friday_choice, table_order)
+            self.course_days = friday_option(self.friday_choice, table_order)
             create_excel_copies()
             for i in range(len(self.file_directory)):
                 get_file_name = os.path.basename(self.file_directory[i])
@@ -89,42 +89,38 @@ class DataProcessor:
                 self.get_excel_data(workbook_copy, self.file_directory[i])
                 self.set_dict_courses(self.excel_data_list)
                 self.time_conflict()
-                self.list_file_paths.append(set_file_path)
+                self.file_paths_list.append(set_file_path)
                 self.color_comment_copy_excel(workbook_copy, self.file_directory[i])
                 workbook_copy.save(set_file_path)
             self.get_excel_errors()
             self.create_excel_table()
-        except PermissionError as p:
+        except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
             if self.number_close_trials > 2:
                 self.user_excel_errors = 'User_Doesnt_Listen'
-                t = threading.Thread(target=sys.exit)
-                t.setDaemon(True)
-                t.start()
             else:
                 msg_response = close_file_error()
                 if msg_response == "ok":
                     self.number_close_trials += 1
                     # Resets all the variables
                     self.excel_data_list = None
-                    self.days = []
+                    self.course_days = []
                     self.user_excel_errors = []
-                    self.list_file_paths = []
-                    self.list_dict_courses = []
-                    self.list_different_date = []
+                    self.file_paths_list = []
+                    self.dict_courses_list = []
+                    self.different_date_list = []
                     self.main_class_order()
 
     def get_excel_data(self, wb_copy, file_path):
         """Gets all information from excel file"""
-        excel_data = []
-        for i in range(len(wb_copy.worksheets)):
+        worksheet_excel_data = []
+        for number_of_files in range(len(wb_copy.worksheets)):
             get_excel_workbook = openpyxl.load_workbook(file_path, read_only=True)
 
-            get_sheet_name = get_excel_workbook.get_sheet_names()[i]
-            read_mode_worksheet = get_excel_workbook[get_sheet_name]
-            user_data = list(self.iter_rows(read_mode_worksheet, file_path, get_sheet_name))
-            excel_data.append(user_data)
-        self.excel_data_list = (list(chain.from_iterable(excel_data)))
+            get_sheet_name = get_excel_workbook.get_sheet_names()[number_of_files]
+            worksheet_read_mode = get_excel_workbook[get_sheet_name]
+            worksheet_excel_data.append(list(self.iter_rows(worksheet_read_mode, file_path, get_sheet_name)))
+        self.excel_data_list = (list(chain.from_iterable(worksheet_excel_data)))
 
     def create_report_dictionary(self, excel_row, excel_column, excel_file_path, excel_sheet_name, error_color,
                                  error_comment=None):
@@ -173,12 +169,11 @@ class DataProcessor:
                         except ValueError:
                             pass
 
-        data_start_row = self.start_row
-
+        data_start_row = self.starting_excel_row
         iterable_row = read_worksheet.iter_rows()
 
         # Skips unnecessary rows
-        for i in range(data_start_row-1):
+        for skip_row in range(data_start_row-1):
             next(iterable_row)
 
         for row in iterable_row:
@@ -188,6 +183,7 @@ class DataProcessor:
                 try:
                     if cell.value is None:
                         excel_cell_value.append(cell.value)
+                    # Checks if course is Online
                     elif (cell.column == self.excel_course_time) & (cell.value in {"Online", "ONLINE", "online"}):
                         excel_cell_value.append("Online-Online")
                     elif cell.column == self.excel_course_time:
@@ -199,14 +195,15 @@ class DataProcessor:
                             split_time[1] = "".join(split_time[1].split())
 
                             # Converts our time to the same format
-                            converted_time_first = convert_time(split_time[0])
-                            converted_time_second = convert_time(split_time[1])
-                            excel_cell_value.append(converted_time_first + "-" + converted_time_second)
+                            converted_start_time = convert_time(split_time[0])
+                            converted_end_time = convert_time(split_time[1])
+
+                            excel_cell_value.append(converted_start_time + "-" + converted_end_time)
                         except AttributeError:
                             # Will mark if program can't read the datetime
                             if type(cell.value) is datetime.time:
                                 excel_cell_value.append('%s:%s-None' % (cell.value.hour, cell.value.minute))
-
+                                # Will notify user about possible issue
                                 comment = "Does it contain the start time or end time of the course?"
                                 self.create_report_dictionary(cell.row, cell.column, file_path, sheet_name,
                                                               error_color="FF687B", error_comment=comment)
@@ -225,7 +222,7 @@ class DataProcessor:
                 except AttributeError:
                     pass
 
-            if all(v is None for v in excel_cell_value):
+            if all(none_values is None for none_values in excel_cell_value):
                 data_start_row += 1
             else:
                 excel_cell_value.insert(0, file_path)
@@ -259,8 +256,6 @@ class DataProcessor:
                 if self.user_excel_errors[len_errors].get("Comment") is not None:
                     comment = self.user_excel_errors[len_errors].get("Comment")
                     edit_sheet.cell(row=row_num, column=column_num).comment = Comment(comment, author="TableMaker")
-                else:
-                    pass
 
     def mark_none_values(self, data_list):
         """Marks none values with specific color"""
@@ -284,11 +279,27 @@ class DataProcessor:
 
         def clear_unnecessary_list(data_list):
             data_list = list(filter(None, data_list))  # Deletes empty lists
-            # Deletes None lists
-            # TODO: refactor the following 3 lines, because it is really hard to read/understand
-            data_list = [None if list(set(v)) == [None] else v for v in data_list]
-            data_list = [v for v in data_list if v is not None]
-            data_list = [['None' if v is None else v for v in row] for row in data_list]
+
+            # Removes a list which contains only None values
+            clearing_none_list = []
+            for list_number in data_list:
+                if all(per_list is None
+                       for per_list in list_number):
+                    pass
+                else:
+                    clearing_none_list.append(list_number)
+            # Erase previous list
+            data_list = []
+            # Makes None vales into String ('None')
+            for none_list in clearing_none_list:
+                temp_list = []
+                for element in none_list:
+                    if element is None:
+                        temp_list.append('None')
+                    else:
+                        temp_list.append(element)
+                data_list.append(temp_list)
+
             return data_list
 
         def course_room_format(room_number):
@@ -301,9 +312,11 @@ class DataProcessor:
                 filter_str_list[f] = filter_str_list[f].lower()
                 filter_str_list[f] = ''.join(filter_str_list[f].split())
                 filter_str_list[f] = filter_str_list[f].upper()
+
                 if f == 1:
                     while len(filter_str_list[f]) < 4:
                         filter_str_list[f] = '0' + filter_str_list[f]
+
             return ' '.join(filter_str_list)
 
         def course_title_format(course_title, course_number, course_section):
@@ -311,7 +324,7 @@ class DataProcessor:
             c_title = course_title.replace(' ', '')
             c_number = course_number.replace(' ', '')
             c_section = course_section.replace(' ', '')
-            return f'{c_title.upper()} {c_number}-{c_section}'  # Use f-strings instead of concatenation
+            return f'{c_title.upper()} {c_number}-{c_section}'
 
         def convert_user_days(day, k):
             """Transfers day into proper format"""
@@ -389,94 +402,100 @@ class DataProcessor:
                 'MR': 'Marketing'
             }.get(course_title[:2], None)
 
-        for j in excel_data:
+        for each_excel_data in excel_data:
             try:
                 dict_courses = dict()
                 # Checks the room column contains an online word
-                if course_room_format(str(j[self.excel_course_room + 2])).upper() == "ONLINE":
-                    dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
-                                                                 str(j[self.excel_course_number + 2]),
-                                                                 str(j[self.excel_course_section + 2]))
+                if course_room_format(str(each_excel_data[self.excel_course_room + 2])).upper() == "ONLINE":
+                    dict_courses["Course"] = course_title_format(str(each_excel_data[self.excel_course_name + 2]),
+                                                                 str(each_excel_data[self.excel_course_number + 2]),
+                                                                 str(each_excel_data[self.excel_course_section + 2]))
 
-                    dict_courses["Credits"] = j[6]
-                    dict_courses["Course_Title"] = j[7]
-                    data_coord = 12
-                    if (j[9] != "None") and (j[10] != "None"):
+                    dict_courses["Credits"] = each_excel_data[6]
+                    dict_courses["Course_Title"] = each_excel_data[7]
+                    data_coord = 12  # 12 excel columns
+
+                    if (each_excel_data[9] != "None") and (each_excel_data[10] != "None"):
                         data_coord -= 2
-                    elif j[9] != "None":
+                    elif each_excel_data[9] != "None":
                         data_coord -= 1
-                    elif j[10] != "None":
+                    elif each_excel_data[10] != "None":
                         data_coord -= 1
-                    else:
-                        pass
 
-                    dict_courses["Faculty"] = j[data_coord]
-                    dict_courses["Enrollment"] = j[data_coord-1]
-                    dict_courses = set_online_course(dict_courses, j)
+                    dict_courses["Faculty"] = each_excel_data[data_coord]
+                    dict_courses["Enrollment"] = each_excel_data[data_coord-1]
+                    dict_courses = set_online_course(dict_courses, each_excel_data)
+
                 else:
-                    time_split = j[self.excel_course_time + 2].split('-')
+                    time_split = each_excel_data[self.excel_course_time + 2].split('-')
                     # Sets course to specific format
-                    dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
-                                                                 str(j[self.excel_course_number + 2]),
-                                                                 str(j[self.excel_course_section + 2]))
+                    dict_courses["Course"] = course_title_format(str(each_excel_data[self.excel_course_name + 2]),
+                                                                 str(each_excel_data[self.excel_course_number + 2]),
+                                                                 str(each_excel_data[self.excel_course_section + 2]))
                     # Sets room to specific format.
-                    dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
+                    dict_courses["Room"] = course_room_format(str(each_excel_data[self.excel_course_room + 2]))
 
                     # Checks if the time contains Online word
                     if time_split[0].upper() == "ONLINE":
-                        dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
-                        dict_courses = set_online_course(dict_courses, j)
+                        dict_courses["Room"] = course_room_format(str(each_excel_data[self.excel_course_room + 2]))
+                        dict_courses = set_online_course(dict_courses, each_excel_data)
                     else:
-                        dict_courses["Room"] = course_room_format(str(j[self.excel_course_room + 2]))
+                        dict_courses["Room"] = course_room_format(str(each_excel_data[self.excel_course_room + 2]))
                         dict_courses["Course_Days"] = []
-                        dict_courses["Row"] = j[0]
-                        dict_courses["File"] = j[2]
-                        dict_courses["Sheet_Name"] = j[1]
-                        dict_courses["Credits"] = j[6]
-                        dict_courses["Course_Title"] = j[7]
-                        dict_courses["Faculty"] = j[12]
-                        dict_courses["Enrollment"] = j[11]
+                        dict_courses["Row"] = each_excel_data[0]
+                        dict_courses["File"] = each_excel_data[2]
+                        dict_courses["Sheet_Name"] = each_excel_data[1]
+                        dict_courses["Credits"] = each_excel_data[6]
+                        dict_courses["Course_Title"] = each_excel_data[7]
+                        dict_courses["Faculty"] = each_excel_data[12]
+                        dict_courses["Enrollment"] = each_excel_data[11]
                         dict_courses["Type"] = set_course_type(dict_courses)
-                        if j[13] != "None":
+                        if each_excel_data[13] != "None":
                             try:
-                                if type(j[13]) is str:
+                                if type(each_excel_data[13]) is str:
                                     # Checking if the year is correct
-                                    if int(j[13][-4:]) > (int(datetime.datetime.now().year) + 2) or int(j[13][-4:]) < (
-                                            int(datetime.datetime.now().year) - 2):
+                                    if int(each_excel_data[13][-4:]) > (int(datetime.datetime.now().year) + 2) or int(
+                                            each_excel_data[13][-4:]) < (int(datetime.datetime.now().year) - 2):
                                         comment = dict_courses.get("Course") + " course might have a wrong year. " \
                                                                                "Please double check." + (' ' * 150)
-                                        self.create_report_dictionary(j[0], 11, j[2], j[1], 'FF687B', comment)
+                                        self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
+                                                                      each_excel_data[1], 'FF687B', comment)
 
-                                    dict_courses["Start_Date"] = datetime.datetime.strptime(j[13], '%m/%d/%Y')
+                                    dict_courses["Start_Date"] = datetime.datetime.strptime(each_excel_data[13],
+                                                                                            '%m/%d/%Y')
                                 else:
-                                    dict_courses["Start_Date"] = j[13]
+                                    dict_courses["Start_Date"] = each_excel_data[13]
                             except ValueError:
                                 # If the date format is incorrect
                                 comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
                                           (' ' * 150)
-                                self.create_report_dictionary(j[0], 11, j[2], j[1], 'FF687B', comment)
-                        if j[14] != "None":
+                                self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
+                                                              each_excel_data[1], 'FF687B', comment)
+                        if each_excel_data[14] != "None":
                             try:
-                                if type(j[14]) is str:
+                                if type(each_excel_data[14]) is str:
                                     # Checking if the year is correct
-                                    if int(j[14][-4:]) > (int(datetime.datetime.now().year) + 2) or int(j[14][-4:]) < (
-                                            int(datetime.datetime.now().year) - 2):
+                                    if int(each_excel_data[14][-4:]) > (int(datetime.datetime.now().year) + 2) or \
+                                            int(each_excel_data[14][-4:]) < (int(datetime.datetime.now().year) - 2):
                                         comment = dict_courses.get("Course") + " course might have a wrong year. " \
                                                                                "Please double check." + (' ' * 150)
-                                        self.create_report_dictionary(j[0], 12, j[2], j[1], 'FF687B', comment)
+                                        self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
+                                                                      each_excel_data[1], 'FF687B', comment)
 
-                                    dict_courses["End_Date"] = datetime.datetime.strptime(j[14], '%m/%d/%Y')
+                                    dict_courses["End_Date"] = datetime.datetime.strptime(each_excel_data[14],
+                                                                                          '%m/%d/%Y')
                                 else:
-                                    dict_courses["End_Date"] = j[14]
+                                    dict_courses["End_Date"] = each_excel_data[14]
                             except ValueError:
                                 # If the date format is incorrect
                                 comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
                                           (' ' * 150)
-                                self.create_report_dictionary(j[0], 12, j[2], j[1], 'FF687B', comment)
-                        dict_courses["Credits"] = j[6]
-                        dict_courses["Course_Title"] = j[7]
-                        dict_courses["Enrollment"] = j[11]
-                        dict_courses["Faculty"] = j[12]
+                                self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
+                                                              each_excel_data[1], 'FF687B', comment)
+                        dict_courses["Credits"] = each_excel_data[6]
+                        dict_courses["Course_Title"] = each_excel_data[7]
+                        dict_courses["Enrollment"] = each_excel_data[11]
+                        dict_courses["Faculty"] = each_excel_data[12]
                         dict_courses["Semester"] = self.table_semester
                         dict_courses["Department"] = set_course_department(dict_courses.get("Course"))
                         try:
@@ -494,24 +513,29 @@ class DataProcessor:
                             # Marks a course if program couldn't read it
                             dict_courses["Start_Time"] = dict_courses["End_Time"] = "None"
                             dict_courses["Type"] = "Error"
+
                         # Removes white spaces
-                        if " " in j[self.excel_course_days + 2]:
-                            if "OR" in j[self.excel_course_days + 2].upper():
-                                modified_str = j[self.excel_course_days + 2].upper()
-                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
-                            if "AND" in j[self.excel_course_days + 2].upper():
-                                modified_str = j[self.excel_course_days + 2].upper()
-                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
-                            j[self.excel_course_days + 2] = j[self.excel_course_days + 2].replace(" ", "")
+                        if " " in each_excel_data[self.excel_course_days + 2]:
+                            if "OR" in each_excel_data[self.excel_course_days + 2].upper():
+                                modified_str = each_excel_data[self.excel_course_days + 2].upper()
+                                each_excel_data[self.excel_course_days + 2] = modified_str.replace("OR", "")
+                            if "AND" in each_excel_data[self.excel_course_days + 2].upper():
+                                modified_str = each_excel_data[self.excel_course_days + 2].upper()
+                                each_excel_data[self.excel_course_days + 2] = modified_str.replace("OR", "")
+
+                            each_excel_data[self.excel_course_days + 2] = each_excel_data[
+                                self.excel_course_days + 2].replace(" ", "")
                         # Splits days and converts to the proper format
-                        if "," in j[self.excel_course_days + 2]:
-                            if "OR" in j[self.excel_course_days + 2].upper():
-                                modified_str = j[self.excel_course_days + 2].upper()
-                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
-                            if "AND" in j[self.excel_course_days + 2].upper():
-                                modified_str = j[self.excel_course_days + 2].upper()
-                                j[self.excel_course_days + 2] = modified_str.replace("OR", "")
-                            split_by_comma = [x.strip() for x in j[self.excel_course_days + 2].split(',')]
+                        if "," in each_excel_data[self.excel_course_days + 2]:
+                            if "OR" in each_excel_data[self.excel_course_days + 2].upper():
+                                modified_str = each_excel_data[self.excel_course_days + 2].upper()
+                                each_excel_data[self.excel_course_days + 2] = modified_str.replace("OR", "")
+
+                            if "AND" in each_excel_data[self.excel_course_days + 2].upper():
+                                modified_str = each_excel_data[self.excel_course_days + 2].upper()
+                                each_excel_data[self.excel_course_days + 2] = modified_str.replace("OR", "")
+
+                            split_by_comma = [x.strip() for x in each_excel_data[self.excel_course_days + 2].split(',')]
                             for l in range(len(split_by_comma)):
                                 # Checks if the function can convert user day format
                                 if convert_user_days(split_by_comma[l], 0) == 'None':
@@ -519,35 +543,40 @@ class DataProcessor:
                                     self.create_report_dictionary(dict_courses.get("Row"), 7, dict_courses.get("File"),
                                                                   dict_courses.get("Sheet_Name"), "FF687B", comment)
                                     dict_courses["Type"] = ["Error"]
-
                                 dict_courses["Course_Days"].append(convert_user_days(split_by_comma[l], 0))
 
-                        elif "None" in j[self.excel_course_days + 2]:
+                        elif "None" in each_excel_data[self.excel_course_days + 2]:
                             pass
-                        elif "ONLINE" in j[self.excel_course_days + 2].upper():
-                            dict_courses["Course"] = course_title_format(str(j[self.excel_course_name + 2]),
-                                                                         str(j[self.excel_course_number + 2]),
-                                                                         str(j[self.excel_course_section + 2]))
-                            dict_courses = set_online_course(dict_courses, j)
+
+                        elif "ONLINE" in each_excel_data[self.excel_course_days + 2].upper():
+                            dict_courses["Course"] = course_title_format(
+                                str(each_excel_data[self.excel_course_name + 2]),
+                                str(each_excel_data[self.excel_course_number + 2]),
+                                str(each_excel_data[self.excel_course_section + 2]))
+                            dict_courses = set_online_course(dict_courses, each_excel_data)
+
                         else:
-                            for i in range(len(j[self.excel_course_days + 2])):
+                            for i in range(len(each_excel_data[self.excel_course_days + 2])):
                                 # Checks if the function can convert user day format
-                                if convert_user_days(j[self.excel_course_days + 2], i) == 'None':
+                                if convert_user_days(each_excel_data[self.excel_course_days + 2], i) == 'None':
                                     comment = dict_courses.get("Course") + " must follow the day format" + (' ' * 150)
                                     self.create_report_dictionary(dict_courses.get("Row"), 7, dict_courses.get("File"),
                                                                   dict_courses.get("Sheet_Name"), "FF687B", comment)
                                     dict_courses["Type"] = ["Error"]
 
-                                dict_courses["Course_Days"].append(convert_user_days(j[self.excel_course_days + 2], i))
+                                dict_courses["Course_Days"].append(
+                                    convert_user_days(each_excel_data[self.excel_course_days + 2], i))
 
-                self.list_dict_courses.append(dict_courses.copy())
+                self.dict_courses_list.append(dict_courses.copy())
             except AttributeError:
                 # If an error occurred, it will mark the whole row
                 for i in range(12):
-                    self.create_report_dictionary(j[0], i+1, j[2], j[1], error_color="FF687B")
+                    self.create_report_dictionary(each_excel_data[0], i + 1, each_excel_data[2], each_excel_data[1],
+                                                  error_color="FF687B")
                 # Marks last cell with comment
                 comment = "A program couldn't read this row correctly. Report it if needed."
-                self.create_report_dictionary(j[0], 13, j[2], j[1], error_color="FF687B", error_comment=comment)
+                self.create_report_dictionary(each_excel_data[0], 13, each_excel_data[2], each_excel_data[1],
+                                              error_color="FF687B", error_comment=comment)
 
     def time_conflict(self):
         """Loops through each dictionary in the list. Looks for similar rooms and days.
@@ -556,7 +585,7 @@ class DataProcessor:
         def check_course_dates(first_course, second_course):
             """Checks if courses has dates and dates differences"""
 
-            # Dates from MNSU academic calendar
+            # Dates from Minnesota State University, Mankato academic calendar
             course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
             course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
 
@@ -565,14 +594,14 @@ class DataProcessor:
                 return False
             else:
                 # Checks if there is a difference bigger than 33 days in the dates.
-                if ((course_fall_term - datetime.timedelta(days=33)).month
-                        <= first_course.month <= (course_fall_term + datetime.timedelta(days=33)).month or
-                        (course_spring_term - datetime.timedelta(days=33)).month <= first_course.month <=
-                        (course_spring_term + datetime.timedelta(days=33)).month) and \
-                        ((course_fall_term - datetime.timedelta(days=33)).month
-                         <= second_course.month <= (course_fall_term + datetime.timedelta(days=33)).month or
-                         (course_spring_term - datetime.timedelta(days=33)).month <= second_course.month <=
-                         (course_spring_term + datetime.timedelta(days=33)).month):
+                if ((course_fall_term - datetime.timedelta(days=33)).month <= first_course.month <=
+                    (course_fall_term + datetime.timedelta(days=33)).month
+                    or (course_spring_term - datetime.timedelta(days=33)).month <= first_course.month
+                    <= (course_spring_term + datetime.timedelta(days=33)).month) \
+                        and ((course_fall_term - datetime.timedelta(days=33)).month <= second_course.month
+                             <= (course_fall_term + datetime.timedelta(days=33)).month
+                             or (course_spring_term - datetime.timedelta(days=33)).month <= second_course.month
+                             <= (course_spring_term + datetime.timedelta(days=33)).month):
                     return False
                 elif first_course.month == second_course.month:
                     return False
@@ -595,11 +624,11 @@ class DataProcessor:
                                 pass
 
         # Creates a copy of our main dict
-        list_dict = self.list_dict_courses.copy()
-        for course_i in range(len(list_dict)):
+        list_dict_copy = self.dict_courses_list.copy()
+        for course_i in range(len(list_dict_copy)):
 
             try:
-                courses, room_cap, color = check_room_capacity(list_dict[course_i], self.classroom_capacity)
+                courses, room_cap, color = check_room_capacity(list_dict_copy[course_i], self.classroom_capacity)
                 if (courses is not None) & (room_cap is not None):
                     comment = courses.get("Room") + " capacity expected to be " + \
                               str(room_cap) + " for " + courses.get("Course") + (" " * 140)
@@ -608,29 +637,29 @@ class DataProcessor:
             except TypeError:
                 pass
 
-            for course_d in range(len(list_dict) - 1):
+            for course_d in range(len(list_dict_copy) - 1):
                 if course_i != (course_d + 1):
                     try:
                         # Checking if the courses are hybrid
-                        if list_dict[course_i].get("Course") == list_dict[course_d + 1].get("Course"):
-                            if list_dict[course_i].get("Course_Days"):
-                                if not list_dict[course_d + 1].get("Course_Days"):
-                                    list_dict[course_i].get("Type").append("Hybrid")
+                        if list_dict_copy[course_i].get("Course") == list_dict_copy[course_d + 1].get("Course"):
+                            if list_dict_copy[course_i].get("Course_Days"):
+                                if not list_dict_copy[course_d + 1].get("Course_Days"):
+                                    list_dict_copy[course_i].get("Type").append("Hybrid")
                                     # Changing previous Online type to Hybrid
-                                    list_dict[course_d + 1]["Type"] = "Hybrid"
+                                    list_dict_copy[course_d + 1]["Type"] = "Hybrid"
 
                         # Checks Course days similarities
-                        if not list(set(list_dict[course_i].get("Course_Days")) &
-                                    set(list_dict[course_d + 1].get("Course_Days"))):
+                        if not list(set(list_dict_copy[course_i].get("Course_Days")) &
+                                    set(list_dict_copy[course_d + 1].get("Course_Days"))):
                             pass
                         else:
-                            start_time_i = list_dict[course_i].get('Start_Time')
-                            start_time_d = list_dict[course_d + 1].get('Start_Time')
-                            end_time_i = list_dict[course_i].get('End_Time')
-                            end_time_d = list_dict[course_d + 1].get('End_Time')
+                            start_time_i = list_dict_copy[course_i].get('Start_Time')
+                            start_time_d = list_dict_copy[course_d + 1].get('Start_Time')
+                            end_time_i = list_dict_copy[course_i].get('End_Time')
+                            end_time_d = list_dict_copy[course_d + 1].get('End_Time')
 
-                            start_date_i = list_dict[course_i].get('Start_Date')
-                            start_date_d = list_dict[course_d + 1].get("Start_Date")
+                            start_date_i = list_dict_copy[course_i].get('Start_Date')
+                            start_date_d = list_dict_copy[course_d + 1].get("Start_Date")
 
                             if start_time_i is None or start_time_d is None:
                                 pass
@@ -641,13 +670,13 @@ class DataProcessor:
                             elif end_time_i == 'None' or end_time_d == 'None':
                                 pass
                             else:
-                                if (list_dict[course_i].get('Room') is not None) & \
-                                        (list_dict[course_d + 1].get('Room') is not None):
-                                    room_ig = "".join(list_dict[course_i].get('Room').split())
-                                    room_d = "".join(list_dict[course_d + 1].get('Room').split())
+                                if (list_dict_copy[course_i].get('Room') is not None) & \
+                                        (list_dict_copy[course_d + 1].get('Room') is not None):
+                                    room_ig = "".join(list_dict_copy[course_i].get('Room').split())
+                                    room_d = "".join(list_dict_copy[course_d + 1].get('Room').split())
 
-                                    section_numb_ig = list_dict[course_i].get('Course').split("-")
-                                    section_numb_d = list_dict[course_d + 1].get("Course").split("-")
+                                    section_numb_ig = list_dict_copy[course_i].get('Course').split("-")
+                                    section_numb_d = list_dict_copy[course_d + 1].get("Course").split("-")
 
                                     # It is normal for section 40 or 41 to conflict with another course
                                     if (section_numb_d[1] == '40') or (section_numb_ig[1] == '40'):
@@ -658,8 +687,8 @@ class DataProcessor:
                                     elif room_ig == room_d:
                                         # Checks for dates
                                         if check_course_dates(start_date_i, start_date_d) is True:
-                                            self.list_different_date.append(self.list_dict_courses[course_d + 1])
-                                            del self.list_dict_courses[course_d + 1]
+                                            self.different_date_list.append(self.dict_courses_list[course_d + 1])
+                                            del self.dict_courses_list[course_d + 1]
                                         else:
                                             if check_course_dates(start_date_i, start_date_d) is False:
                                                 # Transforms variables to float
@@ -670,13 +699,13 @@ class DataProcessor:
 
                                                 # Checks for conflicts
                                                 if start_time_d <= start_time_i <= end_time_d:
-                                                    self.time_conflict_comment(list_dict[course_i],
-                                                                               list_dict[course_d + 1])
+                                                    self.time_conflict_comment(list_dict_copy[course_i],
+                                                                               list_dict_copy[course_d + 1])
                                                     # del self.list_dict_courses[course_i]
 
                                                 elif start_time_d <= end_time_i <= end_time_d:
-                                                    self.time_conflict_comment(list_dict[course_i],
-                                                                               list_dict[course_d + 1])
+                                                    self.time_conflict_comment(list_dict_copy[course_i],
+                                                                               list_dict_copy[course_d + 1])
                                                     # del self.list_dict_courses[course_i]
                                                 else:
                                                     # Checks if the courses have less than 15 min difference if so
@@ -702,12 +731,12 @@ class DataProcessor:
                                                     fifteenth_minutes_end_d = check_minutes(fifteenth_minutes_end_d)
                                                     if fifteenth_minutes_start_d <= fifteenth_minutes_start_i <= \
                                                             fifteenth_minutes_end_d:
-                                                        self.time_conflict_comment(list_dict[course_i],
-                                                                                   list_dict[course_d + 1], True)
+                                                        self.time_conflict_comment(list_dict_copy[course_i],
+                                                                                   list_dict_copy[course_d + 1], True)
                                                     elif fifteenth_minutes_start_d <= fifteenth_minutes_end_i <= \
                                                             fifteenth_minutes_end_d:
-                                                        self.time_conflict_comment(list_dict[course_i],
-                                                                                   list_dict[course_d + 1], True)
+                                                        self.time_conflict_comment(list_dict_copy[course_i],
+                                                                                   list_dict_copy[course_d + 1], True)
                                                     else:
                                                         pass
                     except IndexError:
@@ -744,8 +773,8 @@ class DataProcessor:
 
     def create_excel_table(self):
         """Moves into another class"""
-        room_schedule_table.MasterDesign(self.list_dict_courses, self.list_different_date,
-                                         self.days, self.table_year, self.table_name, self.table_semester)
+        room_schedule_table.MasterDesign(self.dict_courses_list, self.different_date_list,
+                                         self.course_days, self.table_year, self.table_name, self.table_semester)
 
     def get_excel_errors(self):
         """Returns founded errors"""

@@ -20,17 +20,19 @@ class RoomCapacity:
             page_link = url
             page_response = requests.get(page_link, verify=False)
             page_content = BeautifulSoup(page_response.content, "html.parser")
+
             list_of_rooms = []
             list_of_capacity = []
             room_cap_dict = dict()
+
             for div in page_content.findAll('div', {'class': 'v'}):
                 building_html = div.find(("a", {"class": "sm t c"}))
                 building_number = "".join([t for t in building_html.contents if type(t) == element.NavigableString])
+
                 symbol_index = building_number.find("(")
 
                 room_html = div.findAll("a", {"class": "sm rl f h"})
                 capacity_html = div.findAll("div", {"class": "cl h"})
-
                 for rooms in room_html:
                     list_of_rooms.append(building_number[symbol_index + 1:-1] + " " +
                                          (rooms.text[0:5].replace(" ", "")))
@@ -64,8 +66,8 @@ class RoomCapacity:
             # Creates a CSV file
             room_cap = get_room_capacity(self.ROOM_CAP_URL)
             room_cap["Date"] = date.today()
-            with open(self.file, 'w') as new_file:
-                write_file = csv.DictWriter(new_file, room_cap.keys())
+            with open(self.file, 'w') as new_csv_file:
+                write_file = csv.DictWriter(new_csv_file, room_cap.keys())
                 write_file.writeheader()
                 write_file.writerow(room_cap)
             return room_cap
