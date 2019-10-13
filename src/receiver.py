@@ -413,7 +413,6 @@ class DataProcessor:
 
                     dict_courses["Credits"] = each_excel_data[6]
                     dict_courses["Course_Title"] = each_excel_data[7]
-                    dict_courses["Department"] = set_course_department(dict_courses.get("Course"))
                     data_coord = 12  # 12 excel columns
 
                     if (each_excel_data[9] != "None") and (each_excel_data[10] != "None"):
@@ -498,7 +497,6 @@ class DataProcessor:
                         dict_courses["Enrollment"] = each_excel_data[11]
                         dict_courses["Faculty"] = each_excel_data[12]
                         dict_courses["Semester"] = self.table_semester
-                        dict_courses["Department"] = set_course_department(dict_courses.get("Course"))
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
@@ -578,6 +576,19 @@ class DataProcessor:
                 comment = "A program couldn't read this row correctly. Report it if needed."
                 self.create_report_dictionary(each_excel_data[0], 13, each_excel_data[2], each_excel_data[1],
                                               error_color="FF687B", error_comment=comment)
+
+        def fixing_none_courses(all_courses):
+            all_dict_courses = all_courses
+
+            for len_dict in range(len(all_dict_courses)):
+                for key in all_dict_courses[len_dict]:
+                    if type(all_dict_courses[len_dict].get(key)) == str:
+                        if all_dict_courses[len_dict].get(key)[0:4].upper() == 'NONE':
+                            all_dict_courses[len_dict][key] = all_dict_courses[len_dict-1].get(key)
+
+                all_dict_courses[len_dict]["Department"] = set_course_department(all_dict_courses[len_dict].get("Course"))
+
+        fixing_none_courses(self.dict_courses_list)
 
     def time_conflict(self):
         """Loops through each dictionary in the list. Looks for similar rooms and days.
