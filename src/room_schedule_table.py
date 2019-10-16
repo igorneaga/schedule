@@ -177,12 +177,15 @@ class MasterDesign:
                 sheet["E" + str(row)] = excel_data[i].get("Start_Time") + "-" + excel_data[i].get("End_Time")
                 sheet["F" + str(row)] = excel_data[i].get("Room")
                 sheet["G" + str(row)] = excel_data[i].get("Faculty")
-                if isinstance(excel_data[i].get("Start_Date"), datetime.date) is True:
-                    sheet["H" + str(row)] = excel_data[i].get("Start_Date").strftime('%m/%d/%Y') + "-" + \
-                                            excel_data[i].get("End_Date").strftime('%m/%d/%Y')
-                else:
-                    sheet["H" + str(row)] = str(excel_data[i].get("Start_Date")) + "-" + \
-                                            str(excel_data[i].get("End_Date"))
+                try:
+                    if isinstance(excel_data[i].get("Start_Date"), datetime.date) is True:
+                        sheet["H" + str(row)] = excel_data[i].get("Start_Date").strftime('%m/%d/%Y') + "-" + \
+                                                excel_data[i].get("End_Date").strftime('%m/%d/%Y')
+                    else:
+                        sheet["H" + str(row)] = str(excel_data[i].get("Start_Date")) + "-" + \
+                                                str(excel_data[i].get("End_Date"))
+                except:
+                    pass
                 sheet["I" + str(row)] = excel_data[i].get("Enrollment")
 
         for course_len in range(len(list_dict)):
@@ -695,7 +698,7 @@ class MasterDesign:
             return list(set(course_list))
 
         def sort_list(course_list):
-            course_list.sort()
+            #course_list.sort()
             return course_list
 
         unique_types = sort_list(remove_duplicates(self.course_types_list))

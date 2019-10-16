@@ -216,7 +216,7 @@ class DataProcessor:
                             else:
                                 excel_cell_value.append("None-None")
                         except IndexError:
-                            pass
+                            excel_cell_value.append(cell.value)
                     else:
                         excel_cell_value.append(cell.value)
                 except AttributeError:
@@ -413,6 +413,7 @@ class DataProcessor:
 
                     dict_courses["Credits"] = each_excel_data[6]
                     dict_courses["Course_Title"] = each_excel_data[7]
+                    """
                     data_coord = 12  # 12 excel columns
 
                     if (each_excel_data[9] != "None") and (each_excel_data[10] != "None"):
@@ -421,9 +422,9 @@ class DataProcessor:
                         data_coord -= 1
                     elif each_excel_data[10] != "None":
                         data_coord -= 1
-
-                    dict_courses["Faculty"] = each_excel_data[data_coord]
-                    dict_courses["Enrollment"] = each_excel_data[data_coord-1]
+                    """
+                    dict_courses["Faculty"] = each_excel_data[12]
+                    dict_courses["Enrollment"] = each_excel_data[11]
                     dict_courses = set_online_course(dict_courses, each_excel_data)
 
                 else:
@@ -442,57 +443,13 @@ class DataProcessor:
                     else:
                         dict_courses["Room"] = course_room_format(str(each_excel_data[self.excel_course_room + 2]))
                         dict_courses["Course_Days"] = []
+
                         dict_courses["Row"] = each_excel_data[0]
                         dict_courses["File"] = each_excel_data[2]
                         dict_courses["Sheet_Name"] = each_excel_data[1]
                         dict_courses["Credits"] = each_excel_data[6]
                         dict_courses["Course_Title"] = each_excel_data[7]
-                        dict_courses["Faculty"] = each_excel_data[12]
-                        dict_courses["Enrollment"] = each_excel_data[11]
                         dict_courses["Type"] = set_course_type(dict_courses)
-                        if each_excel_data[13] != "None":
-                            try:
-                                if type(each_excel_data[13]) is str:
-                                    # Checking if the year is correct
-                                    if int(each_excel_data[13][-4:]) > (int(datetime.datetime.now().year) + 2) or int(
-                                            each_excel_data[13][-4:]) < (int(datetime.datetime.now().year) - 2):
-                                        comment = dict_courses.get("Course") + " course might have a wrong year. " \
-                                                                               "Please double check." + (' ' * 150)
-                                        self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
-                                                                      each_excel_data[1], 'FF687B', comment)
-
-                                    dict_courses["Start_Date"] = datetime.datetime.strptime(each_excel_data[13],
-                                                                                            '%m/%d/%Y')
-                                else:
-                                    dict_courses["Start_Date"] = each_excel_data[13]
-                            except ValueError:
-                                # If the date format is incorrect
-                                comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
-                                          (' ' * 150)
-                                self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
-                                                              each_excel_data[1], 'FF687B', comment)
-                        if each_excel_data[14] != "None":
-                            try:
-                                if type(each_excel_data[14]) is str:
-                                    # Checking if the year is correct
-                                    if int(each_excel_data[14][-4:]) > (int(datetime.datetime.now().year) + 2) or \
-                                            int(each_excel_data[14][-4:]) < (int(datetime.datetime.now().year) - 2):
-                                        comment = dict_courses.get("Course") + " course might have a wrong year. " \
-                                                                               "Please double check." + (' ' * 150)
-                                        self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
-                                                                      each_excel_data[1], 'FF687B', comment)
-
-                                    dict_courses["End_Date"] = datetime.datetime.strptime(each_excel_data[14],
-                                                                                          '%m/%d/%Y')
-                                else:
-                                    dict_courses["End_Date"] = each_excel_data[14]
-                            except ValueError:
-                                # If the date format is incorrect
-                                comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
-                                          (' ' * 150)
-                                self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
-                                                              each_excel_data[1], 'FF687B', comment)
-                        dict_courses["Credits"] = each_excel_data[6]
                         dict_courses["Course_Title"] = each_excel_data[7]
                         dict_courses["Enrollment"] = each_excel_data[11]
                         dict_courses["Faculty"] = each_excel_data[12]
@@ -566,6 +523,50 @@ class DataProcessor:
                                 dict_courses["Course_Days"].append(
                                     convert_user_days(each_excel_data[self.excel_course_days + 2], i))
 
+                if (each_excel_data[13] != "None") and (each_excel_data[13] is not None):
+                    try:
+                        if type(each_excel_data[13]) is str:
+                            # Checking if the year is correct
+                            if int(each_excel_data[13][-4:]) > (int(datetime.datetime.now().year) + 2) or int(
+                                    each_excel_data[13][-4:]) < (int(datetime.datetime.now().year) - 2):
+                                comment = dict_courses.get("Course") + " course might have a wrong year. " \
+                                                                       "Please double check." + (' ' * 150)
+                                self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
+                                                              each_excel_data[1], 'FF687B', comment)
+
+                            dict_courses["Start_Date"] = datetime.datetime.strptime(each_excel_data[13],
+                                                                                    '%m/%d/%Y')
+                        else:
+                            dict_courses["Start_Date"] = each_excel_data[13]
+                    except ValueError:
+                        # If the date format is incorrect
+                        comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
+                                  (' ' * 150)
+                        self.create_report_dictionary(each_excel_data[0], 11, each_excel_data[2],
+                                                      each_excel_data[1], 'FF687B', comment)
+
+                if (each_excel_data[14] != "None") and (each_excel_data[13] is not None):
+                    try:
+                        if type(each_excel_data[14]) is str:
+                            # Checking if the year is correct
+                            if int(each_excel_data[14][-4:]) > (int(datetime.datetime.now().year) + 2) or \
+                                    int(each_excel_data[14][-4:]) < (int(datetime.datetime.now().year) - 2):
+                                comment = dict_courses.get("Course") + " course might have a wrong year. " \
+                                                                       "Please double check." + (' ' * 150)
+                                self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
+                                                              each_excel_data[1], 'FF687B', comment)
+
+                            dict_courses["End_Date"] = datetime.datetime.strptime(each_excel_data[14],
+                                                                                  '%m/%d/%Y')
+                        else:
+                            dict_courses["End_Date"] = each_excel_data[14]
+                    except ValueError:
+                        # If the date format is incorrect
+                        comment = dict_courses.get("Course") + ' course does not match format "01/01/2020"' + \
+                                  (' ' * 150)
+                        self.create_report_dictionary(each_excel_data[0], 12, each_excel_data[2],
+                                                      each_excel_data[1], 'FF687B', comment)
+
                 self.dict_courses_list.append(dict_courses.copy())
             except AttributeError:
                 # If an error occurred, it will mark the whole row
@@ -589,6 +590,8 @@ class DataProcessor:
                 all_dict_courses[len_dict]["Department"] = set_course_department(all_dict_courses[len_dict].get("Course"))
 
         fixing_none_courses(self.dict_courses_list)
+        for i in range(len(self.dict_courses_list)):
+            pass
 
     def time_conflict(self):
         """Loops through each dictionary in the list. Looks for similar rooms and days.
