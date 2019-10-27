@@ -102,11 +102,16 @@ class ThreadedTask(threading.Thread):
 
             for file in zip_file.namelist():
                 if file.startswith('schedule-master/src/'):
-                    zip_file.extract(file)
+                    zip_file.extract(file, directory)
             os.rename(f'{directory}\\schedule-master\\src', f'{directory}\\src')
             shutil.rmtree(directory + "\\schedule-master", ignore_errors=True)
 
         script_directory = os.path.dirname(os.path.abspath(__file__))
+        split_drive = os.path.splitdrive(script_directory)
+        if split_drive[1][0:8] == "\\WINDOWS":
+            home_dir = os.path.expanduser("~")
+            script_directory = os.path.join(home_dir, "Downloads")
+            os.chdir(script_directory)
         # Assets
         page_response_assets = requests.get(API_GITHUB_ASSETS)
         github_assets_data = page_response_assets.json()
@@ -125,7 +130,7 @@ class ThreadedTask(threading.Thread):
                     os.remove("src\\UScheduler.exe")
                     urllib.request.urlretrieve(MAIN_EXE_URL, f'{script_directory}\\src\\UScheduler.exe')
 
-        if os.path.isdir('src\\assets') is False:
+        if os.path.isdir(script_directory + '\\src\\assets') is False:
             download_zip(script_directory, MAIN_ZIP_URL)
         else:
             try:
@@ -145,13 +150,14 @@ class ThreadedTask(threading.Thread):
 
         subprocess.Popen(f'{script_directory}\\src\\UScheduler.exe', close_fds=True)
         # Gives some time for the main file to launch
-        time.sleep(7)
+        time.sleep(3)
         self.queue.put("Task finished")
 
 
 def create_interface(argv):
     root = Tk()
     root.title('Uni-Scheduler')
+    root.tk.call('tk', 'scaling', 1.3)
     root.geometry("520x175")
 
     # Gets both half the screen width/height and window width/height
