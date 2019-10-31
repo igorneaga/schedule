@@ -590,8 +590,6 @@ class DataProcessor:
                 all_dict_courses[len_dict]["Department"] = set_course_department(all_dict_courses[len_dict].get("Course"))
 
         fixing_none_courses(self.dict_courses_list)
-        for i in range(len(self.dict_courses_list)):
-            pass
 
     def time_conflict(self):
         """Loops through each dictionary in the list. Looks for similar rooms and days.

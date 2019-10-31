@@ -40,7 +40,9 @@ class UserInterface(Frame):
         self.CreatePayrollImage = tk.PhotoImage(file=cwd + '\\src\\assets\\create_fwm_table2.png')
         self.GetPreviousImage = tk.PhotoImage(file=cwd + '\\src\\assets\\get_prev_tables.png')
         self.ExitApplicationImage = tk.PhotoImage(file=cwd + '\\src\\assets\\quit_button.png')
-        self.ApplicationLogoImage = tk.PhotoImage(file=cwd + '\\src\\assets\\u_logo.png')
+        # self.ApplicationLogoImage = tk.PhotoImage(file=cwd + '\\src\\assets\\u_logo.png')
+        self.UseLocalFiles = tk.PhotoImage(file=cwd + '\\src\\assets\\use_local.png')
+        self.UseWebData = tk.PhotoImage(file=cwd + '\\src\\assets\\use_web.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")
@@ -93,6 +95,11 @@ class UserInterface(Frame):
         # Stores all errors found from receiver.py
         self.error_data_list = []
 
+        # Semester & Department & Year from university website
+        self.web_semesters_options = []
+        self.web_department_options = ["All COB Departments"]
+        self.web_year_options = []
+
         # Stores data about room capacity
         self.room_cap_dict = dict()
 
@@ -120,6 +127,7 @@ class UserInterface(Frame):
                                                                          "not work properly")
 
         self.param = receive_semesters()
+        self.organize_semester_data()
 
         try:
             excel_file = glob.glob('__excel_files/*.xlsx')
@@ -131,6 +139,24 @@ class UserInterface(Frame):
             messagebox.showerror("Close File", "Please close excel files to eliminate errors")
 
         self.introduction_window()
+
+    def organize_semester_data(self):
+        for param_len in range(len(self.param)):
+            # Finds available options from scraping
+            for key in self.param[param_len]:
+                test_dict = dict()
+                if key[0:4] == "FALL" or key[0:4] == "SPRI":
+                    find_year_index = key.find("2")
+                    self.web_semesters_options.append(key[0:find_year_index])
+                    self.web_year_options.append(key[find_year_index:])
+                    test_dict[key[0:find_year_index]] = self.param[param_len].get(key)
+                    self.urlencode_dict_list.append(test_dict)
+
+                else:
+                    symbol_index = key.find("(")
+                    self.web_department_options.append(key[symbol_index + 1:-1])
+                    test_dict[key[symbol_index + 1:-1]] = self.param[param_len].get(key)
+                    self.urlencode_dict_list.append(test_dict)
 
     def submit_ticket_form(self):
         """Opens a Google Form to collect any reports or requests"""
@@ -203,6 +229,8 @@ class UserInterface(Frame):
         if self.payroll_window:
             self.payroll_window.grid_remove()
             self.cost_department_list.grid_remove()
+            self.cost_dict()
+            self.payroll_window = None
 
         if self.get_example_window:
             self.get_example_window.grid_remove()
@@ -287,7 +315,6 @@ class UserInterface(Frame):
 
     def introduction_window(self):
         """Window gains information necessary information to create a payroll table from user"""
-
         self.interface_window_remover()
         button_frame = self.introduction = Frame(self)
         button_frame.grid()
@@ -557,7 +584,7 @@ class UserInterface(Frame):
                              padx=20,
                              pady=135)
 
-    def get_table_example_window(self):
+    def get_table_example_window(self, get_parameters=False):
         """Creates a table based on previous semesters web data"""
         self.interface_window_remover()
 
@@ -570,18 +597,10 @@ class UserInterface(Frame):
                                   font=('Arial', 18))
         heading_label.grid(column=0,
                            row=0,
-                           padx=25,
+                           padx=90,
                            pady=25,
                            sticky="n")
 
-        # Logo of a program on the right
-        application_logo = Label(button_frame, image=self.ApplicationLogoImage)
-        application_logo.photo = self.ApplicationLogoImage
-        application_logo.grid(column=1,
-                              row=0,
-                              sticky="w",
-                              padx=0,
-                              pady=0)
         # Description of a reason to have this window
         description_label = ttk.Label(button_frame,
                                       text="The program will generate a table by using data from MNSU website",
@@ -591,42 +610,21 @@ class UserInterface(Frame):
         description_label.grid(column=0,
                                row=0,
                                rowspan=2,
-                               padx=20,
+                               padx=85,
                                pady=75)
-        # Semesters options
-        web_semesters_options = []
-        web_department_options = []
-        web_year_options = []
-
-        for param_len in range(len(self.param)):
-            # Finds available options from scraping
-            for key in self.param[param_len]:
-                test_dict = dict()
-                if key[0:4] == "FALL" or key[0:4] == "SPRI":
-                    find_year_index = key.find("2")
-                    web_semesters_options.append(key[0:find_year_index])
-                    web_year_options.append(key[find_year_index:])
-                    test_dict[key[0:find_year_index]] = self.param[param_len].get(key)
-                    self.urlencode_dict_list.append(test_dict)
-
-                else:
-                    symbol_index = key.find("(")
-                    web_department_options.append(key[symbol_index + 1:-1])
-                    test_dict[key[symbol_index + 1:-1]] = self.param[param_len].get(key)
-                    self.urlencode_dict_list.append(test_dict)
 
         # Holds variables
         variable_web_semesters = StringVar(button_frame)
         variable_web_years = StringVar(button_frame)
         variable_web_department = StringVar(button_frame)
         # Sets defaults values for interface
-        variable_web_department.set(web_department_options[0])
-        variable_web_semesters.set(web_semesters_options[0])
-        variable_web_years.set(web_year_options[0])
+        variable_web_department.set(self.web_department_options[0])
+        variable_web_semesters.set(self.web_semesters_options[0])
+        variable_web_years.set(self.web_year_options[0])
         # Sets defaults values for script
-        self.web_department_parameters = web_department_options[0]
-        self.web_year = web_year_options[0]
-        self.web_semester_parameters = web_semesters_options[0]
+        self.web_department_parameters = self.web_department_options[0]
+        self.web_year = self.web_year_options[0]
+        self.web_semester_parameters = self.web_semesters_options[0]
 
         department_selection_label = tk.Label(button_frame,
                                               text="Select department:",
@@ -641,7 +639,7 @@ class UserInterface(Frame):
         # Option menu / Check buttons
         web_department_options = OptionMenu(button_frame,
                                             variable_web_department,
-                                            *web_department_options,
+                                            *self.web_department_options,
                                             command=self.return_web_department)
         web_department_options.place(x=230, y=160)
         web_department_options.configure(relief="groove",
@@ -652,7 +650,7 @@ class UserInterface(Frame):
 
         web_semester_options = OptionMenu(button_frame,
                                           variable_web_semesters,
-                                          *web_semesters_options,
+                                          *self.web_semesters_options,
                                           command=self.return_web_semester)
         web_semester_options.place(x=320, y=200)
         web_semester_options.configure(relief="groove",
@@ -663,7 +661,7 @@ class UserInterface(Frame):
 
         web_year_options = OptionMenu(button_frame,
                                       variable_web_years,
-                                      *web_year_options,
+                                      *self.web_year_options,
                                       command=self.return_web_year)
         web_year_options.place(x=425, y=200)
         web_year_options.configure(relief="groove",
@@ -686,7 +684,6 @@ class UserInterface(Frame):
                                  row=3,
                                  padx=20,
                                  pady=110)
-
         back_button = Button(button_frame,
                              border='0',
                              image=self.BackImage,
@@ -702,38 +699,58 @@ class UserInterface(Frame):
     def create_web_table(self):
         """Department chairs might need an example of a file from the previous semester. This function will create a
         table based on university records."""
+        folder_path = None
+
         urlencode_list = []
 
-        try:
-            if not self.urlencode_dict_list:
-                previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
-                                              int(self.web_year))
+        folder = filedialog.askdirectory()
+        folder_path = folder
+        
+        def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
+            if not urlencode_dict:
+                print("hm1")
+                previous_data.PreviousCourses(web_department, web_semester, int(web_year), get_all=get_all_tables)
             else:
-                for len_list in range(len(self.urlencode_dict_list)):
-                    for departament_semester, urlencode in self.urlencode_dict_list[len_list].items():
-                        if departament_semester == self.web_department_parameters:
+                for len_list in range(len(urlencode_dict)):
+                    for departament_semester, urlencode in urlencode_dict[len_list].items():
+                        if departament_semester == web_department:
                             urlencode_list.append(urlencode)
-                        if departament_semester == self.web_semester_parameters:
+                        if departament_semester == web_semester:
                             urlencode_list.append(urlencode)
                 if len(urlencode_list) == 2:
-                    previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
-                                                  int(self.web_year),
-                                                  urlencode_list[0], urlencode_list[1])
+                    if get_all_tables is True:
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                      urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                    else:
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                      urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
                 else:
-                    previous_data.PreviousCourses(self.web_department_parameters, self.web_semester_parameters,
-                                                  int(self.web_year))
+                    if get_all_tables is True:
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                      get_all=get_all_tables)
+                    else:
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                      get_all=get_all_tables)
 
-            if os.path.isdir('web_files\\'):
-                os.startfile('web_files\\' + self.web_department_parameters + "_" + str(self.web_year) + ".xlsx")
-                # Gives some time to launch the excel file
-                time.sleep(1)
-            else:
-                messagebox.showinfo("Error occurred", "Something went wrong... Try again")
-            # Brings back to the main menu
-            self.introduction_window()
-        except PermissionError:
-            messagebox.showwarning("Existing excel file open!", "Please close your current excel files and try again.")
-            self.get_table_example_window()
+        if self.web_department_parameters != "All COB Departments":
+            try:
+                create_table(self.urlencode_dict_list, self.web_department_parameters,
+                             self.web_semester_parameters, self.web_year)
+                if os.path.isdir('web_files\\'):
+                    os.startfile('web_files\\' + self.web_department_parameters + "_" + str(self.web_year) + ".xlsx")
+                    # Gives some time to launch the excel file
+                    time.sleep(1)
+                self.introduction_window()
+            except PermissionError:
+                messagebox.showwarning("Existing excel file open!",
+                                       "Please close your current excel files and try again.")
+                self.get_table_example_window()
+        else:
+            dep = iter(self.web_department_options)
+            for department in dep:
+                create_table(self.urlencode_dict_list, department,
+                             self.web_semester_parameters, self.web_year, get_all_tables=True)
+                self.introduction_window()
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
@@ -976,6 +993,18 @@ class UserInterface(Frame):
 
     def return_web_semester(self, semester):
         self.web_semester_parameters = semester
+
+    def return_payroll_year_1(self, year):
+        self.payroll_year_1 = year
+
+    def return_payroll_semester_1(self, semester):
+        self.payroll_semester_1 = semester
+
+    def return_payroll_year_2(self, year):
+        self.payroll_year_2 = year
+
+    def return_payroll_semester_2(self, semester):
+        self.payroll_semester_2 = semester
 
     def return_semester(self, semester_value):
         """Captures user selection - semester"""
@@ -1274,7 +1303,6 @@ class UserInterface(Frame):
 
     def payroll_cost_center(self):
         return None
-
         self.interface_window_remover()
 
         button_frame = self.payroll_window = Frame(self)
@@ -1326,7 +1354,7 @@ class UserInterface(Frame):
                                      bg='#c5eb93',
                                      border='4',
                                      text="Next step >",
-                                     command=self.cost_dict,
+                                     command=self.payroll_selection,
                                      foreground="green",
                                      font=('Arial', 16, 'bold'))
         self.move_next_step.grid(sticky='w',
@@ -1365,6 +1393,7 @@ class UserInterface(Frame):
         """Shows all the errors"""
 
         def get_csv_file(file):
+            cost_center = dict()
             if os.path.isfile(file):
                 with open(file) as csv_file:
                     read_csv_file = csv.DictReader(csv_file, delimiter=',')
@@ -1373,7 +1402,6 @@ class UserInterface(Frame):
                 return cost_center
 
         csv_file_data = get_csv_file('department_cost.csv')
-        print(csv_file_data)
 
         cob_department_list = ["Marketing", "Accounting", "Business Law", "Finance", "International Business",
                                "MACC", "Management", "MBA", "BUS"]
@@ -1388,6 +1416,7 @@ class UserInterface(Frame):
             if csv_file_data is None:
                 pass
             else:
+                self.cost_box_insert[i].delete(0, 'end')  # Clearing entry box
                 self.cost_box_insert[i].insert(END, csv_file_data.get(cob_department_list[i]))
 
             self.cost_box_insert[i].pack()
@@ -1396,11 +1425,202 @@ class UserInterface(Frame):
         for i in range(len(self.cost_box_insert)):
             self.department_cost_dict.update({self.cost_box_insert[i].cget("text"): self.cost_box_insert[i].get()})
 
-        # Creates a CSV file
-        # TODO: Update data instead of keep creating csv file
+        # Writes a csv file
         cost_file = 'department_cost.csv'
         with open(cost_file, 'w') as new_file:
             write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
             write_file.writeheader()
             write_file.writerow(self.department_cost_dict)
 
+    def test_function(self):
+        self.create_web_table(get_all=True)
+
+    def payroll_selection(self):
+        self.interface_window_remover()
+
+        button_frame = self.payroll_window = Frame(self)
+        button_frame.grid()
+        # Short welcome text
+        heading_text = ttk.Label(button_frame,
+                                 text="Select one of the following:",
+                                 foreground="green",
+                                 font=('Arial', 21))
+        # Placing coordinates
+        heading_text.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=20,
+                         padx=150)
+
+        # The back button which will allow moving to the previous window
+        back_button = Button(button_frame,
+                             border='0',
+                             image=self.BackImage,
+                             command=self.payroll_cost_center)
+        back_button.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=15,
+                         padx=10)
+
+        use_web_button = Button(button_frame,
+                                     border='0',
+                                     image=self.UseWebData,
+                                     command=self.payroll_web_selection)
+        use_web_button.grid(column=0,
+                                 row=4,
+                                 sticky='w',
+                                 padx=122)
+
+        use_local_button = Button(button_frame,
+                                      border='0',
+                                      image=self.UseLocalFiles,
+                                      command=self.selection_step_window)
+        use_local_button.grid(column=0,
+                                  row=4,
+                                  sticky='w',
+                                  padx=367)
+
+        current_web_availability = "Available:\n"
+        if len(self.web_year_options) == 2:
+            for semester in self.web_semesters_options:
+                current_web_availability += semester + " " + self.web_year_options[0] + ", "
+                current_web_availability += semester + " " + self.web_year_options[1] + "\n"
+        else:
+            for semester in self.web_semesters_options:
+                current_web_availability += semester + " " + self.web_year_options[0] + "\n"
+
+        # Short welcome text
+        available_text = ttk.Label(button_frame,
+                                 text=current_web_availability,
+                                 foreground="green",
+                                 font=('Arial', 10))
+        # Placing coordinates
+        available_text.grid(sticky='WN',
+                         column=0,
+                         row=5,
+                         rowspan=2,
+                         pady=10,
+                         padx=120)
+
+    def payroll_web_selection(self):
+        self.interface_window_remover()
+
+        button_frame = self.payroll_window = Frame(self)
+        button_frame.grid()
+
+        # Short welcome text
+        heading_text = ttk.Label(button_frame,
+                                 text="Select semesters:",
+                                 foreground="green",
+                                 font=('Arial', 21))
+        # Placing coordinates
+        heading_text.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=20,
+                         padx=200)
+
+        # The back button which will allow moving to the previous window
+        back_button = Button(button_frame,
+                             border='0',
+                             image=self.BackImage,
+                             command=self.payroll_selection)
+        back_button.grid(sticky='WN',
+                         column=0,
+                         row=1,
+                         rowspan=2,
+                         pady=15,
+                         padx=10)
+        # SPRING 2019 TO Fall 2020
+
+        # Holds variables
+        variable_web_semesters_1 = StringVar(button_frame)
+        variable_web_years_1 = StringVar(button_frame)
+        # Sets defaults values for interface
+        variable_web_semesters_1.set(self.web_semesters_options[0])
+        variable_web_years_1.set(self.web_year_options[0])
+
+        # Holds variables
+        variable_web_semesters_2 = StringVar(button_frame)
+        variable_web_years_2 = StringVar(button_frame)
+        # Sets defaults values for interface
+        variable_web_semesters_2.set(self.web_semesters_options[0])
+        variable_web_years_2.set(self.web_year_options[0])
+        # Sets defaults values for script
+        self.web_department_parameters = self.web_department_options[0]
+        self.web_year = self.web_year_options[0]
+        self.web_semester_parameters = self.web_semesters_options[0]
+
+        web_semester_options = OptionMenu(button_frame,
+                                          variable_web_semesters_1,
+                                          *self.web_semesters_options,
+                                          command=self.return_payroll_semester_1)
+        web_semester_options.place(x=95, y=150)
+        web_semester_options.configure(relief="groove",
+                                       bg='#c5eb93',
+                                       border='4',
+                                       foreground="green",
+                                       font=('Arial', 13))
+
+        web_year_options = OptionMenu(button_frame,
+                                      variable_web_years_1,
+                                      *self.web_year_options,
+                                      command=self.return_payroll_year_1)
+        web_year_options.place(x=205, y=150)
+        web_year_options.configure(relief="groove",
+                                   bg='#c5eb93',
+                                   border='4',
+                                   foreground="green",
+                                   font=('Arial', 13))
+
+        payroll_step_description = ttk.Label(button_frame,
+                                             text="to",
+                                             foreground="gray",
+                                             font=('Arial', 16))
+        payroll_step_description.place(x=305, y=155)
+
+        web_semester_options_2 = OptionMenu(button_frame,
+                                          variable_web_semesters_2,
+                                          *self.web_semesters_options,
+                                          command=self.return_payroll_semester_2)
+
+        web_semester_options_2.place(x=345, y=150)
+        web_semester_options_2.configure(relief="groove",
+                                       bg='#c5eb93',
+                                       border='4',
+                                       foreground="green",
+                                       font=('Arial', 13))
+
+        web_year_options_2 = OptionMenu(button_frame,
+                                      variable_web_years_2,
+                                      *self.web_year_options,
+                                      command=self.return_payroll_year_2)
+
+        web_year_options_2.place(x=455, y=150)
+        web_year_options_2.configure(relief="groove",
+                                   bg='#c5eb93',
+                                   border='4',
+                                   foreground="green",
+                                   font=('Arial', 13))
+
+
+        create_table_button = Button(button_frame,
+                                     relief="groove",
+                                     bg='#c5eb93',
+                                     border='4',
+                                     text="Create table",
+                                     command=self.create_web_table,
+                                     foreground="green",
+                                     font=('Arial', 16, 'bold'))
+        create_table_button.grid(sticky="E",
+                                 column=0,
+                                 columnspan=2,
+                                 row=3,
+                                 padx=20,
+                                 pady=200)
+
+        self.test_function()

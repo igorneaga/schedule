@@ -14,12 +14,14 @@ from src.previous_semesters import ReceiveSemesters
 
 
 class PreviousCourses:
-    def __init__(self, department, semester, year, semester_parameters=None, department_parameters=None):
+    def __init__(self, folder_path, department, semester, year, semester_parameters=None, department_parameters=None, get_all=False):
         self.user_selected_department = department
         self.user_selected_year = year
         self.user_selected_semester = semester
         self.department_parameters = department_parameters
         self.semester_parameters = semester_parameters
+        self.get_all_table = get_all
+        self.folder_path = folder_path
 
         self.request_headers = {
             'Content-Type': "application/x-www-form-urlencoded",
@@ -99,7 +101,7 @@ class PreviousCourses:
                                     headers=self.request_headers)
         self.get_data(response)
         CreateStandardTable(self.course_list, full_department_name, self.user_selected_semester,
-                            str(self.user_selected_year), self.user_selected_department)
+                            str(self.user_selected_year), self.user_selected_department, self.folder_path)
 
     def get_data(self, web_response):
         data_html_parser = BeautifulSoup(web_response.text, 'html.parser')
@@ -126,11 +128,12 @@ class PreviousCourses:
 
 
 class CreateStandardTable:
-    def __init__(self, web_course_data, departament_full, semester, year, department_abbreviation):
+    def __init__(self, web_course_data, departament_full, semester, year, department_abbreviation, folder_path):
         self.full_departament_name = departament_full
         self.department_abbreviation = department_abbreviation
         self.semester = semester
         self.year = year
+        self.folder_path = folder_path
 
         self.web_course_data = web_course_data
 
@@ -150,7 +153,7 @@ class CreateStandardTable:
         self.adjust_cells_width()
         self.border_all_cells("A1")
         self.set_page_break()
-        self.excel_workbook.save('web_files\\' + self.department_abbreviation.replace(" ", "_")[0:27] + "_" +
+        self.excel_workbook.save(self.folder_path + '\\' + self.department_abbreviation.replace(" ", "_")[0:27] + "_" +
                                  self.year + ".xlsx")
 
     def create_excel_file(self):

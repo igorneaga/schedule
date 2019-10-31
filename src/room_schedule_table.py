@@ -698,7 +698,7 @@ class MasterDesign:
             return list(set(course_list))
 
         def sort_list(course_list):
-            #course_list.sort()
+            course_list.sort()
             return course_list
 
         unique_types = sort_list(remove_duplicates(self.course_types_list))
