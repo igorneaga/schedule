@@ -33,8 +33,4 @@ jobs:
         pip install pytest
         pytest
 
-  py-to-exe:
-    name: Creating executable file
-    needs: testing-code
-
 
