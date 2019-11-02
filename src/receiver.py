@@ -14,7 +14,8 @@ from src import room_schedule_table
 
 class DataProcessor:
 
-    def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday, classroom_capacity):
+    def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday, classroom_capacity,
+                 payroll):
         self.file_directory = file_directory
         self.table_name = table_name
         self.table_semester = table_semester
@@ -22,6 +23,8 @@ class DataProcessor:
         self.days_order = table_type
         self.friday_choice = friday
         self.classroom_capacity = classroom_capacity
+
+        self.payroll = payroll
 
         self.course_days = []
         self.excel_data_list = None
@@ -93,7 +96,10 @@ class DataProcessor:
                 self.color_comment_copy_excel(workbook_copy, self.file_directory[i])
                 workbook_copy.save(set_file_path)
             self.get_excel_errors()
-            self.create_excel_table()
+            if self.payroll is False:
+                self.create_excel_table()
+            else:
+                print(self.dict_courses_list)
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
             if self.number_close_trials > 2:
