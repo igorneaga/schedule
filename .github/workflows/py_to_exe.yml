@@ -32,35 +32,4 @@ jobs:
       run: |
         pip install pytest
         pytest
-        
-  py-to-exe:
-    name: Creating executable file
-    needs: testing-code
-    steps:
-        uses: actions/checkout@master
-        name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7
-        - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install pyinstaller
-            
-        - name: Creating executable file
-          run: |
-            cd src
-            "pyinstaller" -w -F -p "../" --specpath="./build" --distpath=. UScheduler.py
-          shell: cmd
-      
-        - name: Commiting executable file
-          uses: docker://alpine/git
-          run: |
-            git config --global user.name "PyExe Action"
-            git config --global user.email "neagaigori@gmail.com"
-            git add "UScheduler.exe"
-            git commit -m "Update"
-            git push
-          shell: cmd
-          
+
