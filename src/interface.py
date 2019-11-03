@@ -877,7 +877,7 @@ class UserInterface(Frame):
         variable_years = StringVar(button_frame)
         today_year = datetime.datetime.now()
 
-        semesters_options = ["Fall", "Spring"]
+        semesters_options = ["Fall", "Spring", "Summer 1st", "Summer 2nd", ]
         # Sets a Fall semester as a default
         variable_semesters.set(semesters_options[0])
 
