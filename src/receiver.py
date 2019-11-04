@@ -9,7 +9,7 @@ import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
 
-from src import room_schedule_table
+from src import room_schedule_table, payroll_table
 
 
 class DataProcessor:
@@ -99,7 +99,8 @@ class DataProcessor:
             if self.payroll is False:
                 self.create_excel_table()
             else:
-                print(self.dict_courses_list)
+                payroll_table.PayrollTable(self.dict_courses_list)
+
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
             if self.number_close_trials > 2:
@@ -607,6 +608,8 @@ class DataProcessor:
             # Dates from Minnesota State University, Mankato academic calendar
             course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
             course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
+
+            # TODO Finish summer dates function
 
             if (first_course is "None") or (first_course is None) or (second_course is "None") or \
                     (second_course is None):
