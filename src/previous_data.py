@@ -153,8 +153,7 @@ class CreateStandardTable:
         self.adjust_cells_width()
         self.border_all_cells("A1")
         self.set_page_break()
-        self.excel_workbook.save(self.folder_path + '\\' + self.department_abbreviation.replace(" ", "_")[0:27] + "_" +
-                                 self.year + ".xlsx")
+        self.excel_workbook.save(self.folder_path)
 
     def create_excel_file(self):
         def create_directory():

@@ -674,10 +674,10 @@ class UserInterface(Frame):
                                      relief="groove",
                                      bg='#c5eb93',
                                      border='4',
-                                     text="Create table",
+                                     text="Get and save table(s)",
                                      command=self.create_web_table,
                                      foreground="green",
-                                     font=('Arial', 16, 'bold'))
+                                     font=('Arial', 14))
         create_table_button.grid(sticky="E",
                                  column=0,
                                  columnspan=2,
@@ -703,7 +703,7 @@ class UserInterface(Frame):
 
         urlencode_list = []
 
-        folder = filedialog.askdirectory()
+        folder = (tk.filedialog.asksaveasfile(mode='w', defaultextension=".xlsx")).name
         folder_path = folder
         
         def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
@@ -736,8 +736,8 @@ class UserInterface(Frame):
             try:
                 create_table(self.urlencode_dict_list, self.web_department_parameters,
                              self.web_semester_parameters, self.web_year)
-                if os.path.isdir('web_files\\'):
-                    os.startfile('web_files\\' + self.web_department_parameters + "_" + str(self.web_year) + ".xlsx")
+                if os.path.isfile(folder_path):
+                    os.startfile(folder_path)
                     # Gives some time to launch the excel file
                     time.sleep(1)
                 self.introduction_window()
