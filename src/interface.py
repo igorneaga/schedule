@@ -675,7 +675,7 @@ class UserInterface(Frame):
                                      bg='#c5eb93',
                                      border='4',
                                      text="Get tables and choose folder",
-                                     command=self.create_web_table,
+                                     command=self.program_loading_window,
                                      foreground="green",
                                      font=('Arial', 14))
 
@@ -696,64 +696,6 @@ class UserInterface(Frame):
                          rowspan=2,
                          pady=15,
                          padx=8)
-
-    def create_web_table(self):
-        """Department chairs might need an example of a file from the previous semester. This function will create a
-        table based on university records."""
-        folder_path = None
-
-        urlencode_list = []
-
-        folder = filedialog.askdirectory(title='Please select a directory')
-        folder_path = folder
-        
-        def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
-            if not urlencode_dict:
-                print("hm1")
-                previous_data.PreviousCourses(web_department, web_semester, int(web_year), get_all=get_all_tables)
-            else:
-                for len_list in range(len(urlencode_dict)):
-                    for departament_semester, urlencode in urlencode_dict[len_list].items():
-                        if departament_semester == web_department:
-                            urlencode_list.append(urlencode)
-                        if departament_semester == web_semester:
-                            urlencode_list.append(urlencode)
-                if len(urlencode_list) == 2:
-                    if get_all_tables is True:
-                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                      urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
-                    else:
-                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                      urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
-                else:
-                    if get_all_tables is True:
-                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                      get_all=get_all_tables)
-                    else:
-                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                      get_all=get_all_tables)
-
-        if self.web_department_parameters != "All COB Departments":
-            try:
-                create_table(self.urlencode_dict_list, self.web_department_parameters,
-                             self.web_semester_parameters, self.web_year)
-                if os.path.isdir(folder_path):
-                    os.startfile(folder_path)
-                    # Gives some time to launch the excel file
-                    time.sleep(1)
-                self.introduction_window()
-            except PermissionError:
-                messagebox.showwarning("Existing excel file open!",
-                                       "Please close your current excel files and try again.")
-                self.get_table_example_window()
-        else:
-            dep = iter(self.web_department_options)
-            for department in dep:
-                create_table(self.urlencode_dict_list, department,
-                             self.web_semester_parameters, self.web_year, get_all_tables=True)
-                self.introduction_window()
-            if os.path.isdir(folder_path):
-                os.startfile(folder_path)
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
@@ -968,7 +910,7 @@ class UserInterface(Frame):
     def create_master_table(self):
         """Moves into the creation process"""
         self.table_friday_include = self.include_friday.get()
-        self.program_loading_window()
+        self.program_loading_window(block_table=True)
 
     def user_table_choice(self):
         """Table days order"""
@@ -1038,11 +980,64 @@ class UserInterface(Frame):
     def exit_function(self):
         sys.exit()
 
-    def program_loading_window(self, block_table=True, gains_data=False, payroll_table=False):
+    def program_loading_window(self, block_table=False):
         self.interface_window_remover()
 
         button_frame = self.creating_step_window = Frame(self)
         button_frame.grid()
+
+        folder = filedialog.askdirectory(title='Please select a directory')
+
+        def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year, web_department_options, folder):
+            """Department chairs might need an example of a file from the previous semester. This function will create a
+            table based on university records."""
+            urlencode_list = []
+
+            folder_path = folder
+
+            def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
+                if not urlencode_dict:
+                    previous_data.PreviousCourses(web_department, web_semester, int(web_year), get_all=get_all_tables)
+                else:
+                    for len_list in range(len(urlencode_dict)):
+                        for departament_semester, urlencode in urlencode_dict[len_list].items():
+                            if departament_semester == web_department:
+                                urlencode_list.append(urlencode)
+                            if departament_semester == web_semester:
+                                urlencode_list.append(urlencode)
+                    if len(urlencode_list) == 2:
+                        if get_all_tables is True:
+                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                          urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                        else:
+                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                          urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                    else:
+                        if get_all_tables is True:
+                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                          get_all=get_all_tables)
+                        else:
+                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                          get_all=get_all_tables)
+
+            if web_department_parameters != "All COB Departments":
+                try:
+                    create_table(urlencode_dict_list, web_department_parameters,
+                                 web_semester_parameters, web_year)
+                    if os.path.isdir(folder_path):
+                        os.startfile(folder_path)
+                        # Gives some time to launch the excel file
+                        time.sleep(1)
+                except PermissionError:
+                    messagebox.showwarning("Existing excel file open!",
+                                           "Please close your current excel files and try again.")
+            else:
+                dep = iter(web_department_options)
+                for department in dep:
+                    create_table(urlencode_dict_list, department,
+                                 web_semester_parameters, web_year, get_all_tables=True)
+                if os.path.isdir(folder_path):
+                    os.startfile(folder_path)
 
         global switch
         switch = False
@@ -1058,6 +1053,8 @@ class UserInterface(Frame):
                 wait_label.grid(column=1, row=2, rowspan=2, padx=10, pady=10)
                 if block_table is True:
                     wait_text.set("\r \n \n \n  Creating a scheduling table...")
+                else:
+                    wait_text.set("\r \n \n \n  Creating a table from web...")
                 wait_label.configure(textvariable=wait_text)
 
                 sys.stdout.flush()
@@ -1073,9 +1070,17 @@ class UserInterface(Frame):
                                                           self.table_settings_semester, self.table_settings_year,
                                                           self.table_settings_type,
                                                           self.table_friday_include,
-                                                          self.room_cap_dict).get_excel_errors()
+                                                          self.room_cap_dict).get_excel_errors
+            self.user_result_window()
+
+        elif folder == "":
+            self.get_table_example_window()
+        else:
+            create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
+                             self.web_year, self.web_department_options, folder)
+            self.introduction_window()
+
         switch = True
-        self.user_result_window()
 
     def user_result_window(self):
         self.interface_window_remover()
