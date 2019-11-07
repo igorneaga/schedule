@@ -74,7 +74,6 @@ class PreviousCourses:
 
             params_list = [parse_params]
             return params_list
-
         full_department_name = transfer_department_name(department_abbreviation=self.user_selected_department)
         params = {
             'semester': None,
