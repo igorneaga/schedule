@@ -1,8 +1,10 @@
-name: Python to Executable
+name: Python Check Code
 
 on: 
   push:
     branches: 
+      - actions-test 
+      - payroll-table 
       - master
 
 jobs:
