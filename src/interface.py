@@ -674,10 +674,11 @@ class UserInterface(Frame):
                                      relief="groove",
                                      bg='#c5eb93',
                                      border='4',
-                                     text="Get and save table(s)",
+                                     text="Get tables and choose folder",
                                      command=self.create_web_table,
                                      foreground="green",
                                      font=('Arial', 14))
+
         create_table_button.grid(sticky="E",
                                  column=0,
                                  columnspan=2,
@@ -703,7 +704,7 @@ class UserInterface(Frame):
 
         urlencode_list = []
 
-        folder = (tk.filedialog.asksaveasfile(mode='w', defaultextension=".xlsx")).name
+        folder = filedialog.askdirectory(title='Please select a directory')
         folder_path = folder
         
         def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
@@ -736,7 +737,7 @@ class UserInterface(Frame):
             try:
                 create_table(self.urlencode_dict_list, self.web_department_parameters,
                              self.web_semester_parameters, self.web_year)
-                if os.path.isfile(folder_path):
+                if os.path.isdir(folder_path):
                     os.startfile(folder_path)
                     # Gives some time to launch the excel file
                     time.sleep(1)
@@ -751,6 +752,8 @@ class UserInterface(Frame):
                 create_table(self.urlencode_dict_list, department,
                              self.web_semester_parameters, self.web_year, get_all_tables=True)
                 self.introduction_window()
+            if os.path.isdir(folder_path):
+                os.startfile(folder_path)
 
     def table_setting_window(self):
         """Gives the ability to provide additional changes to the table if the user wants to."""
