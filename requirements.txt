@@ -1,0 +1,5 @@
+PyInstaller==3.5
+beautifulsoup4==4.8.1
+openpyxl==2.5.14
+requests==2.22.0
+urllib3==1.25.6
