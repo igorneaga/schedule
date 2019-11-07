@@ -3,8 +3,6 @@ name: Python Check Code
 on: 
   push:
     branches: 
-      - actions-test 
-      - payroll-table 
       - master
 
 jobs:
