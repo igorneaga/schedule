@@ -420,16 +420,6 @@ class DataProcessor:
 
                     dict_courses["Credits"] = each_excel_data[6]
                     dict_courses["Course_Title"] = each_excel_data[7]
-                    """
-                    data_coord = 12  # 12 excel columns
-
-                    if (each_excel_data[9] != "None") and (each_excel_data[10] != "None"):
-                        data_coord -= 2
-                    elif each_excel_data[9] != "None":
-                        data_coord -= 1
-                    elif each_excel_data[10] != "None":
-                        data_coord -= 1
-                    """
                     dict_courses["Faculty"] = each_excel_data[12]
                     dict_courses["Enrollment"] = each_excel_data[11]
                     dict_courses = set_online_course(dict_courses, each_excel_data)
@@ -608,6 +598,8 @@ class DataProcessor:
             # Dates from Minnesota State University, Mankato academic calendar
             course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
             course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
+            summer_1st_term = datetime.datetime(2019, 5, 15, 0, 0)
+            summer_2nd_term = datetime.datetime(2019, 6, 18, 0, 0)
 
             # TODO Finish summer dates function
 
