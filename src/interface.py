@@ -716,7 +716,7 @@ class UserInterface(Frame):
                                      bg='#c5eb93',
                                      border='4',
                                      text="Get tables and choose folder",
-                                     command=self.program_loading_window,
+                                     command=self.create_web_table,
                                      foreground="green",
                                      font=('Arial', 14))
 
@@ -951,13 +951,16 @@ class UserInterface(Frame):
     def create_master_table(self):
         """Moves into the creation process"""
         self.table_friday_include = self.include_friday.get()
-        self.program_loading_window(block_table=True)
+        self.program_loading_window(block_table=True, payroll_table=False)
+
+    def create_web_table(self):
+        self.program_loading_window(block_table=False, payroll_table=False)
 
     def create_payroll_table(self):
         """Moves into the creation process"""
 
         self.table_friday_include = 1
-        self.program_loading_window(payroll_table=True)
+        self.program_loading_window(block_table=False, payroll_table=True)
 
     def user_table_choice(self):
         """Table days order"""
@@ -1113,32 +1116,24 @@ class UserInterface(Frame):
 
         # Moves to the next class which is processing all the files
         if block_table is True:
+            print('hm2')
             self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
                                                           self.table_settings_semester, self.table_settings_year,
                                                           self.table_settings_type,
                                                           self.table_friday_include,
                                                           self.room_cap_dict, payroll_table).get_excel_errors()
-        switch = True
-        if payroll_table is False:
-            if block_table is True:
-                self.user_result_window()
-            else:
-                create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                             self.web_year, self.web_department_options, folder)
-                self.introduction_window()
-        else:
-            print("complete payroll")
+
             self.user_result_window()
 
-        elif folder == "":
-            self.get_table_example_window()
-        else:
+        elif payroll_table is False:
             create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                             self.web_year, self.web_department_options, folder)
+                             self.web_year, self.web_department_options, folder=folder)
             self.introduction_window()
+        else:
+            print("complete payroll")
 
         switch = True
-        
+
     def user_result_window(self):
         self.interface_window_remover()
 
@@ -1500,9 +1495,6 @@ class UserInterface(Frame):
             write_file.writeheader()
             write_file.writerow(self.department_cost_dict)
 
-    def test_function(self):
-        self.create_web_table(get_all=True)
-
     def payroll_selection(self):
         self.interface_window_remover()
 
@@ -1690,5 +1682,3 @@ class UserInterface(Frame):
                                  row=3,
                                  padx=20,
                                  pady=200)
-
-        self.test_function()
