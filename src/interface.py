@@ -28,21 +28,20 @@ class UserInterface(Frame):
         self.grid()
 
         # Assets
-        cwd = os.getcwd()
-        self.FixImage = tk.PhotoImage(file=cwd + '\\src\\assets\\report_x45.png')
-        self.InfoImage = tk.PhotoImage(file=cwd + '\\src\\assets\\info_x45.png')
-        self.BackImage = tk.PhotoImage(file=cwd + '\\src\\assets\\back_icon_45x45.png')
-        self.OutOrderImage = tk.PhotoImage(file=cwd + '\\src\\assets\\table_v05_default.png')
-        self.InOrderImage = tk.PhotoImage(file=cwd + '\\src\\assets\\table_v05_in_order.png')
-        self.ExcelCopyFile = tk.PhotoImage(file=cwd + '\\src\\assets\\excel_files_icon.png')
-        self.ExcelMainFile = tk.PhotoImage(file=cwd + '\\src\\assets\\master_file_icon.png')
-        self.CreateMasterImage = tk.PhotoImage(file=cwd + '\\src\\assets\\create_master.png')
-        self.CreatePayrollImage = tk.PhotoImage(file=cwd + '\\src\\assets\\create_fwm_table2.png')
-        self.GetPreviousImage = tk.PhotoImage(file=cwd + '\\src\\assets\\get_prev_tables.png')
-        self.ExitApplicationImage = tk.PhotoImage(file=cwd + '\\src\\assets\\quit_button.png')
-        # self.ApplicationLogoImage = tk.PhotoImage(file=cwd + '\\src\\assets\\u_logo.png')
-        self.UseLocalFiles = tk.PhotoImage(file=cwd + '\\src\\assets\\use_local.png')
-        self.UseWebData = tk.PhotoImage(file=cwd + '\\src\\assets\\use_web.png')
+        self.cwd = os.getcwd()
+        self.FixImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\report_x45.png')
+        self.InfoImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\info_x45.png')
+        self.BackImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\back_icon_45x45.png')
+        self.OutOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_default.png')
+        self.InOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_in_order.png')
+        self.ExcelCopyFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\excel_files_icon.png')
+        self.ExcelMainFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\master_file_icon.png')
+        self.CreateMasterImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_master.png')
+        self.CreatePayrollImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_fwm_table2.png')
+        self.GetPreviousImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\get_prev_tables.png')
+        self.ExitApplicationImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\quit_button.png')
+        self.UseLocalFiles = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_local.png')
+        self.UseWebData = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_web.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")
@@ -1451,16 +1450,20 @@ class UserInterface(Frame):
                         cost_center = dict(row)
                 return cost_center
 
-        csv_file_data = get_csv_file('department_cost.csv')
+        csv_file_data = get_csv_file(f'{self.cwd}\\src\\department_cost.csv')
 
-        cob_department_list = ["Marketing", "Accounting", "Business Law", "Finance", "International Business",
+        cob_department_list = ["Marketing & International Business", "Accounting", "Business Law", "Finance",
                                "MACC", "Management", "MBA", "BUS"]
 
         self.cost_box_insert = []
         department_label_list = []
 
         for i in range(len(cob_department_list)):
-            department_label_list.append(Label(self.mini_frame, text=cob_department_list[i]))  # creates entry boxes
+            if cob_department_list[i] == "Marketing & International Business":
+                short_abbrev = "Marketing & I. Business"
+                department_label_list.append(Label(self.mini_frame, text=short_abbrev))  # creates entry boxes
+            else:
+                department_label_list.append(Label(self.mini_frame, text=cob_department_list[i]))
             self.cost_box_insert.append(Entry(self.mini_frame, text=cob_department_list[i]))  # creates entry boxes
             department_label_list[i].pack()
             if csv_file_data is None:
@@ -1476,7 +1479,7 @@ class UserInterface(Frame):
             self.department_cost_dict.update({self.cost_box_insert[i].cget("text"): self.cost_box_insert[i].get()})
 
         # Writes a csv file
-        cost_file = 'department_cost.csv'
+        cost_file = f'{self.cwd}\\src\\department_cost.csv'
         with open(cost_file, 'w') as new_file:
             write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
             write_file.writeheader()
