@@ -473,7 +473,7 @@ class UserInterface(Frame):
                                               relief="groove",
                                               bg='#c5eb93',
                                               border='4',
-                                              text="Create a Payroll Table",
+                                              text="Select folder to save",
                                               command=self.create_payroll_table,
                                               foreground="green",
                                               font=('Arial', 16, 'bold'))
@@ -1031,7 +1031,7 @@ class UserInterface(Frame):
     def exit_function(self):
         sys.exit()
 
-    def program_loading_window(self, block_table=True, payroll_table=False):
+    def program_loading_window(self, block_table=True, payroll_table=False, count=0):
         self.interface_window_remover()
 
         button_frame = self.creating_step_window = Frame(self)
@@ -1039,60 +1039,64 @@ class UserInterface(Frame):
 
         folder = filedialog.askdirectory(title='Please select a directory')
         if folder == "":
-            self.program_loading_window(block_table, payroll_table)
+            if count == 1:
+                self.introduction_window()
+            else:
+                self.program_loading_window(block_table, payroll_table, count=1)
 
-        def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year, web_department_options, folder):
-            """Department chairs might need an example of a file from the previous semester. This function will create a
-            table based on university records."""
-            urlencode_list = []
+        else:
+            def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year, web_department_options, folder):
+                """Department chairs might need an example of a file from the previous semester. This function will create a
+                table based on university records."""
+                urlencode_list = []
 
-            folder_path = folder
+                folder_path = folder
 
-            def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
-                if not urlencode_dict:
-                    previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                  get_all=get_all_tables)
-                else:
-                    for len_list in range(len(urlencode_dict)):
-                        for departament_semester, urlencode in urlencode_dict[len_list].items():
-                            if departament_semester == web_department:
-                                urlencode_list.append(urlencode)
-                            if departament_semester == web_semester:
-                                urlencode_list.append(urlencode)
-                    if len(urlencode_list) == 2:
-                        if get_all_tables is True:
-                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                          urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
-                        else:
-                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                          urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
+                    if not urlencode_dict:
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                      get_all=get_all_tables)
                     else:
-                        if get_all_tables is True:
-                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                          get_all=get_all_tables)
+                        for len_list in range(len(urlencode_dict)):
+                            for departament_semester, urlencode in urlencode_dict[len_list].items():
+                                if departament_semester == web_department:
+                                    urlencode_list.append(urlencode)
+                                if departament_semester == web_semester:
+                                    urlencode_list.append(urlencode)
+                        if len(urlencode_list) == 2:
+                            if get_all_tables is True:
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                              urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                            else:
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                              urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
                         else:
-                            previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                          get_all=get_all_tables)
+                            if get_all_tables is True:
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                              get_all=get_all_tables)
+                            else:
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                              get_all=get_all_tables)
 
-            if web_department_parameters != "All COB Departments":
-                try:
-                    create_table(urlencode_dict_list, web_department_parameters,
-                                 web_semester_parameters, web_year)
+                if web_department_parameters != "All COB Departments":
+                    try:
+                        create_table(urlencode_dict_list, web_department_parameters,
+                                     web_semester_parameters, web_year)
+                        if os.path.isdir(folder_path):
+                            os.startfile(folder_path)
+                    except PermissionError:
+                        messagebox.showwarning("Existing excel file open!",
+                                               "Please close your current excel files and try again.")
+                else:
+                    dep = iter(web_department_options)
+                    for department in dep:
+                        create_table(urlencode_dict_list, department,
+                                     web_semester_parameters, web_year, get_all_tables=True)
                     if os.path.isdir(folder_path):
                         os.startfile(folder_path)
-                except PermissionError:
-                    messagebox.showwarning("Existing excel file open!",
-                                           "Please close your current excel files and try again.")
-            else:
-                dep = iter(web_department_options)
-                for department in dep:
-                    create_table(urlencode_dict_list, department,
-                                 web_semester_parameters, web_year, get_all_tables=True)
-                if os.path.isdir(folder_path):
-                    os.startfile(folder_path)
 
-        global switch
-        switch = False
+            global switch
+            switch = False
 
         def processor():
             global switch
@@ -1677,7 +1681,7 @@ class UserInterface(Frame):
                                      relief="groove",
                                      bg='#c5eb93',
                                      border='4',
-                                     text="Create table",
+                                     text="Select folder to save",
                                      command=self.create_web_table,
                                      foreground="green",
                                      font=('Arial', 16, 'bold'))
