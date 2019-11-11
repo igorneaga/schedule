@@ -1023,6 +1023,7 @@ class UserInterface(Frame):
                 os.startfile(filename)
 
     def open_excel_copies(self):
+        """For error window"""
         folder_path = "copy_folder\\"
         for filename in glob.glob(os.path.join(folder_path, '*.xlsx')):
             os.startfile(filename)
@@ -1037,6 +1038,8 @@ class UserInterface(Frame):
         button_frame.grid()
 
         folder = filedialog.askdirectory(title='Please select a directory')
+        if folder == "":
+            self.program_loading_window(block_table, payroll_table)
 
         def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year, web_department_options, folder):
             """Department chairs might need an example of a file from the previous semester. This function will create a
@@ -1047,7 +1050,8 @@ class UserInterface(Frame):
 
             def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
                 if not urlencode_dict:
-                    previous_data.PreviousCourses(web_department, web_semester, int(web_year), get_all=get_all_tables)
+                    previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                                                  get_all=get_all_tables)
                 else:
                     for len_list in range(len(urlencode_dict)):
                         for departament_semester, urlencode in urlencode_dict[len_list].items():
@@ -1076,8 +1080,6 @@ class UserInterface(Frame):
                                  web_semester_parameters, web_year)
                     if os.path.isdir(folder_path):
                         os.startfile(folder_path)
-                        # Gives some time to launch the excel file
-                        time.sleep(1)
                 except PermissionError:
                     messagebox.showwarning("Existing excel file open!",
                                            "Please close your current excel files and try again.")
@@ -1103,8 +1105,11 @@ class UserInterface(Frame):
                 wait_label.grid(column=1, row=2, rowspan=2, padx=10, pady=10)
                 if block_table is True:
                     wait_text.set("\r \n \n \n  Creating a scheduling table...")
+                elif payroll_table is True:
+                    wait_text.set("\r \n \n \n  Creating a Payroll table...")
                 else:
                     wait_text.set("\r \n \n \n  Creating a table from web...")
+
                 wait_label.configure(textvariable=wait_text)
 
                 sys.stdout.flush()
@@ -1130,7 +1135,7 @@ class UserInterface(Frame):
                              self.web_year, self.web_department_options, folder=folder)
             self.introduction_window()
         else:
-            print("complete payroll")
+            print("Complete Payroll")
 
         switch = True
 
