@@ -370,9 +370,6 @@ class UserInterface(Frame):
                             pady=30,
                             padx=245)
 
-    def payroll_table_first_step(self):
-        pass
-
     def selection_step_window(self):
         # Removes any other necessary window
         payroll_selection = False
@@ -1098,50 +1095,57 @@ class UserInterface(Frame):
             global switch
             switch = False
 
-        def processor():
-            global switch
+            def processor():
+                global switch
 
-            wait_text = StringVar()
-            while not switch:
-                wait_label = tk.Label(button_frame, textvariable=wait_text,
-                                      foreground="green",
-                                      font=('Courier', 20, 'bold'))
-                wait_label.grid(column=1, row=2, rowspan=2, padx=10, pady=10)
-                if block_table is True:
-                    wait_text.set("\r \n \n \n  Creating a scheduling table...")
-                elif payroll_table is True:
-                    wait_text.set("\r \n \n \n  Creating a Payroll table...")
-                else:
-                    wait_text.set("\r \n \n \n  Creating a table from web...")
+                wait_text = StringVar()
+                while not switch:
+                    wait_label = tk.Label(button_frame, textvariable=wait_text,
+                                          foreground="green",
+                                          font=('Courier', 20, 'bold'))
+                    wait_label.grid(column=1, row=2, rowspan=2, padx=10, pady=10)
+                    if block_table is True:
+                        wait_text.set("\r \n \n \n  Creating a scheduling table...")
+                    elif payroll_table is True:
+                        wait_text.set("\r \n \n \n  Creating a Payroll table...")
+                    else:
+                        wait_text.set("\r \n \n \n  Creating a table from web...")
 
-                wait_label.configure(textvariable=wait_text)
+                    wait_label.configure(textvariable=wait_text)
 
-                sys.stdout.flush()
-                time.sleep(0.1)
+                    sys.stdout.flush()
+                    time.sleep(0.1)
 
-        processor_threading = threading.Thread(target=processor, name="processor thread")
-        processor_threading.start()
-        button_frame.update()
+            processor_threading = threading.Thread(target=processor, name="processor thread")
+            processor_threading.start()
+            button_frame.update()
 
-        # Moves to the next class which is processing all the files
-        if block_table is True:
-            print('hm2')
-            self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
-                                                          self.table_settings_semester, self.table_settings_year,
-                                                          self.table_settings_type,
-                                                          self.table_friday_include,
-                                                          self.room_cap_dict, payroll_table).get_excel_errors()
+            # Moves to the next class which is processing all the files
+            if block_table is True:
+                self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
+                                                              self.table_settings_semester, self.table_settings_year,
+                                                              self.table_settings_type,
+                                                              self.table_friday_include,
+                                                              self.room_cap_dict, payroll_table).get_excel_errors()
 
-            self.user_result_window()
+                self.user_result_window()
 
-        elif payroll_table is False:
-            create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                             self.web_year, self.web_department_options, folder=folder)
-            self.introduction_window()
-        else:
-            print("Complete Payroll")
+            elif payroll_table is False:
+                create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
+                                 self.web_year, self.web_department_options, folder=folder)
+                self.introduction_window()
+            else:
+                pass
+                """"
+                self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
+                                                             self.table_settings_semester, self.table_settings_year,
+                                                             self.table_settings_type,
+                                                             self.table_friday_include,
+                                                             self.room_cap_dict, payroll_table)
+                """
+                print("Complete Payroll")
 
-        switch = True
+            switch = True
 
     def user_result_window(self):
         self.interface_window_remover()

@@ -9,7 +9,7 @@ import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
 
-from src import room_schedule_table, payroll_table
+from src import room_schedule_table, payroll_table_process
 
 
 class DataProcessor:
@@ -99,7 +99,7 @@ class DataProcessor:
             if self.payroll is False:
                 self.create_excel_table()
             else:
-                payroll_table.PayrollTable(self.dict_courses_list)
+                payroll_table_process.PayrollTable(self.dict_courses_list)
 
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
@@ -450,7 +450,6 @@ class DataProcessor:
                         dict_courses["Course_Title"] = each_excel_data[7]
                         dict_courses["Enrollment"] = each_excel_data[11]
                         dict_courses["Faculty"] = each_excel_data[12]
-                        dict_courses["Semester"] = self.table_semester
                         try:
                             dict_courses["Start_Time"] = time_split[0]
                             dict_courses["End_Time"] = time_split[1]
@@ -596,28 +595,47 @@ class DataProcessor:
             """Checks if courses has dates and dates differences"""
 
             # Dates from Minnesota State University, Mankato academic calendar
-            course_fall_term = datetime.datetime(2019, 8, 24, 0, 0)
-            course_spring_term = datetime.datetime(2019, 1, 11, 0, 0)
-            summer_1st_term = datetime.datetime(2019, 5, 15, 0, 0)
-            summer_2nd_term = datetime.datetime(2019, 6, 18, 0, 0)
+            now = datetime.datetime.now()
+            first_year = now.year
+            second_year = now.year + 1
+            if first_course.year < second_course.year:
+                first_year = first_course.year
+            elif first_course.year > second_course.year:
+                second_year = second_course.year
+            else:
+                first_year = first_course.year
+                second_year = second_course.year
 
-            # TODO Finish summer dates function
+            course_fall_term = datetime.datetime(year=first_year, month=8, day=24)
+            course_spring_term = datetime.datetime(year=first_year, month=1, day=11)
+            summer_1st_term = datetime.datetime(year=second_year, month=5, day=15)
+            summer_2nd_term = datetime.datetime(year=second_year, month=6, day=18)
 
             if (first_course is "None") or (first_course is None) or (second_course is "None") or \
                     (second_course is None):
                 return False
             else:
                 # Checks if there is a difference bigger than 33 days in the dates.
-                if ((course_fall_term - datetime.timedelta(days=33)).month <= first_course.month <=
-                    (course_fall_term + datetime.timedelta(days=33)).month
-                    or (course_spring_term - datetime.timedelta(days=33)).month <= first_course.month
-                    <= (course_spring_term + datetime.timedelta(days=33)).month) \
-                        and ((course_fall_term - datetime.timedelta(days=33)).month <= second_course.month
-                             <= (course_fall_term + datetime.timedelta(days=33)).month
-                             or (course_spring_term - datetime.timedelta(days=33)).month <= second_course.month
-                             <= (course_spring_term + datetime.timedelta(days=33)).month):
+                if ((course_fall_term - datetime.timedelta(days=33)) <= first_course <=
+                    (course_fall_term + datetime.timedelta(days=33))
+                    or (course_spring_term - datetime.timedelta(days=33)) <= first_course
+                    <= (course_spring_term + datetime.timedelta(days=33))) \
+                        and ((course_fall_term - datetime.timedelta(days=33)) <= second_course
+                             <= (course_fall_term + datetime.timedelta(days=33))
+                             or (course_spring_term - datetime.timedelta(days=33)) <= second_course
+                             <= (course_spring_term + datetime.timedelta(days=33))):
                     return False
                 elif first_course.month == second_course.month:
+                    return False
+                # Summer
+                elif ((summer_1st_term - datetime.timedelta(days=33)).month <= first_course.month <=
+                     (summer_1st_term + datetime.timedelta(days=33)).month
+                     or (summer_2nd_term - datetime.timedelta(days=33)).month <= first_course.month
+                     <= (summer_2nd_term + datetime.timedelta(days=33)).month) \
+                    and ((summer_1st_term - datetime.timedelta(days=33)).month <= second_course.month
+                         <= (summer_1st_term + datetime.timedelta(days=33)).month
+                         or (summer_2nd_term - datetime.timedelta(days=33)).month <= second_course.month
+                         <= (summer_2nd_term + datetime.timedelta(days=33)).month):
                     return False
                 else:
                     return True
@@ -715,7 +733,6 @@ class DataProcessor:
                                                 if start_time_d <= start_time_i <= end_time_d:
                                                     self.time_conflict_comment(list_dict_copy[course_i],
                                                                                list_dict_copy[course_d + 1])
-                                                    # del self.list_dict_courses[course_i]
 
                                                 elif start_time_d <= end_time_i <= end_time_d:
                                                     self.time_conflict_comment(list_dict_copy[course_i],
