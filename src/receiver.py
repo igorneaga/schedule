@@ -14,8 +14,9 @@ from src import room_schedule_table, payroll_table_process
 
 class DataProcessor:
 
-    def __init__(self, file_directory, table_name, table_semester, table_year, table_type, friday, classroom_capacity,
-                 payroll):
+    def __init__(self, folder, file_directory, table_name, table_semester, table_year, table_type, friday,
+                 classroom_capacity, payroll):
+        self.save_path = folder
         self.file_directory = file_directory
         self.table_name = table_name
         self.table_semester = table_semester
@@ -804,7 +805,7 @@ class DataProcessor:
 
     def create_excel_table(self):
         """Moves into another class"""
-        room_schedule_table.MasterDesign(self.dict_courses_list, self.different_date_list,
+        room_schedule_table.MasterDesign(self.save_path, self.dict_courses_list, self.different_date_list,
                                          self.course_days, self.table_year, self.table_name, self.table_semester)
 
     def get_excel_errors(self):

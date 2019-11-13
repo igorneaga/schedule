@@ -28,7 +28,8 @@ class UserInterface(Frame):
         self.grid()
 
         # Assets
-        self.cwd = os.getcwd()
+        self.cwd = os.getcwd()  # Assets path
+        self.path = self.cwd  # File saving
         self.FixImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\report_x45.png')
         self.InfoImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\info_x45.png')
         self.BackImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\back_icon_45x45.png')
@@ -413,7 +414,7 @@ class UserInterface(Frame):
             back_button = Button(button_frame,
                                  border='0',
                                  image=self.BackImage,
-                                 command=self.payroll_selection)
+                                 command=self.payroll_cost_center)
             back_button.grid(sticky='WN',
                              column=0,
                              row=1,
@@ -925,7 +926,7 @@ class UserInterface(Frame):
                                   relief="groove",
                                   bg='#c5eb93',
                                   border='4',
-                                  text="Create table",
+                                  text="Select Folder",
                                   command=self.create_master_table,
                                   foreground="green",
                                   font=('Arial', 16, 'bold'))
@@ -1014,7 +1015,8 @@ class UserInterface(Frame):
         """Opens a master table"""
         try:
             self.table_settings_name.replace(" ", "")
-            os.startfile('__excel_files\\ \n.xlsx')
+
+            os.startfile(self.folder + '\\' + self.table_settings_name + '.xlsx')
         except FileNotFoundError:
             for filename in glob.glob(os.path.join('__excel_files\\', '*.xlsx')):
                 os.startfile(filename)
@@ -1034,8 +1036,8 @@ class UserInterface(Frame):
         button_frame = self.creating_step_window = Frame(self)
         button_frame.grid()
 
-        folder = filedialog.askdirectory(title='Please select a directory')
-        if folder == "":
+        self.folder = filedialog.askdirectory(title='Please select a directory')
+        if self.folder == "":
             if count == 1:
                 self.introduction_window()
             else:
@@ -1122,7 +1124,8 @@ class UserInterface(Frame):
 
             # Moves to the next class which is processing all the files
             if block_table is True:
-                self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
+                self.error_data_list = receiver.DataProcessor(self.folder,
+                                                              self.files_show_directory, self.table_settings_name,
                                                               self.table_settings_semester, self.table_settings_year,
                                                               self.table_settings_type,
                                                               self.table_friday_include,
@@ -1132,7 +1135,7 @@ class UserInterface(Frame):
 
             elif payroll_table is False:
                 create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                                 self.web_year, self.web_department_options, folder=folder)
+                                 self.web_year, self.web_department_options, folder=self.folder)
                 self.introduction_window()
             else:
                 pass
@@ -1426,7 +1429,7 @@ class UserInterface(Frame):
                                      bg='#c5eb93',
                                      border='4',
                                      text="Next step >",
-                                     command=self.payroll_selection,
+                                     command=self.selection_step_window,
                                      foreground="green",
                                      font=('Arial', 16, 'bold'))
         self.move_next_step.grid(sticky='w',
@@ -1507,7 +1510,7 @@ class UserInterface(Frame):
             write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
             write_file.writeheader()
             write_file.writerow(self.department_cost_dict)
-
+    """
     def payroll_selection(self):
         self.interface_window_remover()
 
@@ -1577,7 +1580,9 @@ class UserInterface(Frame):
                          rowspan=2,
                          pady=10,
                          padx=120)
+    """
 
+    """
     def payroll_web_selection(self):
         self.interface_window_remover()
 
@@ -1695,3 +1700,4 @@ class UserInterface(Frame):
                                  row=3,
                                  padx=20,
                                  pady=200)
+    """

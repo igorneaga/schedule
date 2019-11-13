@@ -12,7 +12,8 @@ from openpyxl.worksheet.pagebreak import Break
 
 class MasterDesign:
 
-    def __init__(self, list_dict_courses, list_different_date, days, year, table_name, table_semester):
+    def __init__(self, save_path, list_dict_courses, list_different_date, days, year, table_name, table_semester):
+        self.save_path = save_path
         self.list_dict_courses = list_dict_courses
         self.different_date_courses = list_different_date
         self.days = days
@@ -224,20 +225,20 @@ class MasterDesign:
     def save_excel_file(self):
         """Saves excel file by using user input"""
         if self.table_name[-5:] == ".xlsx":
-            self.workbook.save('__excel_files\\' + self.table_name)
+            self.workbook.save(self.save_path + '\\' + self.table_name)
         else:
             self.table_name = "".join(self.table_name.split())
             if not self.table_name:
                 self.table_name = "Empty_Name"
-            self.workbook.save('__excel_files\\' + self.table_name + ".xlsx")
+            self.workbook.save(self.save_path + '\\' + self.table_name + ".xlsx")
 
     def create_master_file(self):
         """Creates a folder and excel file"""
-        def create_directory():
+        def create_directory(path):
             """Creates directory for created excel file"""
-            if not os.path.exists('__excel_files'):
-                os.makedirs('__excel_files')
-        create_directory()
+            if not os.path.exists(path):
+                os.makedirs(path)
+        create_directory(self.save_path)
 
         self.workbook = openpyxl.Workbook()
 
