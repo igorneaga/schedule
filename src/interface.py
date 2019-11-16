@@ -97,7 +97,7 @@ class UserInterface(Frame):
 
         # Semester & Department & Year from university website
         self.web_semesters_options = []
-        self.web_department_options = ["All COB Departments"]
+        self.web_department_options = []
         self.web_year_options = []
 
         # Stores data about room capacity
@@ -157,6 +157,12 @@ class UserInterface(Frame):
                     self.web_department_options.append(key[symbol_index + 1:-1])
                     test_dict[key[symbol_index + 1:-1]] = self.param[param_len].get(key)
                     self.urlencode_dict_list.append(test_dict)
+
+        # Insert additional shortkey departments
+        self.web_department_options.append("All COB Departments")
+        self.web_department_options.append("ACCT & BLAW & MACC")
+        self.web_department_options.append("MRKT & IBUS")
+        self.web_department_options.append("MGMT & MBA")
 
     def submit_ticket_form(self):
         """Opens a Google Form to collect any reports or requests"""
@@ -656,6 +662,7 @@ class UserInterface(Frame):
         variable_web_semesters = StringVar(button_frame)
         variable_web_years = StringVar(button_frame)
         variable_web_department = StringVar(button_frame)
+
         # Sets defaults values for interface
         variable_web_department.set(self.web_department_options[0])
         variable_web_semesters.set(self.web_semesters_options[0])
@@ -1077,7 +1084,9 @@ class UserInterface(Frame):
                                 previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
                                                               get_all=get_all_tables)
 
-                if web_department_parameters != "All COB Departments":
+
+                if web_department_parameters not in ["All COB Departments", "ACCT & BLAW & MACC",
+                                                     "MRKT & IBUS", "MGMT & MBA"]:
                     try:
                         create_table(urlencode_dict_list, web_department_parameters,
                                      web_semester_parameters, web_year)
@@ -1087,10 +1096,30 @@ class UserInterface(Frame):
                         messagebox.showwarning("Existing excel file open!",
                                                "Please close your current excel files and try again.")
                 else:
-                    dep = iter(web_department_options)
-                    for department in dep:
-                        create_table(urlencode_dict_list, department,
-                                     web_semester_parameters, web_year, get_all_tables=True)
+                    if web_department_parameters == "All COB Departments":
+                        dep = iter(web_department_options)
+                        for department in dep:
+                            create_table(urlencode_dict_list, department,
+                                         web_semester_parameters, web_year, get_all_tables=True)
+                    elif web_department_parameters == "ACCT & BLAW & MACC":
+                        create_table(urlencode_dict_list, "ACCT",
+                                     web_semester_parameters, web_year)
+                        create_table(urlencode_dict_list, "BLAW",
+                                     web_semester_parameters, web_year)
+                        create_table(urlencode_dict_list, "MACC",
+                                     web_semester_parameters, web_year)
+                    elif web_department_parameters == "MRKT & IBUS":
+                        create_table(urlencode_dict_list, "MRKT",
+                                     web_semester_parameters, web_year)
+                        create_table(urlencode_dict_list, "IBUS",
+                                     web_semester_parameters, web_year)
+                    elif web_department_parameters == "MGMT & MBA":
+                        create_table(urlencode_dict_list, "MGMT",
+                                     web_semester_parameters, web_year)
+                        create_table(urlencode_dict_list, "MBA",
+                                     web_semester_parameters, web_year)
+                    else:
+                        pass
                     if os.path.isdir(folder_path):
                         os.startfile(folder_path)
 
@@ -1138,14 +1167,13 @@ class UserInterface(Frame):
                                  self.web_year, self.web_department_options, folder=self.folder)
                 self.introduction_window()
             else:
-                pass
-                """"
-                self.error_data_list = receiver.DataProcessor(self.files_show_directory, self.table_settings_name,
+
+                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory, self.table_settings_name,
                                                              self.table_settings_semester, self.table_settings_year,
                                                              self.table_settings_type,
                                                              self.table_friday_include,
                                                              self.room_cap_dict, payroll_table)
-                """
+
                 print("Complete Payroll")
 
             switch = True

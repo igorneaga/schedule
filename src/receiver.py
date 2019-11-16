@@ -92,15 +92,19 @@ class DataProcessor:
                 set_file_path = 'copy_folder\\'+'copy_' + get_file_name
                 self.get_excel_data(workbook_copy, self.file_directory[i])
                 self.set_dict_courses(self.excel_data_list)
-                self.time_conflict()
-                self.file_paths_list.append(set_file_path)
-                self.color_comment_copy_excel(workbook_copy, self.file_directory[i])
-                workbook_copy.save(set_file_path)
+                if self.payroll is False:
+                    self.time_conflict()
+                    self.file_paths_list.append(set_file_path)
+                    self.color_comment_copy_excel(workbook_copy, self.file_directory[i])
+                    workbook_copy.save(set_file_path)
             self.get_excel_errors()
             if self.payroll is False:
                 self.create_excel_table()
             else:
-                payroll_table_process.PayrollTable(self.dict_courses_list)
+                print(self.dict_courses_list)
+                print(len(self.dict_courses_list))
+
+                #payroll_table_process.PayrollTable(self.dict_courses_list)
 
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
