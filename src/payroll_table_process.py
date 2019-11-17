@@ -7,6 +7,8 @@ import os
 import csv
 import openpyxl
 import string
+from openpyxl.styles.borders import Border, Side
+from openpyxl.styles import Font, Alignment, PatternFill
 
 from pprint import pprint
 
@@ -199,8 +201,10 @@ class PayrollTable:
         self.dates_heading()
         self.instructions_text()
         self.department_text(department)
-        self.merge_excel_cells()
+        self.merge_headings()
         self.insert_courses()
+        self.adjust_cells_width()
+        self.border_all_cells()
 
         self.workbook.save('__excel_files\\' + department + "_" + "Payroll" + ".xlsx")
 
@@ -227,8 +231,13 @@ class PayrollTable:
 
     def instructions_text(self):
         self.sheet["G1"] = "* Key Concept for Scheduling - *Max Credits for Fall=14"
+        self.sheet["G1"].font = Font(color="FF493B")
+
         self.sheet["G2"] = "* Final Total Credits must be 24"
+        self.sheet["G2"].font = Font(color="FF493B")
+
         self.sheet["G3"] = "* Max Credit for the Year 29 with Overload"
+        self.sheet["G3"].font = Font(color="FF493B")
 
     def department_text(self, department):
         if department == "ACCT.BLAW.MACC":
@@ -243,27 +252,25 @@ class PayrollTable:
         else:
             self.sheet["A3"] = department
 
-
-    def merge_excel_cells(self):
-        # Dates merge cells
-        self.sheet.merge_cells("B1:C1")
-        self.sheet.merge_cells("A2:B2")
+    def merge_headings(self):
+        # Date
+        self.merge_excel_cells(start_row=1, start_column=2, end_row=1, end_column=2)
 
         # Department
-        self.sheet.merge_cells("A3:C3")
+        self.merge_excel_cells(start_row=3, start_column=1, end_row=3, end_column=3)
 
         # Instructions merge cells
-        self.sheet.merge_cells("G1:K1")
-        self.sheet.merge_cells("G2:K2")
-        self.sheet.merge_cells("G3:K3")
+        self.merge_excel_cells(start_row=1, start_column=7, end_row=1, end_column=11)
+        self.merge_excel_cells(start_row=2, start_column=7, end_row=2, end_column=11)
+        self.merge_excel_cells(start_row=3, start_column=7, end_row=3, end_column=11)
 
     def insert_courses(self):
-        start_row = 4
+        changing_row = 4
         # Columns
 
         def insert_columns(semester, year, sheet, row):
-            repetitive_headers = ["Subject", "Section", "Course Name", "Cost Center", "Credits", "Room", "Time", "Days",
-                                  "Dates"]
+            repetitive_headers = ["Subject", "Section", "Course Name", "Cost Center", "Credits", "Enrollments", "Room",
+                                  "Time", "Days", "Dates"]
             sheet["D" + str(row)] = semester.upper() + " " + str(year)
             row += 1
 
@@ -274,7 +281,7 @@ class PayrollTable:
             row += 1
             return row
 
-        def insert_courses(sheet, course, row):
+        def insert_dict(sheet, course, row):
             # 10 columns
             c = course.get("Course").split()
             sheet["B" + str(row)] = c[0]
@@ -289,50 +296,131 @@ class PayrollTable:
             sheet["G" + str(row)] = course.get("Enrollment")
             sheet["H" + str(row)] = course.get("Room")
             sheet["I" + str(row)] = course.get("Start_Time") + " - " + course.get("End_Time")
-            # sheet["K" + str(row)] = course.get("Start_Date") + " - " + course.get("End_Date")
+            courses_days_string = ", ".join(course.get("Course_Days"))
+            sheet["J" + str(row)] = courses_days_string
+            sheet["K" + str(row)] = course.get("Start_Date").strftime('%m/%d/%Y') + " - " + course.get("End_Date").strftime('%m/%d/%Y')
             row += 1
 
             return row
 
         for faculty in self.dep_courses:
+            s_row = changing_row
             fall_course_list = []
             spring_course_list = []
             none_course_list = []
 
-            self.sheet["A" + str(start_row)] = re.sub(' +', ' ', faculty)  # Removes spaces
+            self.sheet["A" + str(changing_row)] = re.sub(' +', ' ', faculty)  # Removes spaces
 
             fall_year = None
             spring_year = None
+            employee_type = ((self.dep_courses.get(faculty)).get("professor")).get("title")
+            if (employee_type is None) or (employee_type.lower() != "adjunct"):
+                for course in (self.dep_courses.get(faculty)).get("courses"):
+                    if course.get("Semester") == "Fall":
+                        fall_course_list.append(course)
+                        fall_year = course.get("Year")
+                    elif course.get("Semester") == "Spring":
+                        spring_course_list.append(course)
+                        spring_year = course.get("Year")
+                    else:
+                        none_course_list.append(course)
 
-            print(self.dep_courses.get(faculty))
-            # TODO: Add adjuncts & FULL TIME
-            #if ((self.dep_courses.get(faculty)).get("professor")).get("type") == "adjunct":
-            for course in (self.dep_courses.get(faculty)).get("courses"):
-                if course.get("Semester") == "Fall":
-                    fall_course_list.append(course)
-                    fall_year = course.get("Year")
-                elif course.get("Semester") == "Spring":
-                    spring_course_list.append(course)
-                    spring_year = course.get("Year")
+                if (fall_year is None) or (spring_year is None):
+                    if fall_year is None:
+                        now = datetime.datetime.now()
+                        fall_year = (now.year) - 1
+                    else:
+                        now = datetime.datetime.now()
+                        spring_year = now.year
+
+                changing_row = insert_columns("FALL", fall_year, self.sheet, changing_row)
+                f_credits = 0
+                for f_courses in fall_course_list:
+                    f_credits += f_courses.get("Credits")
+                    changing_row = insert_dict(self.sheet, f_courses, changing_row)
+                self.sheet["F"+str(changing_row)] = f_credits
+                clr = PatternFill(start_color='fcdfbe', end_color='fcdfbe', fill_type='solid')
+                self.sheet["F" + str(changing_row)].fill = clr
+                changing_row += 1
+                changing_row = insert_columns("SPRING", spring_year, self.sheet, changing_row)
+
+                s_credits = 0
+                for c_courses in spring_course_list:
+                    s_credits += c_courses.get("Credits")
+                    changing_row = insert_dict(self.sheet, c_courses, changing_row)
+                self.sheet["F"+str(changing_row)] = s_credits
+                clr = PatternFill(start_color='fcdfbe', end_color='fcdfbe', fill_type='solid')
+                self.sheet["F" + str(changing_row)].fill = clr
+                changing_row += 1
+
+                # Total credits for both semesters
+                total_credits = f_credits + s_credits
+                self.sheet["F" + str(changing_row)] = total_credits
+                if total_credits > 24:
+                    clr = PatternFill(start_color='fa8072', end_color='fa8072', fill_type='solid')
                 else:
-                    none_course_list.append(course)
+                    clr = PatternFill(start_color='76C54F', end_color='d5d8e0', fill_type='solid')
+                self.sheet["F" + str(changing_row)].fill = clr
+                changing_row += 1
 
-            if (fall_year is None) or (spring_year is None):
-                if fall_year is None:
-                    now = datetime.datetime.now()
-                    fall_year = (now.year) - 1
-                else:
-                    now = datetime.datetime.now()
-                    spring_year = now.year
+                self.merge_excel_cells(start_row=s_row, start_column=1, end_row=changing_row-1, end_column=1,
+                                       style=True, bold=True)
 
-            start_row = insert_columns("FALL", fall_year, self.sheet, start_row)
-            for f_courses in fall_course_list:
-                start_row = insert_courses(self.sheet, f_courses, start_row)
+    def adjust_cells_width(self):
+        """Adjusts all the cell width. It is really cool"""
+        # Gets last column
+        for column in self.sheet.columns:
+            max_length = 0
+            # Gets column coordinates
+            get_column = column[0].column
+            if get_column is "A":
+                self.sheet.column_dimensions["A"].width = 18
+            elif get_column is "G":
+                self.sheet.column_dimensions["G"].width = 13
+            else:
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except TypeError:
+                        pass
+                # A formula for auto adjusted width
+                adjusted_width = (max_length + 2) * 1.035
+                if adjusted_width > 25.5:
+                    adjusted_width = 25.5
+                self.sheet.column_dimensions[get_column].width = adjusted_width
 
-            start_row = insert_columns("SPRING", spring_year, self.sheet, start_row)
+    def merge_excel_cells(self, start_row, start_column, end_row, end_column, style=False, bold=False):
+        """Merges excel cells"""
+        excel_sheet = self.sheet
+        excel_sheet.merge_cells(start_row=start_row, start_column=start_column, end_row=end_row, end_column=end_column)
 
-            for c_courses in spring_course_list:
-                start_row = insert_courses(self.sheet, c_courses, start_row)
+        def style_excel_cell(sheet, row, column):
+            """Styles a cell"""
+            sheet.cell(row=row, column=column).font = Font(sz=11, bold=bold, italic=False)
+            sheet.cell(row=row, column=column).alignment = Alignment(horizontal='center',
+                                                                     vertical='center', wrap_text=True)
+        if style is True:
+            style_excel_cell(excel_sheet, start_row, start_column)
 
+    def border_all_cells(self):
+        """Borders all table"""
+        # Gets table size
+        excel_max_row = self.sheet.max_row
+        excel_max_column = self.sheet.max_column
+
+        # Style of a border
+        thin_border = Border(left=Side(style='thin'),
+                             right=Side(style='thin'),
+                             top=Side(style='thin'),
+                             bottom=Side(style='thin'))
+
+        # Goes over each cell and applies border
+        for column in range(excel_max_column):
+            # Transfers column to an alphabetical format
+            col_letter = ''.join(string.ascii_uppercase[column])
+            for row in range(excel_max_row):
+                row += 1
+                self.sheet[col_letter + str(row)].border = thin_border
 
 PayrollTable()
