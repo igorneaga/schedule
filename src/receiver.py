@@ -101,10 +101,7 @@ class DataProcessor:
             if self.payroll is False:
                 self.create_excel_table()
             else:
-                print(self.dict_courses_list)
-                print(len(self.dict_courses_list))
-
-                #payroll_table_process.PayrollTable(self.dict_courses_list)
+                payroll_table_process.PayrollTable(self.dict_courses_list, self.save_path)
 
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files
@@ -603,13 +600,16 @@ class DataProcessor:
             now = datetime.datetime.now()
             first_year = now.year
             second_year = now.year + 1
-            if first_course.year < second_course.year:
-                first_year = first_course.year
-            elif first_course.year > second_course.year:
-                second_year = second_course.year
-            else:
-                first_year = first_course.year
-                second_year = second_course.year
+            try:
+                if first_course.year < second_course.year:
+                    first_year = first_course.year
+                elif first_course.year > second_course.year:
+                    second_year = second_course.year
+                else:
+                    first_year = first_course.year
+                    second_year = second_course.year
+            except AttributeError:
+                pass
 
             course_fall_term = datetime.datetime(year=first_year, month=8, day=24)
             course_spring_term = datetime.datetime(year=first_year, month=1, day=11)

@@ -38,7 +38,7 @@ class UserInterface(Frame):
         self.ExcelCopyFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\excel_files_icon.png')
         self.ExcelMainFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\master_file_icon.png')
         self.CreateMasterImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_master.png')
-        self.CreatePayrollImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_fwm_table2.png')
+        self.CreatePayrollImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_fwm_table.png')
         self.GetPreviousImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\get_prev_tables.png')
         self.ExitApplicationImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\quit_button.png')
         self.UseLocalFiles = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_local.png')
@@ -358,7 +358,7 @@ class UserInterface(Frame):
         create_payroll_button = Button(button_frame,
                                        border='0',
                                        image=self.CreatePayrollImage,
-                                       command= self.payroll_cost_center)
+                                       command=self.payroll_cost_center)
         create_payroll_button.grid(column=0,
                                    row=4,
                                    sticky='w',
@@ -1028,6 +1028,8 @@ class UserInterface(Frame):
             for filename in glob.glob(os.path.join('__excel_files\\', '*.xlsx')):
                 os.startfile(filename)
 
+    def open_payroll_folder(self):
+        os.startfile(self.folder)
     def open_excel_copies(self):
         """For error window"""
         folder_path = "copy_folder\\"
@@ -1051,7 +1053,8 @@ class UserInterface(Frame):
                 self.program_loading_window(block_table, payroll_table, count=1)
 
         else:
-            def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year, web_department_options, folder):
+            def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year,
+                                 web_department_options, folder):
                 """Department chairs might need an example of a file from the previous semester. This function will create a
                 table based on university records."""
                 urlencode_list = []
@@ -1072,10 +1075,12 @@ class UserInterface(Frame):
                         if len(urlencode_list) == 2:
                             if get_all_tables is True:
                                 previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                                                              urlencode_list[0], urlencode_list[1],
+                                                              get_all=get_all_tables)
                             else:
                                 previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              urlencode_list[0], urlencode_list[1], get_all=get_all_tables)
+                                                              urlencode_list[0], urlencode_list[1],
+                                                              get_all=get_all_tables)
                         else:
                             if get_all_tables is True:
                                 previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
@@ -1083,7 +1088,6 @@ class UserInterface(Frame):
                             else:
                                 previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
                                                               get_all=get_all_tables)
-
 
                 if web_department_parameters not in ["All COB Departments", "ACCT & BLAW & MACC",
                                                      "MRKT & IBUS", "MGMT & MBA"]:
@@ -1168,13 +1172,14 @@ class UserInterface(Frame):
                 self.introduction_window()
             else:
 
-                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory, self.table_settings_name,
-                                                             self.table_settings_semester, self.table_settings_year,
-                                                             self.table_settings_type,
-                                                             self.table_friday_include,
-                                                             self.room_cap_dict, payroll_table)
+                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
+                                                              self.table_settings_name,
+                                                              self.table_settings_semester, self.table_settings_year,
+                                                              self.table_settings_type,
+                                                              self.table_friday_include,
+                                                              self.room_cap_dict, payroll_table)
 
-                print("Complete Payroll")
+                self.payroll_finish_window()
 
             switch = True
 
@@ -1427,9 +1432,9 @@ class UserInterface(Frame):
                          padx=3)
 
         payroll_step_description = ttk.Label(button_frame,
-                                     text="1. First Step: Provide Cost Center",
-                                     foreground="gray",
-                                     font=('Arial', 16))
+                                             text="1. First Step: Provide Cost Center",
+                                             foreground="gray",
+                                             font=('Arial', 16))
         payroll_step_description.place(x=50, y=65)
 
         comma_note = ttk.Label(button_frame,
@@ -1538,6 +1543,62 @@ class UserInterface(Frame):
             write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
             write_file.writeheader()
             write_file.writerow(self.department_cost_dict)
+
+    def payroll_finish_window(self):
+        self.interface_window_remover()
+
+        button_frame = self.payroll_window = Frame(self)
+        button_frame.grid()
+
+        instructions_message = "Payroll table(s) has been created ✔"
+
+        table_created_text = ttk.Label(button_frame,
+                                       text=instructions_message,
+                                       foreground="green",
+                                       font=('Arial', 24, 'bold'))
+        table_created_text.grid(column=0,
+                                columnspan=3,
+                                row=1,
+                                rowspan=2,
+                                padx=55,
+                                pady=30)
+
+        possible_error_notification = ttk.Label(button_frame,
+                                                text="Please check for error at the end of excel file",
+                                                foreground="green",
+                                                font=('Arial', 12))
+        possible_error_notification.grid(column=0,
+                                         sticky='s',
+                                         columnspan=3,
+                                         row=2,
+                                         padx=150,
+                                         pady=0)
+
+        open_file_button = Button(button_frame,
+                                  relief="groove",
+                                  bg='#c5eb93',
+                                  border='4',
+                                  text="Open a Folder",
+                                  command=self.open_payroll_folder,
+                                  foreground="green",
+                                  font=('Arial', 20, 'bold'))
+        open_file_button.grid(columnspan=3,
+                              row=3,
+                              pady=30)
+
+        exit_program_button = Button(button_frame,
+                                     relief="groove",
+                                     bg='#c5eb93',
+                                     border='4',
+                                     text="Exit",
+                                     command=self.exit_function,
+                                     foreground="green",
+                                     font=('Arial', 16, 'bold'))
+        exit_program_button.grid(columnspan=3,
+                                 row=3,
+                                 rowspan=3,
+                                 pady=150)
+
     """
     def payroll_selection(self):
         self.interface_window_remover()
