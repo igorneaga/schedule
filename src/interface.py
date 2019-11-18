@@ -42,7 +42,6 @@ class UserInterface(Frame):
         self.GetPreviousImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\get_prev_tables.png')
         self.ExitApplicationImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\quit_button.png')
         self.UseLocalFiles = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_local.png')
-        self.UseWebData = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_web.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")
