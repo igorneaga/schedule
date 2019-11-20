@@ -8,8 +8,6 @@ Will design your excel file into a room schedule table. It searches for differen
 An application will create an excel file based on department and their courses to provide information about the total amount of classes tough by a specific professor, cost center, and other essential information for a user. 
 ## Goals
 Use Python programming language  to develop an academic course scheduling program that will  reduce internal course scheduling process time by up to 50%. Developed for College of Business at Minnesota State University, Mankato.
-## Instructions
-While you are using this program, you can select one or multiple files from "test_excel_files" folder to see a result.
 ## Authors
 
 * **Igor Neaga** - *Initial work* - [igorneaga](https://github.com/igorneaga)
