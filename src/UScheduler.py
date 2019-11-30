@@ -5,7 +5,7 @@ from src import interface
 
 
 def create_interface(argv):
-    cwd = os.getcwd()
+    cwd = os.path.dirname(os.path.abspath(__file__))
 
     root = Tk()
     root.title('Uni-Scheduler')

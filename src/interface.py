@@ -28,7 +28,7 @@ class UserInterface(Frame):
         self.grid()
 
         # Assets
-        self.cwd = os.getcwd()  # Assets path
+        self.cwd = os.path.dirname(os.path.abspath(__file__))
         self.path = self.cwd
         assets_path = self.path + "\\src"
         try:
