@@ -30,8 +30,6 @@ class UserInterface(Frame):
         # Assets
         self.cwd = os.getcwd()  # Assets path
         self.path = self.cwd  # File saving
-        self.FixImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\report_x45.png')
-        self.InfoImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\info_x45.png')
         self.BackImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\back_icon_45x45.png')
         self.OutOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_default.png')
         self.InOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_in_order.png')
@@ -112,6 +110,18 @@ class UserInterface(Frame):
         # User directory shortcut
         self.user_directory = "/"
 
+        # Other
+        self.payroll_selection = None
+        self.listbox = None
+        self.folder = None
+        self.cost_box_insert = None
+        self.mini_frame = None
+        self.move_next_step = None
+        self.payroll_year_1 = None
+        self.payroll_semester_1 = None
+        self.payroll_year_2 = None
+        self.payroll_semester_2 = None
+
         # Deletes previous files
         shutil.rmtree('copy_folder', ignore_errors=True)
         shutil.rmtree('__excel_files', ignore_errors=True)
@@ -136,7 +146,6 @@ class UserInterface(Frame):
                 open(excel_file[0], "r+")
         except IOError:
             messagebox.showerror("Close File", "Please close excel files to eliminate errors")
-
         self.introduction_window()
 
     def organize_semester_data(self):
@@ -171,59 +180,45 @@ class UserInterface(Frame):
         """Instructions on how to use this program"""
         webbrowser.open(self.INSTRUCTIONS_URL)
 
-    def main_text_interface(self, button_frame, x=52, include_instructions=True):
-        """Repeated title text"""
+    def main_text_interface(self, button_frame, title_text, back_button_function, description_text=None,
+                            x_description=18, y_title=20, remove_back=False):
         title_label = ttk.Label(button_frame,
-                                text="Schedule Builder",
+                                text=title_text,
                                 foreground="green",
-                                font=('Courier', 20, 'bold'))
+                                font=('Arial', 18))
         title_label.grid(sticky='W',
                          column=0,
+                         columnspan=2,
                          row=0,
                          rowspan=2,
-                         padx=x,
-                         pady=10)
-
-        # Short descriptions
-        app_description_label = ttk.Label(button_frame, text="Creates a room table for courses...    ",
+                         padx=250,
+                         pady=y_title)
+        if description_text is None:
+            pass
+        else:
+            # Description of a reason to have this window
+            description_label = ttk.Label(button_frame,
+                                          text=description_text,
                                           foreground="gray",
-                                          font=("Courier", 10, 'bold'))
-        app_description_label.grid(sticky="SW",
-                                   column=0,
+                                          font=('Arial', 12))
+
+            description_label.grid(column=0,
                                    row=1,
-                                   padx=x)
-
-        # Button for report/request
-        ticket_form_button = Button(button_frame,
-                                    border='0',
-                                    text="Report a problem or request",
-                                    command=self.submit_ticket_form,
-                                    foreground="blue",
-                                    font=('Arial', 11, 'underline'))
-        ticket_form_button.grid(sticky="NE",
-                                column=2,
-                                row=1,
-                                pady=2,
-                                padx=3)
-
-        if include_instructions is True:
-            # Button for instructions
-            info_button = Button(button_frame,
+                                   rowspan=2,
+                                   padx=x_description,
+                                   pady=75)
+        if remove_back is False:
+            back_button = Button(button_frame,
                                  border='0',
-                                 text="Instructions/Information",
-                                 foreground="blue",
-                                 command=self.open_instructions_url,
-                                 font=('Arial', 11, 'underline'))
-            info_button.grid(sticky="SE",
-                             column=2,
-                             row=2,
-                             padx=3,
-                             pady=0)
-            info_button.config(image=self.InfoImage,
-                               compound=RIGHT)
+                                 image=self.BackImage,
+                                 command=back_button_function)
 
-        ticket_form_button.config(image=self.FixImage,
-                                  compound=RIGHT)
+            back_button.grid(sticky='WN',
+                             column=0,
+                             row=1,
+                             rowspan=2,
+                             pady=15,
+                             padx=10)
 
     def interface_window_remover(self):
         """Removes window once a user goes to a next step or previous step."""
@@ -320,6 +315,12 @@ class UserInterface(Frame):
 
     def introduction_window(self):
         """Window gains information necessary information to create a payroll table from user"""
+        # Reset window info
+        self.files_show_names = []
+        self.files_show_directory = []
+        self.button_text.set("File(s) Selected: ")
+
+        self.payroll_selection = False
         self.interface_window_remover()
         button_frame = self.introduction = Frame(self)
         button_frame.grid()
@@ -378,9 +379,8 @@ class UserInterface(Frame):
 
     def selection_step_window(self):
         # Removes any other necessary window
-        payroll_selection = False
         if self.payroll_window is not None:
-            payroll_selection = True
+            self.payroll_selection = True
         self.interface_window_remover()
 
         # Creates a frame
@@ -388,44 +388,15 @@ class UserInterface(Frame):
         button_frame.grid()
 
         # Sets repeated text
-        if payroll_selection is False:
-            self.main_text_interface(button_frame)
-        else:
-            title_label = ttk.Label(button_frame,
-                                    text="Payroll Table",
-                                    foreground="green",
-                                    font=('Courier', 20, 'bold'))
-            title_label.grid(sticky='W',
-                             column=0,
-                             columnspan=2,
-                             row=0,
-                             rowspan=2,
-                             padx=205,
-                             pady=20)
+        if self.payroll_selection is False:
+            self.main_text_interface(button_frame, title_text="Master Table",
+                                     back_button_function=self.introduction_window,
+                                     description_text="The program will create a master table based on Excel files")
 
-        # The back button which will allow moving to the previous window
-        if payroll_selection is False:
-            back_button = Button(button_frame,
-                                 border='0',
-                                 image=self.BackImage,
-                                 command=self.introduction_window)
-            back_button.grid(sticky='WN',
-                             column=0,
-                             row=1,
-                             rowspan=2,
-                             pady=7,
-                             padx=3)
         else:
-            back_button = Button(button_frame,
-                                 border='0',
-                                 image=self.BackImage,
-                                 command=self.payroll_cost_center)
-            back_button.grid(sticky='WN',
-                             column=0,
-                             row=1,
-                             rowspan=2,
-                             pady=15,
-                             padx=10)
+            self.main_text_interface(button_frame, title_text="Payroll Table",
+                                     back_button_function=self.payroll_cost_center,
+                                     description_text="The program will create a payroll table based on Excel files")
 
         # A button to select files
         select_files_button = Button(button_frame,
@@ -457,7 +428,7 @@ class UserInterface(Frame):
                                         foreground="gray",
                                         font=("Arial", 10, "bold", 'underline'))
         modify_files_button.place(x=8, y=246)
-        if payroll_selection is False:
+        if self.payroll_selection is False:
             self.create_table_button = Button(button_frame,
                                               relief="groove",
                                               bg='#c5eb93',
@@ -466,11 +437,11 @@ class UserInterface(Frame):
                                               command=self.table_setting_window,
                                               foreground="green",
                                               font=('Arial', 16, 'bold'))
-            self.create_table_button.grid(column=1,
-                                          columnspan=2,
+            self.create_table_button.grid(column=0,
+                                          columnspan=3,
                                           row=8,
-                                          pady=188,
-                                          padx=0)
+                                          pady=115,
+                                          padx=400)
         else:
             self.create_table_button = Button(button_frame,
                                               relief="groove",
@@ -480,12 +451,11 @@ class UserInterface(Frame):
                                               command=self.create_payroll_table,
                                               foreground="green",
                                               font=('Arial', 16, 'bold'))
-            self.create_table_button.grid(sticky='e',
-                                          column=1,
-                                          columnspan=2,
+            self.create_table_button.grid(column=0,
+                                          columnspan=3,
                                           row=8,
-                                          pady=195,
-                                          padx=0)
+                                          pady=115,
+                                          padx=400)
         if not self.files_show_directory:
             # Will allow going to the next window once you selected at least one file
             self.create_table_button.configure(bg="#d9dad9",
@@ -549,23 +519,19 @@ class UserInterface(Frame):
         """The window for changing/deleting selected files"""
         # Removes previous window
         self.interface_window_remover()
-
         button_frame = self.files_manipulation_window = Frame(self)
         button_frame.grid()
+        if self.payroll_selection is False:
+            self.main_text_interface(button_frame, title_text="Modify Files",
+                                     back_button_function=self.selection_step_window,
+                                     description_text="Change or delete the file from the current list",
+                                     x_description=0)
+        else:
 
-        self.main_text_interface(button_frame)
-
-        # The back button which will allow moving to the previous window
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.BackImage,
-                             command=self.selection_step_window)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=7,
-                         padx=3)
+            self.main_text_interface(button_frame, title_text="Modify Files",
+                                     back_button_function=self.selection_step_window,
+                                     description_text="Change or delete the file from the current list",
+                                     x_description=0)
 
         heading_label = ttk.Label(button_frame,
                                   text="List of files selected:",
@@ -620,15 +586,15 @@ class UserInterface(Frame):
                                     border='4',
                                     relief="groove",
                                     font=('Arial', 14))
-        continue_button.grid(column=1,
+        continue_button.grid(column=0,
                              columnspan=2,
                              row=3,
                              rowspan=6,
-                             sticky="WS",
-                             padx=20,
-                             pady=135)
+                             sticky="W",
+                             padx=440,
+                             pady=90)
 
-    def get_table_example_window(self, get_parameters=False):
+    def get_table_example_window(self):
         """Creates a table based on previous semesters web data"""
         self.interface_window_remover()
 
@@ -752,36 +718,10 @@ class UserInterface(Frame):
         button_frame = self.settings_window = Frame(self)
         button_frame.grid()
 
-        self.main_text_interface(button_frame)
-
-        # The back button which will allow moving to the previous window
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.BackImage,
-                             command=self.selection_step_window)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=7,
-                         padx=3)
-
-        # Empty row in GUI for design purpose
-        empty_row = ttk.Label(button_frame,
-                              text=" ")
-        empty_row.grid(columnspan=3,
-                       row=3)
-
-        heading_label = ttk.Label(button_frame,
-                                  text="Table settings:",
-                                  foreground="green",
-                                  font=('Arial', 14))
-        heading_label.grid(sticky='WN',
-                           column=0,
-                           row=2,
-                           rowspan=3,
-                           padx=13,
-                           pady=20)
+        self.main_text_interface(button_frame, title_text="Master Table",
+                                 back_button_function=self.selection_step_window,
+                                 description_text="Set up the settings for a table(s).",
+                                 x_description=200, y_title=28)
 
         # Select table type
         self.get_value = tk.IntVar()
@@ -795,9 +735,10 @@ class UserInterface(Frame):
                                                command=self.user_table_choice,
                                                value=1)
         self.table_order_default.grid(column=0,
-                                      row=3,
-                                      sticky='w',
-                                      padx=11)
+                                      row=2,
+                                      sticky='sw',
+                                      padx=11,
+                                      pady=0)
 
         self.table_order_type = Radiobutton(button_frame,
                                             text="Days in order",
@@ -806,25 +747,29 @@ class UserInterface(Frame):
                                             command=self.user_table_choice,
                                             value=2)
         self.table_order_type.grid(column=0,
-                                   row=3,
-                                   sticky='w',
-                                   padx=148)
+                                   row=2,
+                                   sticky='sw',
+                                   padx=148,
+                                   pady=0)
 
         out_order_button = Button(button_frame,
                                   border='0',
                                   image=self.OutOrderImage,
                                   command=self.out_order_select)
         out_order_button.grid(column=0,
-                              row=4,
+                              row=3,
+                              rowspan=4,
                               sticky='w',
-                              padx=11)
+                              padx=11,
+                              pady=0)
 
         in_order_button = Button(button_frame,
                                  border='0',
                                  image=self.InOrderImage,
                                  command=self.in_order_select)
         in_order_button.grid(column=0,
-                             row=4,
+                             row=3,
+                             rowspan=4,
                              sticky='w',
                              padx=150)
 
@@ -834,9 +779,9 @@ class UserInterface(Frame):
                                      font=('Arial', 18))
         table_name_label.grid(column=0,
                               columnspan=3,
-                              row=3,
+                              row=2,
                               sticky='ES',
-                              padx=95,
+                              padx=80,
                               pady=10)
 
         # A box to allow user type a name of the table they desire
@@ -845,11 +790,11 @@ class UserInterface(Frame):
                                              width=27)
         self.table_name_insertion_box.grid(column=0,
                                            columnspan=3,
-                                           row=3,
+                                           row=2,
                                            rowspan=4,
                                            sticky='EN',
-                                           padx=49,
-                                           pady=50)
+                                           padx=33,
+                                           pady=75)
 
         self.table_name_insertion_box.insert(END, "    Type name here...")
         self.table_name_insertion_box.bind("<1>", self.name_of_table)
@@ -891,8 +836,8 @@ class UserInterface(Frame):
                                            command=self.return_semester)
         semester_options_menu.grid(column=0,
                                    columnspan=3,
-                                   row=4,
-                                   rowspan=5,
+                                   row=3,
+                                   rowspan=4,
                                    sticky='e',
                                    pady=34,
                                    padx=111)
@@ -908,8 +853,8 @@ class UserInterface(Frame):
                                        command=self.return_year)
         year_options_menu.grid(column=0,
                                columnspan=3,
-                               row=4,
-                               rowspan=5,
+                               row=3,
+                               rowspan=4,
                                sticky='e',
                                pady=34,
                                padx=37)
@@ -925,7 +870,7 @@ class UserInterface(Frame):
                                     font=('Arial', 10))
         friday_option.grid(sticky="nw",
                            column=0,
-                           row=8,
+                           row=7,
                            padx=7)
 
         next_step_button = Button(button_frame,
@@ -940,8 +885,8 @@ class UserInterface(Frame):
                               columnspan=3,
                               row=5,
                               rowspan=5,
-                              sticky='EN',
-                              pady=0,
+                              sticky='ENS',
+                              pady=100,
                               padx=37)
 
     def name_of_table(self, event):
@@ -962,7 +907,6 @@ class UserInterface(Frame):
 
     def create_payroll_table(self):
         """Moves into the creation process"""
-
         self.table_friday_include = 1
         self.program_loading_window(block_table=False, payroll_table=True)
 
@@ -1029,6 +973,7 @@ class UserInterface(Frame):
 
     def open_payroll_folder(self):
         os.startfile(self.folder)
+
     def open_excel_copies(self):
         """For error window"""
         folder_path = "copy_folder\\"
@@ -1060,9 +1005,9 @@ class UserInterface(Frame):
 
                 folder_path = folder
 
-                def create_table(urlencode_dict, web_department, web_semester, web_year, get_all_tables=False):
+                def create_table(urlencode_dict, web_department, web_semester, c_web_year, get_all_tables=False):
                     if not urlencode_dict:
-                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
+                        previous_data.PreviousCourses(folder_path, web_department, web_semester, int(c_web_year),
                                                       get_all=get_all_tables)
                     else:
                         for len_list in range(len(urlencode_dict)):
@@ -1073,20 +1018,20 @@ class UserInterface(Frame):
                                     urlencode_list.append(urlencode)
                         if len(urlencode_list) == 2:
                             if get_all_tables is True:
-                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              urlencode_list[0], urlencode_list[1],
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester,
+                                                              int(c_web_year), urlencode_list[0], urlencode_list[1],
                                                               get_all=get_all_tables)
                             else:
-                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              urlencode_list[0], urlencode_list[1],
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester,
+                                                              int(c_web_year), urlencode_list[0], urlencode_list[1],
                                                               get_all=get_all_tables)
                         else:
                             if get_all_tables is True:
-                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              get_all=get_all_tables)
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester,
+                                                              int(c_web_year), get_all=get_all_tables)
                             else:
-                                previous_data.PreviousCourses(folder_path, web_department, web_semester, int(web_year),
-                                                              get_all=get_all_tables)
+                                previous_data.PreviousCourses(folder_path, web_department, web_semester,
+                                                              int(c_web_year), get_all=get_all_tables)
 
                 if web_department_parameters not in ["All COB Departments", "ACCT & BLAW & MACC",
                                                      "MRKT & IBUS", "MGMT & MBA"]:
@@ -1100,6 +1045,10 @@ class UserInterface(Frame):
                                                "Please close your current excel files and try again.")
                 else:
                     if web_department_parameters == "All COB Departments":
+                        web_department_options.remove('MGMT & MBA')
+                        web_department_options.remove('MRKT & IBUS')
+                        web_department_options.remove('ACCT & BLAW & MACC')
+                        web_department_options.remove('All COB Departments')
                         dep = iter(web_department_options)
                         for department in dep:
                             create_table(urlencode_dict_list, department,
@@ -1155,30 +1104,33 @@ class UserInterface(Frame):
             button_frame.update()
 
             # Moves to the next class which is processing all the files
-            if block_table is True:
-                self.error_data_list = receiver.DataProcessor(self.folder,
-                                                              self.files_show_directory, self.table_settings_name,
-                                                              self.table_settings_semester, self.table_settings_year,
-                                                              self.table_settings_type,
-                                                              self.table_friday_include,
-                                                              self.room_cap_dict, payroll_table).get_excel_errors()
+            try:
+                if block_table is True:
+                    self.error_data_list = receiver.DataProcessor(self.folder,
+                                                                  self.files_show_directory, self.table_settings_name,
+                                                                  self.table_settings_semester, self.table_settings_year,
+                                                                  self.table_settings_type,
+                                                                  self.table_friday_include,
+                                                                  self.room_cap_dict, payroll_table).get_excel_errors()
 
-                self.user_result_window()
+                    self.user_result_window()
 
-            elif payroll_table is False:
-                create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                                 self.web_year, self.web_department_options, folder=self.folder)
+                elif payroll_table is False:
+                    create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
+                                     self.web_year, self.web_department_options, folder=self.folder)
+                    self.introduction_window()
+                else:
+                    self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
+                                                                  self.table_settings_name,
+                                                                  self.table_settings_semester, self.table_settings_year,
+                                                                  self.table_settings_type,
+                                                                  self.table_friday_include,
+                                                                  self.room_cap_dict, payroll_table)
+
+                    self.payroll_finish_window()
+            except:
+                tk.messagebox.showerror(title="Program failed", message="Program failed... Please try again.")
                 self.introduction_window()
-            else:
-
-                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
-                                                              self.table_settings_name,
-                                                              self.table_settings_semester, self.table_settings_year,
-                                                              self.table_settings_type,
-                                                              self.table_friday_include,
-                                                              self.room_cap_dict, payroll_table)
-
-                self.payroll_finish_window()
 
             switch = True
 
@@ -1201,16 +1153,27 @@ class UserInterface(Frame):
                         pass
             return clear_data_list
 
+        def remove_dict_duplicates(error_data):
+            new_dict_list = []
+            for i in range(len(error_data)):
+                if error_data[i] not in error_data[i + 1:]:
+                    new_dict_list.append(error_data[i])
+            return new_dict_list
+
         if self.error_data_list == 'User_Doesnt_Listen':
             self.interface_window_remover()
             self.selection_step_window()
+
         clear_error_list = clear_error_data(self.error_data_list)
+        clear_error_list = remove_dict_duplicates(clear_error_list)
         if len(clear_error_list) != 0:
 
             button_frame = self.notification_window = Frame(self)
             button_frame.grid()
 
-            self.main_text_interface(button_frame, x=10)
+            self.main_text_interface(button_frame, title_text="Master Table",
+                                     back_button_function=self.selection_step_window,
+                                     remove_back=True)
 
             total_number_mistakes = str(int(len(clear_error_list) / 2))
             if total_number_mistakes == '0':
@@ -1248,7 +1211,7 @@ class UserInterface(Frame):
                 canvas.configure(scrollregion=canvas.bbox("all"), width=600, height=60)
 
             error_message_frame = Frame(button_frame, relief=GROOVE, width=600, height=150, bd=1)
-            error_message_frame.place(x=22, y=110)
+            error_message_frame.place(x=22, y=100)
 
             canvas = Canvas(error_message_frame)
             frame = Frame(canvas)
@@ -1308,12 +1271,11 @@ class UserInterface(Frame):
                                       border='0',
                                       image=self.ExcelMainFile,
                                       command=self.open_master_table)
-            open_main_button.grid(sticky="NE",
+            open_main_button.grid(sticky="N",
                                   column=0,
                                   columnspan=2,
                                   row=3,
                                   rowspan=4,
-                                  padx=10,
                                   pady=90)
 
             open_main_text = Button(button_frame,
@@ -1415,45 +1377,28 @@ class UserInterface(Frame):
         button_frame = self.payroll_window = Frame(self)
         button_frame.grid()
 
-        # Sets repeated text
-        self.main_text_interface(button_frame)
-
-        # The back button which will allow moving to the previous window
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.BackImage,
-                             command=self.introduction_window)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=7,
-                         padx=3)
-
-        payroll_step_description = ttk.Label(button_frame,
-                                             text="1. First Step: Provide Cost Center",
-                                             foreground="gray",
-                                             font=('Arial', 16))
-        payroll_step_description.place(x=50, y=65)
+        self.main_text_interface(button_frame, title_text="Payroll Table",
+                                 description_text="Provide a cost center for each department for a payroll table",
+                                 back_button_function=self.introduction_window, x_description=110)
 
         comma_note = ttk.Label(button_frame,
                                text="- Use a comma if the specific department has multiple cost\n centers.",
                                foreground="green",
-                               font=('Arial', 12))
+                               font=('Arial', 11, 'bold'))
         comma_note.place(x=200, y=125)
 
         prof_note = ttk.Label(button_frame,
                               text='- Type "Professor" if the department cost center is based on\n '
                                    'the professor of other departments',
                               foreground="green",
-                              font=('Arial', 12))
+                              font=('Arial', 11, 'bold'))
         prof_note.place(x=200, y=175)
 
         example_note = ttk.Label(button_frame,
-                                 text='Example: BUS = Professor will result in giving each professor\n'
-                                      'department of cost center he teaches',
+                                 text="Example: 'BUS => Professor' will result in giving each\n"
+                                      "faculty department of cost center",
                                  foreground="gray",
-                                 font=('Arial', 11, 'italic'))
+                                 font=('Arial', 11, 'bold'))
         example_note.place(x=200, y=233)
 
         self.move_next_step = Button(button_frame,
@@ -1464,12 +1409,12 @@ class UserInterface(Frame):
                                      command=self.selection_step_window,
                                      foreground="green",
                                      font=('Arial', 16, 'bold'))
-        self.move_next_step.grid(sticky='w',
-                                 column=1,
-                                 columnspan=4,
+        self.move_next_step.grid(sticky='e',
+                                 column=0,
+                                 columnspan=2,
                                  row=6,
-                                 pady=180,
-                                 padx=40)
+                                 pady=110,
+                                 padx=20)
 
         def show_all_departments(event):
             canvas.configure(scrollregion=canvas.bbox("all"), width=125, height=190)
@@ -1597,195 +1542,3 @@ class UserInterface(Frame):
                                  row=3,
                                  rowspan=3,
                                  pady=150)
-
-    """
-    def payroll_selection(self):
-        self.interface_window_remover()
-
-        button_frame = self.payroll_window = Frame(self)
-        button_frame.grid()
-        # Short welcome text
-        heading_text = ttk.Label(button_frame,
-                                 text="Select one of the following:",
-                                 foreground="green",
-                                 font=('Arial', 21))
-        # Placing coordinates
-        heading_text.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=20,
-                         padx=150)
-
-        # The back button which will allow moving to the previous window
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.BackImage,
-                             command=self.payroll_cost_center)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=15,
-                         padx=10)
-
-        use_web_button = Button(button_frame,
-                                     border='0',
-                                     image=self.UseWebData,
-                                     command=self.payroll_web_selection)
-        use_web_button.grid(column=0,
-                                 row=4,
-                                 sticky='w',
-                                 padx=122)
-
-        use_local_button = Button(button_frame,
-                                      border='0',
-                                      image=self.UseLocalFiles,
-                                      command=self.selection_step_window)
-        use_local_button.grid(column=0,
-                                  row=4,
-                                  sticky='w',
-                                  padx=367)
-
-        current_web_availability = "Available:\n"
-        if len(self.web_year_options) == 2:
-            for semester in self.web_semesters_options:
-                current_web_availability += semester + " " + self.web_year_options[0] + ", "
-                current_web_availability += semester + " " + self.web_year_options[1] + "\n"
-        else:
-            for semester in self.web_semesters_options:
-                current_web_availability += semester + " " + self.web_year_options[0] + "\n"
-
-        # Short welcome text
-        available_text = ttk.Label(button_frame,
-                                 text=current_web_availability,
-                                 foreground="green",
-                                 font=('Arial', 10))
-        # Placing coordinates
-        available_text.grid(sticky='WN',
-                         column=0,
-                         row=5,
-                         rowspan=2,
-                         pady=10,
-                         padx=120)
-    """
-
-    """
-    def payroll_web_selection(self):
-        self.interface_window_remover()
-
-        button_frame = self.payroll_window = Frame(self)
-        button_frame.grid()
-
-        # Short welcome text
-        heading_text = ttk.Label(button_frame,
-                                 text="Select semesters:",
-                                 foreground="green",
-                                 font=('Arial', 21))
-        # Placing coordinates
-        heading_text.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=20,
-                         padx=200)
-
-        # The back button which will allow moving to the previous window
-        back_button = Button(button_frame,
-                             border='0',
-                             image=self.BackImage,
-                             command=self.payroll_selection)
-        back_button.grid(sticky='WN',
-                         column=0,
-                         row=1,
-                         rowspan=2,
-                         pady=15,
-                         padx=10)
-        # SPRING 2019 TO Fall 2020
-
-        # Holds variables
-        variable_web_semesters_1 = StringVar(button_frame)
-        variable_web_years_1 = StringVar(button_frame)
-        # Sets defaults values for interface
-        variable_web_semesters_1.set(self.web_semesters_options[0])
-        variable_web_years_1.set(self.web_year_options[0])
-
-        # Holds variables
-        variable_web_semesters_2 = StringVar(button_frame)
-        variable_web_years_2 = StringVar(button_frame)
-        # Sets defaults values for interface
-        variable_web_semesters_2.set(self.web_semesters_options[0])
-        variable_web_years_2.set(self.web_year_options[0])
-        # Sets defaults values for script
-        self.web_department_parameters = self.web_department_options[0]
-        self.web_year = self.web_year_options[0]
-        self.web_semester_parameters = self.web_semesters_options[0]
-
-        web_semester_options = OptionMenu(button_frame,
-                                          variable_web_semesters_1,
-                                          *self.web_semesters_options,
-                                          command=self.return_payroll_semester_1)
-        web_semester_options.place(x=95, y=150)
-        web_semester_options.configure(relief="groove",
-                                       bg='#c5eb93',
-                                       border='4',
-                                       foreground="green",
-                                       font=('Arial', 13))
-
-        web_year_options = OptionMenu(button_frame,
-                                      variable_web_years_1,
-                                      *self.web_year_options,
-                                      command=self.return_payroll_year_1)
-        web_year_options.place(x=205, y=150)
-        web_year_options.configure(relief="groove",
-                                   bg='#c5eb93',
-                                   border='4',
-                                   foreground="green",
-                                   font=('Arial', 13))
-
-        payroll_step_description = ttk.Label(button_frame,
-                                             text="to",
-                                             foreground="gray",
-                                             font=('Arial', 16))
-        payroll_step_description.place(x=305, y=155)
-
-        web_semester_options_2 = OptionMenu(button_frame,
-                                          variable_web_semesters_2,
-                                          *self.web_semesters_options,
-                                          command=self.return_payroll_semester_2)
-
-        web_semester_options_2.place(x=345, y=150)
-        web_semester_options_2.configure(relief="groove",
-                                       bg='#c5eb93',
-                                       border='4',
-                                       foreground="green",
-                                       font=('Arial', 13))
-
-        web_year_options_2 = OptionMenu(button_frame,
-                                      variable_web_years_2,
-                                      *self.web_year_options,
-                                      command=self.return_payroll_year_2)
-
-        web_year_options_2.place(x=455, y=150)
-        web_year_options_2.configure(relief="groove",
-                                   bg='#c5eb93',
-                                   border='4',
-                                   foreground="green",
-                                   font=('Arial', 13))
-
-
-        create_table_button = Button(button_frame,
-                                     relief="groove",
-                                     bg='#c5eb93',
-                                     border='4',
-                                     text="Select folder to save",
-                                     command=self.create_web_table,
-                                     foreground="green",
-                                     font=('Arial', 16, 'bold'))
-        create_table_button.grid(sticky="E",
-                                 column=0,
-                                 columnspan=2,
-                                 row=3,
-                                 padx=20,
-                                 pady=200)
-    """

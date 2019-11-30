@@ -479,9 +479,14 @@ class MasterDesign:
                                         val[val_index].get("Course") + val[val_index].get("Time_Comment")
                             else:
                                 if val[val_index].get("Time_Comment") is None:
-                                    sheet[cell_one[index_one] + cell_one[index_two]] = \
-                                        sheet[cell_one[index_one] + cell_one[index_two]].value + " /" +\
-                                        val[val_index].get("Course")
+                                    if sheet[cell_one[index_one] + cell_one[index_two]].value == \
+                                            val[val_index].get("Course"):
+                                        pass
+                                    else:
+
+                                        sheet[cell_one[index_one] + cell_one[index_two]] = \
+                                            sheet[cell_one[index_one] + cell_one[index_two]].value + " /" +\
+                                            val[val_index].get("Course")
                                 else:
                                     sheet[cell_one[index_one] + cell_one[index_two]] = \
                                         sheet[cell_one[index_one] + cell_one[index_two]].value + " /" + \

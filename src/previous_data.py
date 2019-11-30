@@ -45,7 +45,8 @@ class PreviousCourses:
                 'IBUS': 'International Business',
                 'MGMT': 'Management',
                 'MRKT': 'Marketing',
-                'MACC': 'Master in Accounting'
+                'MACC': 'Master in Accounting',
+                'MBA': 'Master of Business Administration'
             }.get(department_abbreviation, 'Accounting')
 
         def get_payload_encode(encode_params, url, year, semester, department):

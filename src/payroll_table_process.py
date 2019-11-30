@@ -198,11 +198,12 @@ class PayrollTable:
                 department_courses = self.print_department_info(dep)
                 if department_courses:
                     self.main_program_controller(dep, department_courses)
+            else:
+                pass
 
     def main_program_controller(self, department, department_courses):
         self.dep_courses = department_courses
         self.create_excel_file()
-
         self.create_excel_sheet("Payroll Table", True)
         self.dates_heading()
         self.instructions_text()
