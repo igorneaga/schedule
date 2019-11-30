@@ -29,17 +29,23 @@ class UserInterface(Frame):
 
         # Assets
         self.cwd = os.getcwd()  # Assets path
-        self.path = self.cwd  # File saving
-        self.BackImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\back_icon_45x45.png')
-        self.OutOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_default.png')
-        self.InOrderImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\table_v05_in_order.png')
-        self.ExcelCopyFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\excel_files_icon.png')
-        self.ExcelMainFile = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\master_file_icon.png')
-        self.CreateMasterImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_master.png')
-        self.CreatePayrollImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\create_fwm_table.png')
-        self.GetPreviousImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\get_prev_tables.png')
-        self.ExitApplicationImage = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\quit_button.png')
-        self.UseLocalFiles = tk.PhotoImage(file=f'{self.cwd}\\src\\assets\\use_local.png')
+        self.path = self.cwd
+        assets_path = self.path + "\\src"
+        try:
+            self.BackImage = tk.PhotoImage(file=f'{assets_path}\\assets\\back_icon_45x45.png')
+        except:
+            assets_path = self.path
+            self.BackImage = tk.PhotoImage(file=f'{assets_path}\\assets\\back_icon_45x45.png')
+
+        self.OutOrderImage = tk.PhotoImage(file=f'{assets_path}\\assets\\table_v05_default.png')
+        self.InOrderImage = tk.PhotoImage(file=f'{assets_path}\\assets\\table_v05_in_order.png')
+        self.ExcelCopyFile = tk.PhotoImage(file=f'{assets_path}\\assets\\excel_files_icon.png')
+        self.ExcelMainFile = tk.PhotoImage(file=f'{assets_path}\\assets\\master_file_icon.png')
+        self.CreateMasterImage = tk.PhotoImage(file=f'{assets_path}\\assets\\create_master.png')
+        self.CreatePayrollImage = tk.PhotoImage(file=f'{assets_path}\\assets\\create_fwm_table.png')
+        self.GetPreviousImage = tk.PhotoImage(file=f'{assets_path}\\assets\\get_prev_tables.png')
+        self.ExitApplicationImage = tk.PhotoImage(file=f'{assets_path}\\assets\\quit_button.png')
+        self.UseLocalFiles = tk.PhotoImage(file=f'{assets_path}\\assets\\use_local.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")

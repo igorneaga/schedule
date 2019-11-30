@@ -11,7 +11,13 @@ def create_interface(argv):
     root.title('Uni-Scheduler')
     root.geometry("659x337")
     root.tk.call('tk', 'scaling', 1.3)
-    root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
+    try:
+        try:
+            root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
+        except:
+            root.iconbitmap(f'{cwd}\\assets\\unischeduler_icon.ico')
+    except:
+        pass
     interface.UserInterface(root)
     root.mainloop()
 
