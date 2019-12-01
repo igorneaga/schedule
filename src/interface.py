@@ -23,29 +23,23 @@ class UserInterface(Frame):
     GOOGLE_FORM_URL = 'https://goo.gl/forms/wNkzjymOQ7wiNavf1'
     INSTRUCTIONS_URL = 'https://docs.google.com/document/d/1htRsKmxDX33yawrYqeHkCLWlEL-juRjeM-if8N4f2yo/edit?usp=sharing'
 
-    def __init__(self, master):
+    def __init__(self, master, current_path):
         super().__init__(master)
         self.grid()
 
         # Assets
-        self.cwd = os.path.dirname(os.path.abspath(__file__))
+        self.cwd = current_path
         self.path = self.cwd
-        assets_path = self.path + "\\src"
-        try:
-            self.BackImage = tk.PhotoImage(file=f'{assets_path}\\assets\\back_icon_45x45.png')
-        except:
-            assets_path = self.path
-            self.BackImage = tk.PhotoImage(file=f'{assets_path}\\assets\\back_icon_45x45.png')
 
-        self.OutOrderImage = tk.PhotoImage(file=f'{assets_path}\\assets\\table_v05_default.png')
-        self.InOrderImage = tk.PhotoImage(file=f'{assets_path}\\assets\\table_v05_in_order.png')
-        self.ExcelCopyFile = tk.PhotoImage(file=f'{assets_path}\\assets\\excel_files_icon.png')
-        self.ExcelMainFile = tk.PhotoImage(file=f'{assets_path}\\assets\\master_file_icon.png')
-        self.CreateMasterImage = tk.PhotoImage(file=f'{assets_path}\\assets\\create_master.png')
-        self.CreatePayrollImage = tk.PhotoImage(file=f'{assets_path}\\assets\\create_fwm_table.png')
-        self.GetPreviousImage = tk.PhotoImage(file=f'{assets_path}\\assets\\get_prev_tables.png')
-        self.ExitApplicationImage = tk.PhotoImage(file=f'{assets_path}\\assets\\quit_button.png')
-        self.UseLocalFiles = tk.PhotoImage(file=f'{assets_path}\\assets\\use_local.png')
+        self.OutOrderImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\table_v05_default.png')
+        self.InOrderImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\table_v05_in_order.png')
+        self.ExcelCopyFile = tk.PhotoImage(file=f'{self.cwd}\\assets\\excel_files_icon.png')
+        self.ExcelMainFile = tk.PhotoImage(file=f'{self.cwd}\\assets\\master_file_icon.png')
+        self.CreateMasterImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\create_master.png')
+        self.CreatePayrollImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\create_fwm_table.png')
+        self.GetPreviousImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\get_prev_tables.png')
+        self.ExitApplicationImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\quit_button.png')
+        self.UseLocalFiles = tk.PhotoImage(file=f'{self.cwd}\\assets\\use_local.png')
 
         # Default table characteristics
         today_date = time.strftime("%Y,%m")

@@ -5,20 +5,20 @@ from src import interface
 
 
 def create_interface(argv):
-    cwd = os.path.dirname(os.path.abspath(__file__))
+    cwd = os.path.dirname(os.path.realpath(sys.executable))
 
     root = Tk()
     root.title('Uni-Scheduler')
     root.geometry("659x337")
     root.tk.call('tk', 'scaling', 1.3)
+
     try:
-        try:
-            root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
-        except:
-            root.iconbitmap(f'{cwd}\\assets\\unischeduler_icon.ico')
+        root.iconbitmap(f'{cwd}\\assets\\unischeduler_icon.ico')
     except:
-        pass
-    interface.UserInterface(root)
+        root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
+        cwd += "\\src"
+
+    interface.UserInterface(root, cwd)
     root.mainloop()
 
 
