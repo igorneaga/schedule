@@ -106,7 +106,7 @@ class ThreadedTask(threading.Thread):
             os.rename(f'{directory}\\schedule-master\\src', f'{directory}\\src')
             shutil.rmtree(directory + "\\schedule-master", ignore_errors=True)
 
-        script_directory = os.path.dirname(os.path.abspath(__file__))
+        script_directory = os.path.dirname(os.path.realpath(sys.executable))
         split_drive = os.path.splitdrive(script_directory)
         if split_drive[1][0:8] == "\\WINDOWS":
             home_dir = os.path.expanduser("~")
@@ -147,7 +147,6 @@ class ThreadedTask(threading.Thread):
             # Running without administrator permission will need to go through a complicated way
             except PermissionError:
                 download_zip(script_directory, MAIN_ZIP_URL)
-
         subprocess.Popen(f'{script_directory}\\src\\UScheduler.exe', close_fds=True)
         # Gives some time for the main file to launch
         time.sleep(3)

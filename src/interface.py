@@ -31,6 +31,7 @@ class UserInterface(Frame):
         self.cwd = current_path
         self.path = self.cwd
 
+        self.BackImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\back_icon_45x45.png')
         self.OutOrderImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\table_v05_default.png')
         self.InOrderImage = tk.PhotoImage(file=f'{self.cwd}\\assets\\table_v05_in_order.png')
         self.ExcelCopyFile = tk.PhotoImage(file=f'{self.cwd}\\assets\\excel_files_icon.png')

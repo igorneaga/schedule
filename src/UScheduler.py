@@ -18,7 +18,14 @@ def create_interface(argv):
         root.iconbitmap(f'{cwd}\\src\\assets\\unischeduler_icon.ico')
         cwd += "\\src"
 
-    interface.UserInterface(root, cwd)
+    try:
+        interface.UserInterface(root, cwd)
+    except PermissionError:
+        home_dir = os.path.expanduser("~")
+        cwd = os.path.join(home_dir, "Downloads")
+        cwd += "\\src"
+
+        interface.UserInterface(root, cwd)
     root.mainloop()
 
 
