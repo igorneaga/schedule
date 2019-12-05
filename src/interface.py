@@ -1454,7 +1454,7 @@ class UserInterface(Frame):
                         cost_center = dict(row)
                 return cost_center
 
-        csv_file_data = get_csv_file(f'{self.cwd}\\src\\department_cost.csv')
+        csv_file_data = get_csv_file(f'{self.cwd}\\department_cost.csv')
 
         cob_department_list = ["Marketing & International Business", "Accounting", "Business Law", "Finance",
                                "MACC", "Management", "MBA", "BUS"]
@@ -1483,7 +1483,7 @@ class UserInterface(Frame):
             self.department_cost_dict.update({self.cost_box_insert[i].cget("text"): self.cost_box_insert[i].get()})
 
         # Writes a csv file
-        cost_file = f'{self.cwd}\\src\\department_cost.csv'
+        cost_file = f'{self.cwd}\\department_cost.csv'
         with open(cost_file, 'w') as new_file:
             write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
             write_file.writeheader()
