@@ -101,7 +101,7 @@ class DataProcessor:
             if self.payroll is False:
                 self.create_excel_table()
             else:
-                payroll_table_process.PayrollTable(self.dict_courses_list, self.а)
+                payroll_table_process.PayrollTable(self.dict_courses_list, self.save_path)
 
         except PermissionError as permission_error_message:
             # Gives a user three chances to close excel files

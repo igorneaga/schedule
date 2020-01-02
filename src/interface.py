@@ -15,7 +15,7 @@ import csv
 
 import requests
 
-from src import receiver, previous_semesters, previous_data
+from src import receiver, previous_semesters, previous_data, room_capacity
 
 
 class UserInterface(Frame):
@@ -99,7 +99,7 @@ class UserInterface(Frame):
         self.web_year_options = []
 
         # Stores data about room capacity
-        self.room_cap_dict = dict()
+        self.room_cap_dict = room_capacity.RoomCapacity().get_capacity()
 
         # A label which will keep updating once user choose a data file
         self.button_text = tk.StringVar()
@@ -1105,33 +1105,34 @@ class UserInterface(Frame):
             button_frame.update()
 
             # Moves to the next class which is processing all the files
-            try:
-                if block_table is True:
-                    self.error_data_list = receiver.DataProcessor(self.folder,
-                                                                  self.files_show_directory, self.table_settings_name,
-                                                                  self.table_settings_semester, self.table_settings_year,
-                                                                  self.table_settings_type,
-                                                                  self.table_friday_include,
-                                                                  self.room_cap_dict, payroll_table).get_excel_errors()
+            #try:
+            if block_table is True:
+                self.error_data_list = receiver.DataProcessor(self.folder,
+                                                              self.files_show_directory, self.table_settings_name,
+                                                              self.table_settings_semester, self.table_settings_year,
+                                                              self.table_settings_type,
+                                                              self.table_friday_include,
+                                                              self.room_cap_dict, payroll_table).get_excel_errors()
 
-                    self.user_result_window()
+                self.user_result_window()
 
-                elif payroll_table is False:
-                    create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                                     self.web_year, self.web_department_options, folder=self.folder)
-                    self.introduction_window()
-                else:
-                    self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
-                                                                  self.table_settings_name,
-                                                                  self.table_settings_semester, self.table_settings_year,
-                                                                  self.table_settings_type,
-                                                                  self.table_friday_include,
-                                                                  self.room_cap_dict, payroll_table)
-
-                    self.payroll_finish_window()
-            except:
-                tk.messagebox.showerror(title="Program failed", message="Program failed... Please try again.")
+            elif payroll_table is False:
+                create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
+                                 self.web_year, self.web_department_options, folder=self.folder)
                 self.introduction_window()
+            else:
+                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
+                                                              self.table_settings_name,
+                                                              self.table_settings_semester, self.table_settings_year,
+                                                              self.table_settings_type,
+                                                              self.table_friday_include,
+                                                              self.room_cap_dict, payroll_table)
+
+                self.payroll_finish_window()
+            #except Exception as e:
+            #    print(e)
+            #    tk.messagebox.showerror(title="Program failed", message="Program failed... Please try again.")
+            #    self.introduction_window()
 
             switch = True
 
