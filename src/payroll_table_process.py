@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import datetime
 import os
+import sys
 import csv
 import openpyxl
 import string
@@ -93,14 +94,19 @@ class PayrollTable:
 
         def get_csv_file(file):
             cost_center = dict()
-            if os.path.isfile(file):
-                with open(file) as csv_file:
+            cwd = os.path.dirname(os.path.realpath(sys.executable))
+
+            if os.path.isfile(f'{cwd}\\{file}'):
+            #if os.path.isfile('src\\department_cost.csv'):
+                #with open("src\\" + file) as csv_file:
+                with open(f'{cwd}\\{file}') as csv_file:
                     read_csv_file = csv.DictReader(csv_file, delimiter=',')
                     for row in read_csv_file:
                         cost_center = dict(row)
             return cost_center
 
         csv_file_data = get_csv_file('department_cost.csv')
+
         final_dict = dict()
         for professor, courses in faculty_dict.items():
             first_name = HumanName(professor).first
@@ -115,14 +121,16 @@ class PayrollTable:
             tmp_courses = []
 
             for course in courses:
-                if course['Department'].lower() == 'business':
-                    cost = csv_file_data.get(current_professor.get('department'))
-                    if current_professor.get('department'):
-                        course['Department'] = current_professor['department']
+                if course['Department'].lower() == "business":
+                    cost = csv_file_data.get("BUS")
+                    if cost == "Professor":
+                        cost = csv_file_data.get(current_professor.get('department'))
                 else:
                     cost = csv_file_data.get(course['Department'])
+                    if cost == "Professor":
+                        cost = csv_file_data.get(current_professor.get('department'))
 
-                # TODO: ADD BUTTON IF USER WANT TO SEPERATE ALL DEPARTMENTS
+                # TODO: ADD BUTTON IF USER WANT TO SEPARATE ALL DEPARTMENTS
                 if (course['Department'].lower() == 'accounting') or \
                         (course['Department'].lower() == 'business law') or \
                         (course['Department'].lower() == 'macc'):
@@ -136,7 +144,6 @@ class PayrollTable:
                     course['Department'] = "MGMT.MBA"
                 else:
                     pass
-
                 course['Cost'] = cost
                 tmp_courses.append(course)
 

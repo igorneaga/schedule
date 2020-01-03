@@ -1488,10 +1488,14 @@ class UserInterface(Frame):
 
         # Writes a csv file
         cost_file = f'{self.cwd}\\department_cost.csv'
-        with open(cost_file, 'w') as new_file:
-            write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
-            write_file.writeheader()
-            write_file.writerow(self.department_cost_dict)
+        try:
+            with open(cost_file, 'w') as new_file:
+                write_file = csv.DictWriter(new_file, self.department_cost_dict.keys())
+                write_file.writeheader()
+                write_file.writerow(self.department_cost_dict)
+        except PermissionError:
+            tk.messagebox.showerror("Please close .csv file")
+            self.introduction_window()
 
     def payroll_finish_window(self):
         self.interface_window_remover()
