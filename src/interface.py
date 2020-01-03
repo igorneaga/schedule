@@ -299,13 +299,14 @@ class UserInterface(Frame):
         # Adds a comma if the number of files more than one
         elif len(self.files_show_names) >= 2:
             self.files_string = ("File(s) Selected: " + ", ".join(self.files_show_names))
+            max_length_allowed = 76
 
             # Removes the strings if the number of words exceeds the limit.
-            while len(self.files_string) > 83:
+            while len(self.files_string) > max_length_allowed:
                 self.files_string = self.files_string[:-1]
 
             # Adds  the triple dots if the number of words exceeds the limit
-            if len(self.files_string) >= 83:
+            if len(self.files_string) >= max_length_allowed:
                 self.files_string = self.files_string + "...\n"
             # Updates the file selected text.
             self.update_button_text(self.files_string)
@@ -965,11 +966,13 @@ class UserInterface(Frame):
     def open_master_table(self):
         """Opens a master table"""
         try:
-            self.table_settings_name.replace(" ", "")
-
-            os.startfile(self.folder + '\\' + self.table_settings_name + '.xlsx')
+            excel_file = self.table_settings_name.replace('\n', ' ').replace('\r', '')
+            excel_file = excel_file.replace(" ", "")
+            excel_file = str(excel_file) + '.' + 'xlsx'
+            excel_file = os.path.join(self.folder, excel_file)
+            os.startfile(excel_file)
         except FileNotFoundError:
-            for filename in glob.glob(os.path.join('__excel_files\\', '*.xlsx')):
+            for filename in glob.glob(os.path.join(self.folder, '*.xlsx')):
                 os.startfile(filename)
 
     def open_payroll_folder(self):
@@ -1290,7 +1293,7 @@ class UserInterface(Frame):
                                 columnspan=3,
                                 row=3,
                                 rowspan=4,
-                                padx=160,
+                                padx=150,
                                 pady=0)
 
             exit_button = Button(button_frame,
