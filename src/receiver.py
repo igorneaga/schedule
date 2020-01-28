@@ -673,7 +673,6 @@ class DataProcessor:
                                                   color, comment)
             except TypeError:
                 pass
-
             for course_d in range(len(list_dict_copy) - 1):
                 if course_i != (course_d + 1):
                     try:
@@ -691,7 +690,11 @@ class DataProcessor:
                             pass
                         else:
                             start_time_i = list_dict_copy[course_i].get('Start_Time')
+                            if start_time_i.upper() == "ONLINE":
+                                start_time_i = None
                             start_time_d = list_dict_copy[course_d + 1].get('Start_Time')
+                            if start_time_d.upper() == "ONLINE":
+                                start_time_d = None
                             end_time_i = list_dict_copy[course_i].get('End_Time')
                             end_time_d = list_dict_copy[course_d + 1].get('End_Time')
 
@@ -700,11 +703,11 @@ class DataProcessor:
 
                             if start_time_i is None or start_time_d is None:
                                 pass
-                            elif start_time_i == 'None' or start_time_d == 'None':
+                            elif start_time_i.upper() == 'NONE' or start_time_d.upper() == 'NONE':
                                 pass
                             elif end_time_i is None or end_time_d is None:
                                 pass
-                            elif end_time_i == 'None' or end_time_d == 'None':
+                            elif end_time_i.upper() == 'NONE' or end_time_d.upper() == 'NONE':
                                 pass
                             else:
                                 if (list_dict_copy[course_i].get('Room') is not None) & \

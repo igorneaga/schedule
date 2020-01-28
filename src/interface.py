@@ -1108,34 +1108,35 @@ class UserInterface(Frame):
             button_frame.update()
 
             # Moves to the next class which is processing all the files
-            #try:
-            if block_table is True:
-                self.error_data_list = receiver.DataProcessor(self.folder,
-                                                              self.files_show_directory, self.table_settings_name,
-                                                              self.table_settings_semester, self.table_settings_year,
-                                                              self.table_settings_type,
-                                                              self.table_friday_include,
-                                                              self.room_cap_dict, payroll_table).get_excel_errors()
+            try:
+                if block_table is True:
+                    self.error_data_list = receiver.DataProcessor(self.folder,
+                                                                  self.files_show_directory, self.table_settings_name,
+                                                                  self.table_settings_semester, self.table_settings_year,
+                                                                  self.table_settings_type,
+                                                                  self.table_friday_include,
+                                                                  self.room_cap_dict, payroll_table).get_excel_errors()
 
-                self.user_result_window()
+                    self.user_result_window()
 
-            elif payroll_table is False:
-                create_web_table(self.web_department_parameters, self.urlencode_dict_list, self.web_semester_parameters,
-                                 self.web_year, self.web_department_options, folder=self.folder)
+                elif payroll_table is False:
+                    create_web_table(self.web_department_parameters, self.urlencode_dict_list,
+                                     self.web_semester_parameters, self.web_year, self.web_department_options,
+                                     folder=self.folder)
+                    self.introduction_window()
+                else:
+                    self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
+                                                                  self.table_settings_name,
+                                                                  self.table_settings_semester,
+                                                                  self.table_settings_year,
+                                                                  self.table_settings_type,
+                                                                  self.table_friday_include,
+                                                                  self.room_cap_dict, payroll_table)
+
+                    self.payroll_finish_window()
+            except Exception as e:
+                tk.messagebox.showerror(title="Program failed", message="Program failed... Please try again.")
                 self.introduction_window()
-            else:
-                self.error_data_list = receiver.DataProcessor(self.folder, self.files_show_directory,
-                                                              self.table_settings_name,
-                                                              self.table_settings_semester, self.table_settings_year,
-                                                              self.table_settings_type,
-                                                              self.table_friday_include,
-                                                              self.room_cap_dict, payroll_table)
-
-                self.payroll_finish_window()
-            #except Exception as e:
-            #    print(e)
-            #    tk.messagebox.showerror(title="Program failed", message="Program failed... Please try again.")
-            #    self.introduction_window()
 
             switch = True
 
