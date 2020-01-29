@@ -4,6 +4,8 @@ import re
 import string
 
 import openpyxl
+
+from openpyxl.utils import get_column_letter
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.styles.borders import Border, Side
@@ -195,7 +197,7 @@ class MasterDesign:
             # Fills the color
             for column in range(8):
                 if course_len % 2 == 0:
-                    get_cell_cord = ''.join(string.ascii_uppercase[column + 1]) + start_row
+                    get_cell_cord = get_column_letter(column + 1) + start_row
                     self.sheet[get_cell_cord].fill = PatternFill(start_color=color,
                                                                  end_color=color, fill_type='solid')
 
@@ -309,6 +311,7 @@ class MasterDesign:
         time_row_column = 2
         for t in range(len(list_unique_times)):
             alphabet = ''.join(string.ascii_uppercase[time_row_column])
+            #alphabet = get_column_letter(time_row_column)
             time_row = str(alphabet) + '1'
             self.sheet[time_row] = list_unique_times[t]
             self.sheet[time_row].font = Font(sz=11, bold=True, italic=False)
@@ -713,10 +716,14 @@ class MasterDesign:
             if unique_types[i] is None:
                 pass
             else:
-                alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
+                #alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
+                alphabet = get_column_letter(get_max_column+1)
                 self.color_cell(unique_types[i], alphabet+str(row), False)
-                self.sheet[''.join(string.ascii_uppercase[get_max_column+2])+str(row)] = "-" + unique_types[i]
+                self.sheet[get_column_letter(get_max_column+2) + str(row)] = "-" + unique_types[i]
+
+
                 row += 1
+
 
     def set_page_break(self):
         # 40 rows per page
