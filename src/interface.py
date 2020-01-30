@@ -379,6 +379,19 @@ class UserInterface(Frame):
                             pady=30,
                             padx=245)
 
+        # Short welcome text
+        heading_text = ttk.Label(button_frame,
+                                 text="Updated: 01/30/2020",
+                                 foreground="grey",
+                                 font=('Arial', 10))
+        # Placing coordinates
+        heading_text.grid(column=0,
+                          columnspan=3,
+                          row=5,
+                          rowspan=6,
+                          padx=480,
+                          pady=0)
+
     def selection_step_window(self):
         # Removes any other necessary window
         if self.payroll_window is not None:
