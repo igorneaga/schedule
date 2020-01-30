@@ -205,7 +205,6 @@ class MasterDesign:
         insert_table_headings(self.sheet)
         insert_courses(self.sheet, list_dict)
         # Excel table design
-        self.border_all_cells("A3")
         self.color_cell_meaning(row_num=4)
         self.adjust_cells_width(False)
         self.set_page_break()
@@ -310,9 +309,10 @@ class MasterDesign:
         temp_time_dict = dict()
         time_row_column = 2
         for t in range(len(list_unique_times)):
-            alphabet = ''.join(string.ascii_uppercase[time_row_column])
-            #alphabet = get_column_letter(time_row_column)
-            time_row = str(alphabet) + '1'
+            #alphabet = ''.join(string.ascii_uppercase[time_row_column])
+            alphabet = get_column_letter(time_row_column + 1)
+            time_row = alphabet + '1'
+
             self.sheet[time_row] = list_unique_times[t]
             self.sheet[time_row].font = Font(sz=11, bold=True, italic=False)
             self.sheet[time_row].alignment = Alignment(horizontal='center', vertical='center')
@@ -328,7 +328,7 @@ class MasterDesign:
         excel_max_column = self.sheet.max_column
 
         # Transfers column to an alphabetical format
-        col_letter = ''.join(string.ascii_uppercase[excel_max_column - 4])
+        col_letter = get_column_letter(excel_max_column - 3)
 
         for column in self.sheet.columns:
             max_length = 0
@@ -378,7 +378,7 @@ class MasterDesign:
         if style is True:
             style_excel_cell(excel_sheet, start_row, start_column)
 
-    def border_all_cells(self, start_cell):
+    def border_all_cells(self):
         """Borders all table"""
         # Gets table size
         excel_max_row = self.sheet.max_row
@@ -393,7 +393,7 @@ class MasterDesign:
         # Goes over each cell and applies border
         for column in range(excel_max_column):
             # Transfers column to an alphabetical format
-            col_letter = ''.join(string.ascii_uppercase[column])
+            col_letter = get_column_letter(column + 1)
             for row in range(excel_max_row):
                 row += 1
                 self.sheet[col_letter + str(row)].border = thin_border
@@ -428,7 +428,6 @@ class MasterDesign:
 
         # Creates a dictionary based on a room key
         room_course_dict = set_room_dict(list_dict)
-
         # Goes over room dict
         for key, value in room_course_dict.items():
             if not (key == "ONLINE" or key == "NONE" or key == "ARR"):
@@ -457,13 +456,16 @@ class MasterDesign:
                     while get_day != start_excel_row:
                         if any(c in get_cell_value('B', self.sheet, get_day) for c in (value[l].get('Course_Days'))):
                             for t in range(len(unique_times)):
-                                column = ''.join(string.ascii_uppercase[unique_times[t].get("Column_Num")])
+                                column = get_column_letter(unique_times[t].get("Column_Num") + 1)
                                 row = str(get_day)
                                 if unique_times[t].get("Time") == value[l].get("Start_Time"):
                                     for en in unique_times:
                                         if en.get("Time") == value[l].get("End_Time"):
                                             value[l].setdefault("Cell", []).append(column + row + ":" + ''.join(
-                                                string.ascii_uppercase[en.get("Column_Num")] + row))
+                                                get_column_letter(en.get("Column_Num") + 1) + row))
+                                            #print(value)
+                                            #print(column + row + ":" + ''.join(
+                                            #    get_column_letter(en.get("Column_Num") + 1) + row))
 
                         get_day += 1
 
@@ -673,7 +675,7 @@ class MasterDesign:
                                     inset_cell_value(self.sheet, value, l, c, 0, 1)
                                     self.color_cell(value[l].get("Department"), c[0] + c[1])
 
-        self.border_all_cells("A1")
+        self.border_all_cells()
 
     def color_cell(self, course_department, coordinate, course_type_list=True):
         """Colors a course based on a department color"""
@@ -720,10 +722,7 @@ class MasterDesign:
                 alphabet = get_column_letter(get_max_column+1)
                 self.color_cell(unique_types[i], alphabet+str(row), False)
                 self.sheet[get_column_letter(get_max_column+2) + str(row)] = "-" + unique_types[i]
-
-
                 row += 1
-
 
     def set_page_break(self):
         # 40 rows per page
