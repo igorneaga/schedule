@@ -1,7 +1,6 @@
 import datetime
 import os
 import re
-import string
 
 import openpyxl
 
@@ -189,6 +188,7 @@ class MasterDesign:
                                                 str(excel_data[i].get("End_Date"))
                 except:
                     pass
+
                 sheet["I" + str(row)] = excel_data[i].get("Enrollment")
 
         for course_len in range(len(list_dict)):
@@ -205,6 +205,7 @@ class MasterDesign:
         insert_table_headings(self.sheet)
         insert_courses(self.sheet, list_dict)
         # Excel table design
+        self.border_all_cells()
         self.color_cell_meaning(row_num=4)
         self.adjust_cells_width(False)
         self.set_page_break()
@@ -309,7 +310,6 @@ class MasterDesign:
         temp_time_dict = dict()
         time_row_column = 2
         for t in range(len(list_unique_times)):
-            #alphabet = ''.join(string.ascii_uppercase[time_row_column])
             alphabet = get_column_letter(time_row_column + 1)
             time_row = alphabet + '1'
 
@@ -364,6 +364,8 @@ class MasterDesign:
                     elif adjusted_width > 14:
                         adjusted_width = 14
                 self.sheet.column_dimensions[get_column].width = adjusted_width
+            if classroom_table is True:
+                self.sheet.column_dimensions[get_column_letter(excel_max_column - 2)].width = 24
 
     def merge_excel_cells(self, start_row, start_column, end_row, end_column, style=False, bold=False):
         """Merges excel cells"""
@@ -463,9 +465,9 @@ class MasterDesign:
                                         if en.get("Time") == value[l].get("End_Time"):
                                             value[l].setdefault("Cell", []).append(column + row + ":" + ''.join(
                                                 get_column_letter(en.get("Column_Num") + 1) + row))
-                                            #print(value)
-                                            #print(column + row + ":" + ''.join(
-                                            #    get_column_letter(en.get("Column_Num") + 1) + row))
+                                            print(value)
+                                            print(column + row + ":" + ''.join(
+                                                get_column_letter(en.get("Column_Num") + 1) + row))
 
                         get_day += 1
 
