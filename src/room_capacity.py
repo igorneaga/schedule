@@ -41,7 +41,6 @@ class RoomCapacity:
 
             for i in range(len(list_of_rooms)):
                 room_cap_dict[list_of_rooms[i]] = list_of_capacity[i]
-            print(room_cap_dict)
             return room_cap_dict
 
         if os.path.isfile(self.file):
@@ -60,10 +59,7 @@ class RoomCapacity:
                         write_file = csv.DictWriter(over_write_file, room_cap.keys())
                         write_file.writeheader()
                         write_file.writerow(room_cap)
-                        print(room_cap)
-
                     return room_cap
-                print(room_cap)
 
                 return dict(room_cap)
 
@@ -75,6 +71,5 @@ class RoomCapacity:
                 write_file = csv.DictWriter(new_csv_file, room_cap.keys())
                 write_file.writeheader()
                 write_file.writerow(room_cap)
-            print(room_cap)
             return room_cap
 
