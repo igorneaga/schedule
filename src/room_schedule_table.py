@@ -465,10 +465,6 @@ class MasterDesign:
                                         if en.get("Time") == value[l].get("End_Time"):
                                             value[l].setdefault("Cell", []).append(column + row + ":" + ''.join(
                                                 get_column_letter(en.get("Column_Num") + 1) + row))
-                                            print(value)
-                                            print(column + row + ":" + ''.join(
-                                                get_column_letter(en.get("Column_Num") + 1) + row))
-
                         get_day += 1
 
                     # Checking before merging
