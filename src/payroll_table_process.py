@@ -1,21 +1,25 @@
-from nameparser import HumanName
-import requests
-from bs4 import BeautifulSoup
-import re
+import csv
 import datetime
 import os
-import sys
-import csv
-import openpyxl
+import re
 import string
-from openpyxl.styles.borders import Border, Side
+import sys
+
+import openpyxl
+import requests
+from bs4 import BeautifulSoup
+from nameparser import HumanName
 from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles.borders import Border, Side
 
 
 class PayrollTable:
     def __init__(self, c_dict, folder_dir):
         self.save_path = folder_dir
         self.courses_dict = c_dict
+        self.dep_courses = None
+        self.workbook = None
+        self.sheet = None
 
         self.allowed_departments = [
             'Accounting', 'Business Law', 'Business', 'Finance',
@@ -97,8 +101,8 @@ class PayrollTable:
             cwd = os.path.dirname(os.path.realpath(sys.executable))
 
             if os.path.isfile(f'{cwd}\\{file}'):
-            #if os.path.isfile('src\\department_cost.csv'):
-                #with open("src\\" + file) as csv_file:
+                # if os.path.isfile('src\\department_cost.csv'):
+                # with open("src\\" + file) as csv_file:
                 with open(f'{cwd}\\{file}') as csv_file:
                     read_csv_file = csv.DictReader(csv_file, delimiter=',')
                     for row in read_csv_file:
@@ -394,7 +398,7 @@ class PayrollTable:
                 if (fall_year is None) or (spring_year is None):
                     if fall_year is None:
                         now = datetime.datetime.now()
-                        fall_year = (now.year) - 1
+                        fall_year = now.year - 1
                     else:
                         now = datetime.datetime.now()
                         spring_year = now.year

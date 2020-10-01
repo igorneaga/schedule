@@ -1,3 +1,4 @@
+import csv
 import datetime
 import glob
 import os
@@ -10,8 +11,6 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-
-import csv
 
 import requests
 
@@ -276,13 +275,12 @@ class UserInterface(Frame):
     def display_excel_files(self):
         """Shows to the user which files has been chosen"""
         # Prepares the file names into the proper format.
-        symbol = '\ '
         self.files_show_names = []
         for i in self.files_show_directory:
             z = 0
-            for j in i:
+            for _ in i:
                 z -= 1
-                if i[z] == '/' or i[z] == symbol[0]:
+                if i[z] == '/' or i[z] == '\\':
                     self.files_show_names.insert(0, i[z + 1:])
                     break
 
@@ -1016,8 +1014,8 @@ class UserInterface(Frame):
         else:
             def create_web_table(web_department_parameters, urlencode_dict_list, web_semester_parameters, web_year,
                                  web_department_options, folder):
-                """Department chairs might need an example of a file from the previous semester. This function will create a
-                table based on university records."""
+                """Department chairs might need an example of a file from the previous semester.
+                This function will create a table based on university records."""
                 urlencode_list = []
 
                 folder_path = folder
@@ -1121,7 +1119,7 @@ class UserInterface(Frame):
             button_frame.update()
 
             # Moves to the next class which is processing all the files
-            #try:
+            # try:
             if block_table is True:
                 self.error_data_list = receiver.DataProcessor(self.folder,
                                                               self.files_show_directory, self.table_settings_name,
