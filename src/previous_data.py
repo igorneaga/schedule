@@ -151,7 +151,7 @@ class CreateStandardTable:
         self.excel_column_headings()
         self.set_data()
         self.adjust_cells_width()
-        self.border_all_cells("A1")
+        self.border_all_cells()
         self.set_page_break()
         self.excel_workbook.save(self.folder_path + '\\' + self.department_abbreviation.replace(" ", "_")[0:27] + "_" +
                                  self.semester + "_" + self.year + ".xlsx")
@@ -285,7 +285,7 @@ class CreateStandardTable:
 
                 self.excel_sheet.column_dimensions[get_column].width = adjusted_width
 
-    def border_all_cells(self, start_cell):
+    def border_all_cells(self):
         """Borders all table"""
         # Gets table size
         excel_max_row = self.excel_sheet.max_row

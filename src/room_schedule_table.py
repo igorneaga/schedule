@@ -3,11 +3,10 @@ import os
 import re
 
 import openpyxl
-
-from openpyxl.utils import get_column_letter
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.styles.borders import Border, Side
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.pagebreak import Break
 
 
@@ -92,8 +91,8 @@ class MasterDesign:
             self.set_excel_heading(heading_name="Online Table")
             self.standard_table(online_courses_list, "Online Courses", "d5d1e7")
             for i in range(len(online_courses_list)):
-                if self.sheet["H" + str(i+4)].value == "None-None":
-                    self.sheet["H" + str(i+4)] = ""
+                if self.sheet["H" + str(i + 4)].value == "None-None":
+                    self.sheet["H" + str(i + 4)] = ""
 
         # MBA MACC table section
         if mba_macc_list:
@@ -137,6 +136,7 @@ class MasterDesign:
 
         def insert_table_headings(sheet):
             """Inserts column headers on A3"""
+
             def insert_heading(heading_column, title):
                 sheet[heading_column + "3"] = title
                 sheet[heading_column + "3"].font = Font(name="Arial", sz=11, bold=True, italic=False)
@@ -236,10 +236,12 @@ class MasterDesign:
 
     def create_master_file(self):
         """Creates a folder and excel file"""
+
         def create_directory(path):
             """Creates directory for created excel file"""
             if not os.path.exists(path):
                 os.makedirs(path)
+
         create_directory(self.save_path)
 
         self.workbook = openpyxl.Workbook()
@@ -266,6 +268,7 @@ class MasterDesign:
             sheet["A1"] = "Term: " + str(semester) + " " + str(year)
             sheet["A1"].font = Font(sz=11, bold=True, italic=False)
             sheet["A1"].alignment = Alignment(horizontal='center', vertical='center')
+
         set_course_term(self.table_semester, self.table_year, self.sheet)
 
     def set_time_row(self, list_dict):
@@ -377,6 +380,7 @@ class MasterDesign:
             sheet.cell(row=row, column=column).font = Font(sz=11, bold=bold, italic=False)
             sheet.cell(row=row, column=column).alignment = Alignment(horizontal='center',
                                                                      vertical='center', wrap_text=True)
+
         if style is True:
             style_excel_cell(excel_sheet, start_row, start_column)
 
@@ -478,7 +482,7 @@ class MasterDesign:
                                 if val[val_index].get("Time_Comment") is None:
                                     sheet[cell_one[index_one] + cell_one[index_two]] = val[val_index].get("Course")
                                 else:
-                                    sheet[cell_one[index_one] + cell_one[index_two]] =\
+                                    sheet[cell_one[index_one] + cell_one[index_two]] = \
                                         val[val_index].get("Course") + val[val_index].get("Time_Comment")
                             else:
                                 if val[val_index].get("Time_Comment") is None:
@@ -488,7 +492,7 @@ class MasterDesign:
                                     else:
 
                                         sheet[cell_one[index_one] + cell_one[index_two]] = \
-                                            sheet[cell_one[index_one] + cell_one[index_two]].value + " /" +\
+                                            sheet[cell_one[index_one] + cell_one[index_two]].value + " /" + \
                                             val[val_index].get("Course")
                                 else:
                                     sheet[cell_one[index_one] + cell_one[index_two]] = \
@@ -526,7 +530,7 @@ class MasterDesign:
                                     is True:
                                 merge_one_row(merge_three_sheet, merge_three_cell_three)
                                 return [merge_three_cell_one, merge_three_cell_three]
-                            elif merge_two_rows(merge_three_sheet, merge_three_cell_two, merge_three_cell_three, False)\
+                            elif merge_two_rows(merge_three_sheet, merge_three_cell_two, merge_three_cell_three, False) \
                                     is True:
                                 merge_one_row(merge_three_sheet, merge_three_cell_one)
                                 return [merge_three_cell_two, merge_three_cell_one]
@@ -590,6 +594,7 @@ class MasterDesign:
                                                  merge_five_cell_four, merge_five_cell_five) is True:
                                 merge_one_row(merge_five_sheet, merge_five_cell_one)
                                 return [merge_five_cell_two, merge_five_cell_one]
+
                         if len(value[l].get("Cell")) < 2:
                             first_cell = split_cell_value(value[l], 0)
 
@@ -716,10 +721,10 @@ class MasterDesign:
             if unique_types[i] is None:
                 pass
             else:
-                #alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
-                alphabet = get_column_letter(get_max_column+1)
-                self.color_cell(unique_types[i], alphabet+str(row), False)
-                self.sheet[get_column_letter(get_max_column+2) + str(row)] = "-" + unique_types[i]
+                # alphabet = ''.join(string.ascii_uppercase[get_max_column+1])
+                alphabet = get_column_letter(get_max_column + 1)
+                self.color_cell(unique_types[i], alphabet + str(row), False)
+                self.sheet[get_column_letter(get_max_column + 2) + str(row)] = "-" + unique_types[i]
                 row += 1
 
     def set_page_break(self):
@@ -732,7 +737,7 @@ class MasterDesign:
                 while get_max_row >= 40:
                     self.sheet.sheet_properties.pageSetUpPr.fitToPage = True
                     openpyxl.worksheet.pagebreak.PageBreak.tagname = 'rowBreaks'
-                    page_break_row = Break((get_max_row + 1)-37)
+                    page_break_row = Break((get_max_row + 1) - 37)
                     self.sheet.page_breaks.append(page_break_row)
 
                     openpyxl.worksheet.pagebreak.PageBreak.tagname = 'colBreaks'

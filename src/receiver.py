@@ -1,10 +1,10 @@
 import datetime
+import math
 import os
 import re
 from itertools import chain  # For more efficient looping
 from tkinter import messagebox
 
-import math
 import openpyxl
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
@@ -89,7 +89,7 @@ class DataProcessor:
             for i in range(len(self.file_directory)):
                 get_file_name = os.path.basename(self.file_directory[i])
                 workbook_copy = openpyxl.load_workbook(self.file_directory[i])
-                set_file_path = 'copy_folder\\'+'copy_' + get_file_name
+                set_file_path = 'copy_folder\\' + 'copy_' + get_file_name
                 self.get_excel_data(workbook_copy, self.file_directory[i])
                 self.set_dict_courses(self.excel_data_list)
                 if self.payroll is False:
@@ -182,7 +182,7 @@ class DataProcessor:
         iterable_row = read_worksheet.iter_rows()
 
         # Skips unnecessary rows
-        for skip_row in range(data_start_row-1):
+        for skip_row in range(data_start_row - 1):
             next(iterable_row)
 
         for row in iterable_row:
@@ -490,14 +490,14 @@ class DataProcessor:
                                 each_excel_data[self.excel_course_days + 2] = modified_str.replace("OR", "")
 
                             split_by_comma = [x.strip() for x in each_excel_data[self.excel_course_days + 2].split(',')]
-                            for l in range(len(split_by_comma)):
+                            for position in range(len(split_by_comma)):
                                 # Checks if the function can convert user day format
-                                if convert_user_days(split_by_comma[l], 0) == 'None':
+                                if convert_user_days(split_by_comma[position], 0) == 'None':
                                     comment = dict_courses.get("Course") + " must follow the day format" + (' ' * 150)
                                     self.create_report_dictionary(dict_courses.get("Row"), 7, dict_courses.get("File"),
                                                                   dict_courses.get("Sheet_Name"), "FF687B", comment)
                                     dict_courses["Type"] = ["Error"]
-                                dict_courses["Course_Days"].append(convert_user_days(split_by_comma[l], 0))
+                                dict_courses["Course_Days"].append(convert_user_days(split_by_comma[position], 0))
 
                         elif "None" in each_excel_data[self.excel_course_days + 2]:
                             pass
@@ -583,7 +583,7 @@ class DataProcessor:
                 for key in all_dict_courses[len_dict]:
                     if type(all_dict_courses[len_dict].get(key)) == str:
                         if all_dict_courses[len_dict].get(key)[0:4].upper() == 'NONE':
-                            all_dict_courses[len_dict][key] = all_dict_courses[len_dict-1].get(key)
+                            all_dict_courses[len_dict][key] = all_dict_courses[len_dict - 1].get(key)
 
                 all_dict_courses[len_dict]["Department"] = set_course_department(all_dict_courses[len_dict].get("Course"))
 
@@ -761,6 +761,7 @@ class DataProcessor:
                                                             return x
                                                         else:
                                                             return time
+
                                                     fifteenth_minutes_start_i = check_minutes(
                                                         fifteenth_minutes_start_i)
                                                     fifteenth_minutes_end_i = check_minutes(
@@ -818,4 +819,3 @@ class DataProcessor:
     def get_excel_errors(self):
         """Returns founded errors"""
         return self.user_excel_errors
-

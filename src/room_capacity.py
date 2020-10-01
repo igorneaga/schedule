@@ -72,4 +72,3 @@ class RoomCapacity:
                 write_file.writeheader()
                 write_file.writerow(room_cap)
             return room_cap
-
