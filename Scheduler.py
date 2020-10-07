@@ -27,6 +27,8 @@ class UpdateInterface(Frame):
         self.grid()
 
         self.install_update_window = None
+        self.progress_bar = None
+        self.queue = None
 
         self.update_in_progress()
 
@@ -153,7 +155,7 @@ class ThreadedTask(threading.Thread):
         self.queue.put("Task finished")
 
 
-def create_interface(argv):
+def create_interface():
     root = Tk()
     root.title('Uni-Scheduler')
     root.tk.call('tk', 'scaling', 1.3)
@@ -176,4 +178,4 @@ def create_interface(argv):
 
 
 if __name__ == "__main__":
-    create_interface(sys.argv)
+    create_interface()

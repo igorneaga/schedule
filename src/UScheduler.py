@@ -4,7 +4,7 @@ from tkinter import *
 from src import interface
 
 
-def create_interface(argv):
+def create_interface():
     cwd = os.path.dirname(os.path.realpath(sys.executable))
 
     root = Tk()
@@ -30,5 +30,4 @@ def create_interface(argv):
 
 
 if __name__ == "__main__":
-    create_interface(sys.argv)
-
+    create_interface()
