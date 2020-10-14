@@ -21,6 +21,7 @@ class UserInterface(Frame):
     # It is better to define values like the following ones as constants (uppercase) in a single place (like here)
     GOOGLE_FORM_URL = 'https://goo.gl/forms/wNkzjymOQ7wiNavf1'
     INSTRUCTIONS_URL = 'https://docs.google.com/document/d/1htRsKmxDX33yawrYqeHkCLWlEL-juRjeM-if8N4f2yo/edit?usp=sharing'
+    LATEST_RELEASE_URL = 'https://github.com/igorneaga/schedule/releases/latest'
 
     def __init__(self, master, current_path):
         super().__init__(master)
@@ -179,6 +180,9 @@ class UserInterface(Frame):
     def open_instructions_url(self):
         """Instructions on how to use this program"""
         webbrowser.open(self.INSTRUCTIONS_URL)
+
+    def open_latest_release(self):
+        webbrowser.open(self.LATEST_RELEASE_URL)
 
     def main_text_interface(self, button_frame, title_text, back_button_function, description_text=None,
                             x_description=18, y_title=20, remove_back=False):
@@ -375,19 +379,21 @@ class UserInterface(Frame):
                             row=5,
                             column=0,
                             pady=30,
-                            padx=245)
+                            padx=25)
 
-        # Short welcome text
-        heading_text = ttk.Label(button_frame,
-                                 text="Updated: 01/30/2020",
-                                 foreground="grey",
-                                 font=('Arial', 10))
+        # Update date text
+        heading_text = Button(button_frame,
+                              border='0',
+                              text="Updated: 10/13/2020",
+                              command=self.open_latest_release,
+                              foreground="blue",
+                              font=('Arial', 10, 'underline'))
         # Placing coordinates
         heading_text.grid(column=0,
                           columnspan=3,
                           row=5,
                           rowspan=6,
-                          padx=480,
+                          padx=495,
                           pady=0)
 
     def selection_step_window(self):

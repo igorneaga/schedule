@@ -220,19 +220,19 @@ class CreateStandardTable:
                         if web_courses_data[cell_index + 1][4][0:3] == "ARR":
                             excel_sheet["F" + str(starting_row)] = "ARR"
                         else:
-                            excel_sheet["F" + str(starting_row)] = web_courses_data[cell_index + 1][6]
-                        excel_sheet["G" + str(starting_row)] = str(web_courses_data[cell_index + 1][3]).strip()
+                            excel_sheet["F" + str(starting_row)] = web_courses_data[cell_index + 1][7]
+                        excel_sheet["G" + str(starting_row)] = str(web_courses_data[cell_index + 1][4]).strip()
 
                         if web_courses_data[cell_index + 1][6].replace(" ", "") == "ONLINE":
                             excel_sheet["F" + str(starting_row)] = "ONLINE"
                             excel_sheet["H" + str(starting_row)] = "ONLINE"
                         else:
-                            excel_sheet["H" + str(starting_row)] = web_courses_data[cell_index + 1][4]
+                            excel_sheet["H" + str(starting_row)] = web_courses_data[cell_index + 1][5]
 
                         excel_sheet["I" + str(starting_row)] = int(web_courses_data[cell_index + 1][9])
-                        excel_sheet["J" + str(starting_row)] = web_courses_data[cell_index + 1][7]
+                        excel_sheet["J" + str(starting_row)] = web_courses_data[cell_index + 1][8]
 
-                        start_end_date = web_courses_data[cell_index + 1][5].split("-")
+                        start_end_date = web_courses_data[cell_index + 1][6].split("-")
                         start_end_date[0] = start_end_date[0].replace(" ", "")
                         start_end_date[0] = start_end_date[0][:-2] + '20' + start_end_date[0][-2:]
                         start_end_date[1] = start_end_date[1].replace(" ", "")
