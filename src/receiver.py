@@ -60,7 +60,7 @@ class DataProcessor:
             """Returns a day's order selected by the user"""
             # 1 - out order days
             # 2 - in order days
-            if user_choice is 2:
+            if user_choice == 2:
                 return ["Monday", "Tuesday", "Wednesday", "Thursday"]
             return ["Monday", "Wednesday", "Tuesday", "Thursday"]
 
@@ -616,7 +616,7 @@ class DataProcessor:
             summer_1st_term = datetime.datetime(year=second_year, month=5, day=15)
             summer_2nd_term = datetime.datetime(year=second_year, month=6, day=18)
 
-            if (first_course is "None") or (first_course is None) or (second_course is "None") or \
+            if (first_course == "None") or (first_course is None) or (second_course == "None") or \
                     (second_course is None):
                 return False
             else:

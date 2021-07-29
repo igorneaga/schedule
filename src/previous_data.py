@@ -264,9 +264,9 @@ class CreateStandardTable:
             max_cell_length = 0
             get_column = column[0].column
 
-            if get_column is "A":
+            if get_column == "A":
                 self.excel_sheet.column_dimensions["A"].width = 9
-            elif get_column is "B":
+            elif get_column == "B":
                 self.excel_sheet.column_dimensions["A"].width = 7.9
             else:
                 for cell in column:

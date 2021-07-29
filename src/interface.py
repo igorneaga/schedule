@@ -368,34 +368,6 @@ class UserInterface(Frame):
                                    sticky='w',
                                    padx=425)
 
-        # Button for report/request
-        problem_button = Button(button_frame,
-                                border='0',
-                                text="Instructions & Information",
-                                command=self.open_instructions_url,
-                                foreground="blue",
-                                font=('Arial', 11, 'underline'))
-        problem_button.grid(sticky='w',
-                            row=5,
-                            column=0,
-                            pady=30,
-                            padx=25)
-
-        # Update date text
-        heading_text = Button(button_frame,
-                              border='0',
-                              text="Updated: 10/13/2020",
-                              command=self.open_latest_release,
-                              foreground="blue",
-                              font=('Arial', 10, 'underline'))
-        # Placing coordinates
-        heading_text.grid(column=0,
-                          columnspan=3,
-                          row=5,
-                          rowspan=6,
-                          padx=495,
-                          pady=0)
-
     def selection_step_window(self):
         # Removes any other necessary window
         if self.payroll_window is not None:

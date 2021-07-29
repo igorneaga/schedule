@@ -338,12 +338,12 @@ class MasterDesign:
             # Gets column coordinates
             get_column = column[0].column
             # Column "A" and "B" will have a standard size
-            if get_column is "A":
+            if get_column == "A":
                 if classroom_table is True:
                     self.sheet.column_dimensions["A"].width = 12
                 else:
                     self.sheet.column_dimensions["A"].width = 18
-            elif get_column is "B":
+            elif get_column == "B":
                 if classroom_table is True:
                     self.sheet.column_dimensions["B"].width = 12
                 else:

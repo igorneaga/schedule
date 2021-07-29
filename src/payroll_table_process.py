@@ -530,9 +530,9 @@ class PayrollTable:
             max_length = 0
             # Gets column coordinates
             get_column = column[0].column
-            if get_column is "A":
+            if get_column == "A":
                 self.sheet.column_dimensions["A"].width = 18
-            elif get_column is "G":
+            elif get_column == "G":
                 self.sheet.column_dimensions["G"].width = 13
             else:
                 for cell in column:
